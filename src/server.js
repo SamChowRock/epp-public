@@ -1,8 +1,8 @@
 import { createServer } from 'node:http';
 import { randomUUID } from 'node:crypto';
+import { loadConfig } from './config.js';
 
 const host = '127.0.0.1';
-const port = 3000;
 const captures = new Map();
 const maxBodyBytes = 16 * 1024;
 
@@ -132,15 +132,22 @@ const server = createServer((request, response) => {
   });
 });
 
-server.on('error', (error) => {
-  if (error.code === 'EADDRINUSE') {
-    console.error(`Cannot listen on ${host}:${port}: address already in use`);
-  } else {
-    console.error(`Server failed: ${error.code ?? 'UNKNOWN'}`);
-  }
-  process.exitCode = 1;
-});
+async function start() {
+  const { port } = await loadConfig();
+  server.on('error', (error) => {
+    if (error.code === 'EADDRINUSE') {
+      console.error(`Cannot listen on ${host}:${port}: address already in use`);
+    } else {
+      console.error(`Server failed: ${error.code ?? 'UNKNOWN'}`);
+    }
+    process.exitCode = 1;
+  });
+  server.listen(port, host, () => {
+    console.log(`EPP listening on http://${host}:${port} (pid=${process.pid})`);
+  });
+}
 
-server.listen(port, host, () => {
-  console.log(`EPP listening on http://${host}:${port}`);
+start().catch((error) => {
+  console.error(`Cannot start EPP: ${error.message}`);
+  process.exitCode = 1;
 });
