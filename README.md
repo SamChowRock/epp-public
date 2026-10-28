@@ -1,6 +1,6 @@
 # EPP 配套实践代码
 
-当前对应第一篇第 3 章，代码分支 `part-01/chapter-03`，从第 2 章的 `part-01/chapter-02` 继续演进。第三章加入端口配置与运行环境示例，保留原有三个 HTTP 接口。数据保存在单个进程的 `Map` 中，停止进程后丢失；当前仅供本机实践。
+当前对应第一篇第 4 章，代码分支 `part-01/chapter-04`，从第 3 章的 `part-01/chapter-03` 继续演进。第四章加入事件循环、取消、线程池和 Worker 观察程序，沿用第三章的启动配置与原有三个 HTTP 接口。数据保存在单个进程的 `Map` 中，停止进程后丢失；当前仅供本机实践。
 
 使用 nvm 管理 Node.js；安装方式见 [nvm 官方说明](https://github.com/nvm-sh/nvm#installing-and-updating)。macOS、Linux 使用 Bash 或 Zsh，Windows 使用 WSL。在项目根目录运行：
 
@@ -122,3 +122,75 @@ node examples/signal-lifetime.js drain
 ```
 
 每次看到 `ready` 和工作开始后，在该终端按 `Ctrl+C`。`log-only` 只记录信号，仍会继续开始新工作，十秒演示时限会停止调度并返回失败；`drain` 停止调度，等待已接受工作完成，清理剩余定时器后自然退出。按顺序分别完成两次观察，不需要同时运行。这个有限任务示例用于解释资源与工作归属，不替代服务的 HTTP／数据库生命周期实现。
+
+## 第四章事件循环与执行边界示例
+
+继续从项目根目录运行，沿用 Node.js `24.22.1`，不新增第三方依赖。`src/` 的记录接口保持第三章行为，以下实验不增加业务路由。
+
+先在一个终端按默认端口运行 `npm start`；另一个终端用慢速上传与独立 GET 观察请求重叠：
+
+```bash
+node examples/slow-upload.js &
+upload_pid=$!
+sleep 0.2
+curl -sS -w '\nlist total=%{time_total}s\n' http://127.0.0.1:3000/captures
+wait "$upload_pid"
+curl -sS http://127.0.0.1:3000/captures
+```
+
+先确认服务已收到 POST、上传尚未完成，期间列表仍应能返回；之后列表增加本次原文。改服务端口时同步改客户端与 curl 地址。重复运行会创建新记录。
+
+独立实验服务使用 `127.0.0.1:3002`：
+
+```bash
+node examples/event-loop-server.js
+```
+
+等待打印监听地址后，在另一个终端执行：
+
+```bash
+curl -sS -w '\nslow total=%{time_total}s\n' http://127.0.0.1:3002/wait &
+slow_pid=$!
+sleep 0.1
+curl -sS -w '\nquick total=%{time_total}s\n' http://127.0.0.1:3002/quick
+wait "$slow_pid"
+```
+
+把第一条 URL 的 `/wait` 分别换成 `/block`、`/slice`，每轮完成后再开始下一轮。对照快请求顺序与 curl 的总耗时，再看服务里的 100 ms 探针。`/wait` 是定时器等待；`/block` 连续计算约 600 ms；`/slice` 分段让事件循环推进，仍累计消耗约 600 ms 计算时间。实验只供本机短时观察，结束后在两个服务终端分别按 `Ctrl+C`。
+
+以下程序不需要监听端口：
+
+```bash
+node --unhandled-rejections=strict examples/async-failure.js caught
+node --unhandled-rejections=strict examples/async-failure.js detached
+node --unhandled-rejections=strict examples/async-failure.js callback
+node examples/timeout-cancel.js race
+node examples/timeout-cancel.js cancel
+node examples/timeout-cancel.js fast
+node examples/bounded-batch.js
+UV_THREADPOOL_SIZE=1 node examples/thread-pool.js
+UV_THREADPOOL_SIZE=4 node examples/thread-pool.js
+```
+
+异常程序三种模式均返回 1，后两种刻意展示未处理异常；需要看退出码时，紧接单次运行执行 `echo $?`。race 模式调用方结束后工作仍继续，cancel 模式应先收尾工作再报告超时，fast 模式正常返回。分批程序在第 3 项失败后等第 4 项结束，不再接受第 5、6 项，最后显示 `active=0, peak=2` 并返回 1。线程池的派生参数仅作原生计算负载，不是业务密码配置；观察完成时间分布，避免将打印顺序或某次毫秒数当成调度保证。
+
+支线 4A 的顺序与有限饥饿实验：
+
+```bash
+node examples/scheduling-order.js
+node examples/scheduling-order.js --starve
+```
+
+分别比较 ESM 顶层与 I/O 回调中的 nextTick／微任务顺序，以及 `--starve` 对定时器和 I/O 回调的延后。
+
+支线 4B 的一次性线程协议：
+
+```bash
+node examples/worker-boundary.js main
+node examples/worker-boundary.js worker
+node examples/worker-boundary.js fail
+node examples/worker-boundary.js empty
+node examples/worker-boundary.js timeout
+```
+
+main 与 worker 对照父线程探针和计算完成的先后；后者修改输入副本，父线程的 note 保持不变。fail、empty、timeout 分别报告异常、无结果退出与期限终止，并返回 1。完整示例同时等待结果和退出，只处理无外部副作用的计算，不代替持久化后台任务或生产线程池。
