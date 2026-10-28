@@ -1,19 +1,34 @@
 import { createServer } from 'node:http';
+import type { IncomingMessage, ServerResponse, OutgoingHttpHeaders } from 'node:http';
 import { randomUUID } from 'node:crypto';
 import { loadConfig } from './config.js';
+import { errorCode, errorMessage } from './errors.js';
+
+type Capture = {
+  id: string;
+  originalText: string;
+  createdAt: string;
+};
 
 const host = '127.0.0.1';
-const captures = new Map();
+const captures = new Map<string, Capture>();
 const maxBodyBytes = 16 * 1024;
 
 class HttpError extends Error {
-  constructor(statusCode, message) {
+  readonly statusCode: number;
+
+  constructor(statusCode: number, message: string) {
     super(message);
     this.statusCode = statusCode;
   }
 }
 
-function sendJson(response, statusCode, data, headers = {}) {
+function sendJson(
+  response: ServerResponse,
+  statusCode: number,
+  data: unknown,
+  headers: OutgoingHttpHeaders = {},
+): void {
   response.writeHead(statusCode, {
     'Content-Type': 'application/json; charset=utf-8',
     ...headers,
@@ -21,13 +36,13 @@ function sendJson(response, statusCode, data, headers = {}) {
   response.end(JSON.stringify(data));
 }
 
-function readJson(request) {
-  return new Promise((resolve, reject) => {
-    const chunks = [];
+function readJson(request: IncomingMessage): Promise<unknown> {
+  return new Promise<unknown>((resolve, reject) => {
+    const chunks: Buffer[] = [];
     let bytes = 0;
     let tooLarge = false;
 
-    request.on('data', (chunk) => {
+    request.on('data', (chunk: Buffer) => {
       if (tooLarge) return;
       bytes += chunk.length;
       if (bytes > maxBodyBytes) {
@@ -55,9 +70,13 @@ function readJson(request) {
   });
 }
 
-async function handleRequest(request, response) {
+async function handleRequest(
+  request: IncomingMessage,
+  response: ServerResponse,
+): Promise<void> {
   let pathname;
   try {
+    if (request.url === undefined) throw new HttpError(400, 'Request URL is invalid');
     ({ pathname } = new URL(request.url, 'http://127.0.0.1'));
   } catch {
     throw new HttpError(400, 'Request URL is invalid');
@@ -71,7 +90,7 @@ async function handleRequest(request, response) {
 
     if (request.method === 'POST') {
       const mediaType = request.headers['content-type']
-        ?.split(';')[0].trim().toLowerCase();
+        ?.split(';')[0]?.trim().toLowerCase();
       if (mediaType !== 'application/json') {
         throw new HttpError(415, 'Content-Type must be application/json');
       }
@@ -80,14 +99,14 @@ async function handleRequest(request, response) {
       if (body === null || typeof body !== 'object' || Array.isArray(body)) {
         throw new HttpError(400, 'Request body must be a JSON object');
       }
-      if (typeof body.originalText !== 'string' || !body.originalText.trim()) {
+      if (!('originalText' in body) || typeof body.originalText !== 'string' || !body.originalText.trim()) {
         throw new HttpError(400, 'originalText must be a non-empty string');
       }
       if (body.originalText.length > 2000) {
         throw new HttpError(400, 'originalText must be at most 2000 code units');
       }
 
-      const capture = {
+      const capture: Capture = {
         id: randomUUID(),
         originalText: body.originalText,
         createdAt: new Date().toISOString(),
@@ -106,7 +125,7 @@ async function handleRequest(request, response) {
   }
 
   const detailMatch = /^\/captures\/([^/]+)$/.exec(pathname);
-  if (detailMatch) {
+  if (detailMatch?.[1] !== undefined) {
     if (request.method !== 'GET') {
       sendJson(response, 405, { error: 'Method not allowed' }, { Allow: 'GET' });
       return;
@@ -122,12 +141,12 @@ async function handleRequest(request, response) {
 
 const server = createServer((request, response) => {
   console.log(`${request.method} ${request.url}`);
-  handleRequest(request, response).catch((error) => {
+  handleRequest(request, response).catch((error: unknown) => {
     if (response.destroyed || response.writableEnded) return;
     const statusCode = error instanceof HttpError ? error.statusCode : 500;
     if (statusCode === 500) console.error(error);
     sendJson(response, statusCode, {
-      error: statusCode === 500 ? 'Internal server error' : error.message,
+      error: statusCode === 500 ? 'Internal server error' : errorMessage(error),
     }, { Connection: 'close' });
   });
 });
@@ -135,10 +154,10 @@ const server = createServer((request, response) => {
 async function start() {
   const { port } = await loadConfig();
   server.on('error', (error) => {
-    if (error.code === 'EADDRINUSE') {
+    if (errorCode(error) === 'EADDRINUSE') {
       console.error(`Cannot listen on ${host}:${port}: address already in use`);
     } else {
-      console.error(`Server failed: ${error.code ?? 'UNKNOWN'}`);
+      console.error(`Server failed: ${errorCode(error)}`);
     }
     process.exitCode = 1;
   });
@@ -147,7 +166,7 @@ async function start() {
   });
 }
 
-start().catch((error) => {
-  console.error(`Cannot start EPP: ${error.message}`);
+start().catch((error: unknown) => {
+  console.error(`Cannot start EPP: ${errorMessage(error)}`);
   process.exitCode = 1;
 });

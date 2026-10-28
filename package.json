@@ -7,7 +7,16 @@
     "node": "24.22.1"
   },
   "scripts": {
-    "start": "node src/server.js",
-    "debug": "node --inspect-brk=127.0.0.1:9229 src/server.js"
+    "dev": "tsx watch src/server.ts",
+    "typecheck": "tsc --noEmit",
+    "clean": "node scripts/clean.mjs",
+    "build": "npm run clean && tsc && node scripts/copy-assets.mjs",
+    "start": "node --enable-source-maps dist/src/server.js",
+    "debug": "node --enable-source-maps --inspect-brk=127.0.0.1:9229 dist/src/server.js"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3"
   }
 }

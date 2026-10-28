@@ -1,0 +1,6 @@
+{
+  "name": "epp-module-demo",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./entry.js" }
+}

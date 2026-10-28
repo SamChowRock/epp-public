@@ -1,15 +1,18 @@
 import { readFile } from 'node:fs/promises';
+import { errorCode } from './errors.js';
 
-export async function loadConfig() {
+type Config = { port: number };
+
+export async function loadConfig(): Promise<Config> {
   const configUrl = new URL('../config/service.json', import.meta.url);
   let text;
   try {
     text = await readFile(configUrl, 'utf8');
   } catch (error) {
-    throw new Error(`Cannot read config/service.json (${error.code ?? 'UNKNOWN'})`);
+    throw new Error(`Cannot read config/service.json (${errorCode(error)})`);
   }
 
-  let defaults;
+  let defaults: unknown;
   try {
     defaults = JSON.parse(text);
   } catch {
@@ -18,7 +21,8 @@ export async function loadConfig() {
   if (defaults === null || typeof defaults !== 'object' || Array.isArray(defaults)) {
     throw new Error('config/service.json must contain an object');
   }
-  if (!Number.isInteger(defaults.port) || defaults.port < 1 || defaults.port > 65535) {
+  if (!('port' in defaults) || typeof defaults.port !== 'number'
+    || !Number.isInteger(defaults.port) || defaults.port < 1 || defaults.port > 65535) {
     throw new Error('config/service.json port must be an integer from 1 to 65535');
   }
 
