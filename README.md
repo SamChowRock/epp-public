@@ -1,6 +1,6 @@
 # EPP 配套实践代码
 
-当前对应第一篇第 5 章，代码分支 `part-01/chapter-05`，从第 4 章的 `part-01/chapter-04` 继续演进。服务迁入 TypeScript，建立检查、开发运行与编译产物运行入口；原有三个接口与启动配置继续沿用。记录保存在单个进程的 `Map` 中，停止进程后丢失；当前仅供本机实践。
+当前对应第二篇第 7 章，代码分支 `part-02/chapter-07`，从 `part-01/chapter-05` 继续演进（第六章沿用第五章代码）。原有三个接口迁入 Nest，HTTP 入口与记录业务分开，启动配置和 TypeScript 构建布局继续沿用。记录保存在单个进程的 `Map` 中，停止进程后丢失；当前仅供本机实践。
 
 使用 nvm 管理 Node.js；安装方式见 [nvm 官方说明](https://github.com/nvm-sh/nvm#installing-and-updating)。macOS、Linux 使用 Bash 或 Zsh，Windows 使用 WSL。在项目根目录运行：
 
@@ -18,7 +18,7 @@ npm start
 
 `package.json` 中的 `engines.node` 同样声明精确版本，`.npmrc` 开启 `engine-strict`，让 npm 安装时拒绝不匹配的 Node 版本。遇到 `EBADENGINE` 先执行 `nvm use`，再重试安装。
 
-本章固定开发依赖 TypeScript `5.9.3`、tsx `4.23.15`、`@types/node` `24.13.3`，没有第三方运行依赖。`npm ci` 按锁文件安装开发工具；`npm run build` 先清理 `dist/`，编译业务源码，再复制默认配置；`npm start` 只运行产物。服务默认监听 `http://127.0.0.1:3000`。默认端口来自 `config/service.json`，启动时由 `src/config.ts`（产物为 `dist/src/config.js`）相对于模块读取，不依赖调用者的工作目录。
+本章运行依赖为 Nest `11.2.5`（common、core、platform-express）、reflect-metadata `0.2.2` 与 rxjs `7.8.2`；独立支线示例显式依赖 Express `5.2.1`，适配器也使用 Express 5，overrides 固定其间接依赖 Multer `2.5.0`。开发依赖保留 TypeScript `5.9.3`、tsx `4.23.15`、`@types/node` `24.13.3`，增加 `@types/express` `5.0.6`。`npm ci` 按锁文件安装完整依赖；`npm run build` 先清理 `dist/`，编译业务源码，再复制默认配置；`npm start` 只运行产物。服务默认监听 `http://127.0.0.1:3000`。默认端口来自 `config/service.json`，启动时由 `src/config.ts`（产物为 `dist/src/config.js`）相对于模块读取，不依赖调用者的工作目录。
 
 可以为一次启动覆盖端口：
 
@@ -39,7 +39,7 @@ curl -i http://127.0.0.1:3000/captures \
 
 原文必须是非空白字符串，至多 2000 个 JavaScript UTF-16 代码单元；保留原始空格。请求体限制为 16 KiB。错误通过 HTTP 状态码与 `{ "error": "..." }` 返回：无效输入 `400`、不存在 `404`、方法不支持 `405`、请求体过大 `413`、内容类型不支持 `415`。
 
-先构建，再运行 `npm run debug`，在 Chrome 的 `chrome://inspect` 中打开 Node 调试目标，继续启动后，在 `captures.set(capture.id, capture)` 设置断点并再次发送创建请求。调试器仅监听本机 `9229` 端口。停止时，在运行服务的终端按 `Ctrl+C`。
+先构建，再运行 `npm run debug`，在 Chrome 的 `chrome://inspect` 中打开 Node 调试目标，继续启动后，在 `src/captures.service.ts` 的 `this.captures.set(capture.id, capture)` 设置断点并再次发送创建请求。调试器仅监听本机 `9229` 端口。停止时，在运行服务的终端按 `Ctrl+C`。
 
 本章不包含数据库、登录、AI、分页、CORS 配置和生产部署。保留 Node 对 `SIGINT`／`SIGTERM` 的默认处理，未实现优雅关闭流程。完整原理与操作步骤见 [EPP 后端开发实践](https://github.com/SamChowRock/EPP-Book)。
 
@@ -69,13 +69,13 @@ node examples/cwd-config.js
 - `file-note.js`：在独立临时目录中新建并读回演示文件。进程结束后文件保留，按输出位置删除自己创建的演示目录即可；临时目录不是业务持久化位置。
 - `cwd-config.js`：刻意保留 cwd 相对读法的失败示例，不是服务的配置实现。
 
-从 `src/` 运行错误示例应出现 `ENOENT`，而服务使用模块相对配置，可从这个目录直接启动：
+先执行 `npm run build`。从 `src/` 运行错误示例应出现 `ENOENT`，而服务产物使用模块相对配置，可从这个目录直接启动：
 
 ```bash
 (
   cd src
   node ../examples/cwd-config.js
-  PORT=3001 node --import=tsx server.ts
+  PORT=3001 node --enable-source-maps ../dist/src/server.js
 )
 ```
 
@@ -206,9 +206,9 @@ main 与 worker 对照父线程探针和计算完成的先后；后者修改输�
 npm run dev
 ```
 
-该命令以 tsx watch 执行 `src/server.ts`；重新启动会清空内存记录，不做完整类型检查。停止后单独执行 `npm run typecheck`、`npm run build`，再 `npm start`。构建产物保留 `dist/src/` 与 `dist/config/` 的相对关系，默认配置是构建时复制的快照。
+第五章使用 tsx watch；第七章应用需要装饰器元数据，当前命令改为先 `npm run build` 再 `npm start`，不提供热更新。修改服务代码后停止进程并重新执行；重启会清空内存记录。只检查类型用 `npm run typecheck`。构建产物保留 `dist/src/` 与 `dist/config/` 的相对关系，默认配置是构建时复制的快照。
 
-仅查看开发源码配置，也可执行 `node --import=tsx` 加载入口；不要把 `node src/server.ts` 当成 tsx 的通用替代，本项目源码以 `.js` 导入匹配最终产物。
+仅查看不使用装饰器的 `src/config.ts` 或运行第五章独立示例，仍可使用 `node --import=tsx`；当前 Nest 应用入口必须按上述 tsc 路径构建运行，不能直接用 tsx 替代。源码中的 `.js` 导入继续匹配最终产物。
 
 类型断言不验证输入的独立失败示例：
 
@@ -256,3 +256,110 @@ cp -R dist "$release_dir/dist" &&
 ```
 
 运行目录不含源码和开发工具，不支持重新构建。保留当前 shell 的 `release_dir`，停止服务后可从其他 cwd 使用绝对入口和 `PORT=3001` 再运行；配置仍从运行目录里的 `dist/config/` 读取。默认配置缺失应在监听前失败。按正文再次核对三个接口、错误输入与重启丢数，结束后只清理自己新建的临时目录。
+
+
+## 第七章 Nest 组装与业务边界
+
+第七章先从职责变化比较手动组装与框架组织，再解释 Nest 的控制反转、依赖注入、模块封装与平台适配。独立示例在完成构建后运行：
+
+```bash
+node examples/manual-composition.mjs
+```
+
+`makeEntry` 通过普通函数参数接收 Service，两个入口共享同一实例时打印 `shared entry count: 1`，独立组装的入口打印 `isolated entry count: 0`。按正文把第二个入口改用新实例后，应读到零条，再恢复原参数。这只观察同一进程内的对象关系，不表示未来独立运行的 HTTP 与 CLI 进程共享 Map。
+
+- `src/captures.service.ts`：原文规则、记录创建与查询，当前实例持有 Map；返回记录副本。
+- `src/captures.controller.ts`：三个 HTTP 入口，使用显式响应保留状态码、头部和 JSON 结构。
+- `src/http.ts`：沿用流读取、16 KiB 限制与 JSON 输出，转换业务和协议失败。
+- `src/http-boundary.ts`：路由前核对路径与允许方法，保留 404／405、Allow 和原始 ID 行为。
+- `src/app.module.ts` 与 `src/app.ts`：注册组件、创建 Nest Express 应用，关闭默认解析器以保持流的单一读取方。
+- `src/server.ts`：加载启动配置、监听以及启动失败收尾。
+
+路径仍精确匹配；`/Captures` 和 `/captures/` 不等于 `/captures`。HEAD 与 OPTIONS 仍返回 405；没有增加 CORS。详情 ID 按原始路径段查询，生成的 UUID 直接用于请求地址。未知业务异常返回通用 500，诊断保留在服务端。
+
+构建后运行无需 HTTP 端口的示例：
+
+```bash
+npm run build
+node examples/nest-metadata.mjs
+```
+
+观察 Controller 的构造依赖为 `CapturesService`、类值相等；原文副本修改不影响存储，空白输入拒绝且不新增记录，另一 Service 实例的列表为空。
+
+支线 7A 对照移除元数据的产物：
+
+```bash
+npm exec -- tsc --emitDecoratorMetadata false
+node examples/nest-metadata.mjs
+npm run build
+node examples/nest-metadata.mjs
+```
+
+中间一次应显示依赖描述 `undefined`、类值相等为 `false`，手动构造的业务调用仍成立。实验覆盖了产物，必须执行最后的构建恢复，随后再启动 HTTP 服务。TypeScript 配置文件本身没有改变。
+
+
+### 支线 7A：装饰器的执行与路由注册
+
+```bash
+npm exec -- tsc -p examples/decorators/tsconfig.json
+node dist/decorators/mini-router.js
+```
+
+`examples/decorators/mini-router.ts` 只用传统 TypeScript 装饰器和普通 JavaScript 注册表，不导入 Nest、不监听端口。先观察方法／类装饰器在 `before new` 之前执行，再看到 `/notes/preview` 注册并返回 `saved: hello`；`/preview` 不匹配。按支线改变 Group 前缀并重新编译，观察地址变化，再恢复。这个示例关闭自动类型元数据，以区分自行记录路由与编译器发出类型描述。服务 build 会清理其产物，需要时重新执行上述命令。
+
+### 支线 7B：Express 请求链
+
+```bash
+node examples/express-pipeline.js
+```
+
+独立监听 `127.0.0.1:3003`，没有修改 EPP 的三个业务接口。在另一终端逐条观察：
+
+```bash
+curl -i http://127.0.0.1:3003/wait
+curl -i http://127.0.0.1:3003/stop
+curl -i http://127.0.0.1:3003/fail
+curl -i http://127.0.0.1:3003/callback-fail
+curl -i http://127.0.0.1:3003/missing
+curl --max-time 2 -i http://127.0.0.1:3003/hang
+curl -i http://127.0.0.1:3003/echo \
+  -H 'Content-Type: application/json' --data '{"message":"hello"}'
+curl -i http://127.0.0.1:3003/echo \
+  -H 'Content-Type: application/json' --data '{'
+node --input-type=module -e 'process.stdout.write(JSON.stringify({message:"a".repeat(1100)}))' |
+  curl -i http://127.0.0.1:3003/echo \
+    -H 'Content-Type: application/json' --data-binary @-
+```
+
+依次应得到 200、403、500、500、404、客户端超时、200、400、413。结合日志区分 next 返回与响应 finish；正常 echo 看到 body 已解析，失败输入不进入该路由。实验的 JSON 上限为 1 KiB，EPP 仍为 16 KiB；观察完按 Ctrl+C 停止独立进程。
+
+
+### 支线 7C：最小 Nest
+
+`examples/mini-nest/framework.ts` 是独立实现的框架核心，约 120 行，支持单根模块、类 Provider、应用内共享实例、GET／POST、Body／Param 和 JSON 响应；不导入 Nest 包。`app.ts` 使用这套自定义装饰器，复用 `src/captures.service.ts`。
+
+```bash
+npm exec -- tsc -p examples/mini-nest/tsconfig.json
+node dist/examples/mini-nest/main.js
+```
+
+在另一终端运行：
+
+```bash
+curl -i http://127.0.0.1:3004/captures \
+  -H 'Content-Type: application/json' \
+  --data '{"originalText":"  I want to understand how this works.  "}'
+curl -i http://127.0.0.1:3004/captures
+```
+
+创建应为 201，列表包含新记录；使用返回的实际 ID 请求详情，内容应一致。空白原文应为 400 且不写入，缺失详情应为 404。这个独立进程与主线不共享 Map；它只实现实验所需的 HTTP 行为，没有主线完整的 Location、405／Allow 与原始路径兼容约定。
+
+按支线移除 providers 中的 CapturesService，重新编译启动，应在监听前报告未注册依赖。恢复清单后再对照缺失构造参数元数据：
+
+```bash
+npm exec -- tsc -p examples/mini-nest/tsconfig.json --emitDecoratorMetadata false
+node dist/examples/mini-nest/main.js
+npm exec -- tsc -p examples/mini-nest/tsconfig.json
+```
+
+中间一次应报告 `Constructor metadata is missing: MiniCapturesController` 并返回 1；最后一次编译恢复正常产物。示例继承服务的 TypeScript 配置并输出到 dist，常规 `npm run build` 清理产物后，需要重新执行示例编译。
