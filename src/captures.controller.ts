@@ -1,46 +1,36 @@
-import { Controller, Get, Post, Req, Res } from '@nestjs/common';
-import type { Request, Response } from 'express';
+import { Body, Controller, Get, Param, Post, Query, Res } from '@nestjs/common';
+import type { Response } from 'express';
 import { CapturesService } from './captures.service.js';
-import { HttpError, readJson, respond, sendJson } from './http.js';
+import { parseListQuery } from './capture-query.js';
+import { HttpError, httpResult } from './http.js';
 
 @Controller('captures')
 export class CapturesController {
   constructor(private readonly captures: CapturesService) {}
 
   @Get()
-  list(@Res() response: Response): Promise<void> {
-    return respond(response, () => {
-      sendJson(response, 200, { items: this.captures.list() });
-    });
+  list(@Query('q') q: unknown, @Query('limit') limit: unknown) {
+    return httpResult(() => ({
+      items: this.captures.list(parseListQuery(q, limit)),
+    }));
   }
 
   @Post()
-  create(@Req() request: Request, @Res() response: Response): Promise<void> {
-    return respond(response, async () => {
-      const mediaType = request.headers['content-type']
-        ?.split(';')[0]?.trim().toLowerCase();
-      if (mediaType !== 'application/json') {
-        throw new HttpError(415, 'Content-Type must be application/json');
-      }
-      const body = await readJson(request);
+  create(@Body() body: unknown, @Res({ passthrough: true }) response: Response) {
+    return httpResult(() => {
       if (body === null || typeof body !== 'object' || Array.isArray(body)) {
         throw new HttpError(400, 'Request body must be a JSON object');
       }
       const capture = this.captures.create(
         'originalText' in body ? body.originalText : undefined,
       );
-      sendJson(response, 201, capture, {
-        Location: `/captures/${capture.id}`,
-      });
+      response.setHeader('Location', `/captures/${capture.id}`);
+      return capture;
     });
   }
 
   @Get(':id')
-  detail(@Req() request: Request, @Res() response: Response): Promise<void> {
-    return respond(response, () => {
-      const { pathname } = new URL(request.url, 'http://127.0.0.1');
-      const id = pathname.slice('/captures/'.length);
-      sendJson(response, 200, this.captures.find(id));
-    });
+  detail(@Param('id') id: string) {
+    return httpResult(() => this.captures.find(id));
   }
 }

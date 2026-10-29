@@ -6,6 +6,11 @@ export type Capture = {
   createdAt: string;
 };
 
+export type CaptureListOptions = {
+  text?: string;
+  limit?: number;
+};
+
 export class InvalidCaptureError extends Error {}
 export class CaptureNotFoundError extends Error {}
 
@@ -28,8 +33,22 @@ export class CapturesService {
     return { ...capture };
   }
 
-  list(): Capture[] {
-    return [...this.captures.values()].map((capture) => ({ ...capture }));
+  list({ text, limit }: CaptureListOptions = {}): Capture[] {
+    if (text !== undefined &&
+        (typeof text !== 'string' || !text.trim() || text.length > 200)) {
+      throw new InvalidCaptureError('text must be a non-empty string of at most 200 code units');
+    }
+    if (limit !== undefined &&
+        (!Number.isInteger(limit) || limit < 1 || limit > 100)) {
+      throw new InvalidCaptureError('limit must be an integer from 1 to 100');
+    }
+    const items: Capture[] = [];
+    for (const capture of this.captures.values()) {
+      if (text !== undefined && !capture.originalText.includes(text)) continue;
+      items.push({ ...capture });
+      if (limit !== undefined && items.length === limit) break;
+    }
+    return items;
   }
 
   find(id: string): Capture {

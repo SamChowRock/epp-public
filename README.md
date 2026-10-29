@@ -1,6 +1,6 @@
 # EPP 配套实践代码
 
-当前对应第二篇第 7 章，代码分支 `part-02/chapter-07`，从 `part-01/chapter-05` 继续演进（第六章沿用第五章代码）。原有三个接口迁入 Nest，HTTP 入口与记录业务分开，启动配置和 TypeScript 构建布局继续沿用。记录保存在单个进程的 `Map` 中，停止进程后丢失；当前仅供本机实践。
+当前对应第二篇第 8 章，代码分支 `part-02/chapter-08`，从 `part-02/chapter-07` 继续演进。列表新增可选的 q 与 limit，Controller 通过参数装饰器接收输入，解析器在路由之前读取 JSON，成功结果交给 Nest 发送。记录保存在单个进程的 `Map` 中，停止进程后丢失；当前仅供本机实践。
 
 使用 nvm 管理 Node.js；安装方式见 [nvm 官方说明](https://github.com/nvm-sh/nvm#installing-and-updating)。macOS、Linux 使用 Bash 或 Zsh，Windows 使用 WSL。在项目根目录运行：
 
@@ -18,7 +18,7 @@ npm start
 
 `package.json` 中的 `engines.node` 同样声明精确版本，`.npmrc` 开启 `engine-strict`，让 npm 安装时拒绝不匹配的 Node 版本。遇到 `EBADENGINE` 先执行 `nvm use`，再重试安装。
 
-本章运行依赖为 Nest `11.2.5`（common、core、platform-express）、reflect-metadata `0.2.2` 与 rxjs `7.8.2`；独立支线示例显式依赖 Express `5.2.1`，适配器也使用 Express 5，overrides 固定其间接依赖 Multer `2.5.0`。开发依赖保留 TypeScript `5.9.3`、tsx `4.23.15`、`@types/node` `24.13.3`，增加 `@types/express` `5.0.6`。`npm ci` 按锁文件安装完整依赖；`npm run build` 先清理 `dist/`，编译业务源码，再复制默认配置；`npm start` 只运行产物。服务默认监听 `http://127.0.0.1:3000`。默认端口来自 `config/service.json`，启动时由 `src/config.ts`（产物为 `dist/src/config.js`）相对于模块读取，不依赖调用者的工作目录。
+本章运行依赖为 Nest `11.2.5`（common、core、platform-express）、reflect-metadata `0.2.2` 与 rxjs `7.8.2`；沿用的独立支线示例显式依赖 Express `5.2.1`，适配器也使用 Express 5，overrides 固定其间接依赖 Multer `2.5.0`。开发依赖保留 TypeScript `5.9.3`、tsx `4.23.15`、`@types/node` `24.13.3`，以及 `@types/express` `5.0.6`。`npm ci` 按锁文件安装完整依赖；`npm run build` 先清理 `dist/`，编译业务源码，再复制默认配置；`npm start` 只运行产物。服务默认监听 `http://127.0.0.1:3000`。默认端口来自 `config/service.json`，启动时由 `src/config.ts`（产物为 `dist/src/config.js`）相对于模块读取，不依赖调用者的工作目录。
 
 可以为一次启动覆盖端口：
 
@@ -258,7 +258,7 @@ cp -R dist "$release_dir/dist" &&
 运行目录不含源码和开发工具，不支持重新构建。保留当前 shell 的 `release_dir`，停止服务后可从其他 cwd 使用绝对入口和 `PORT=3001` 再运行；配置仍从运行目录里的 `dist/config/` 读取。默认配置缺失应在监听前失败。按正文再次核对三个接口、错误输入与重启丢数，结束后只清理自己新建的临时目录。
 
 
-## 第七章 Nest 组装与业务边界
+## 第七章建立的 Nest 组装与业务边界
 
 第七章先从职责变化比较手动组装与框架组织，再解释 Nest 的控制反转、依赖注入、模块封装与平台适配。独立示例在完成构建后运行：
 
@@ -269,10 +269,10 @@ node examples/manual-composition.mjs
 `makeEntry` 通过普通函数参数接收 Service，两个入口共享同一实例时打印 `shared entry count: 1`，独立组装的入口打印 `isolated entry count: 0`。按正文把第二个入口改用新实例后，应读到零条，再恢复原参数。这只观察同一进程内的对象关系，不表示未来独立运行的 HTTP 与 CLI 进程共享 Map。
 
 - `src/captures.service.ts`：原文规则、记录创建与查询，当前实例持有 Map；返回记录副本。
-- `src/captures.controller.ts`：三个 HTTP 入口，使用显式响应保留状态码、头部和 JSON 结构。
+- `src/captures.controller.ts`：三个 HTTP 入口；第八章改用 Nest 返回值响应，创建用 passthrough 设置 Location。
 - `src/http.ts`：沿用流读取、16 KiB 限制与 JSON 输出，转换业务和协议失败。
 - `src/http-boundary.ts`：路由前核对路径与允许方法，保留 404／405、Allow 和原始 ID 行为。
-- `src/app.module.ts` 与 `src/app.ts`：注册组件、创建 Nest Express 应用，关闭默认解析器以保持流的单一读取方。
+- `src/app.module.ts` 与 `src/app.ts`：注册组件、创建 Nest Express 应用，关闭默认解析器；第八章由 captureBody 在路由前唯一读取 JSON。
 - `src/server.ts`：加载启动配置、监听以及启动失败收尾。
 
 路径仍精确匹配；`/Captures` 和 `/captures/` 不等于 `/captures`。HEAD 与 OPTIONS 仍返回 405；没有增加 CORS。详情 ID 按原始路径段查询，生成的 UUID 直接用于请求地址。未知业务异常返回通用 500，诊断保留在服务端。
@@ -363,3 +363,43 @@ npm exec -- tsc -p examples/mini-nest/tsconfig.json
 ```
 
 中间一次应报告 `Constructor metadata is missing: MiniCapturesController` 并返回 1；最后一次编译恢复正常产物。示例继承服务的 TypeScript 配置并输出到 dist，常规 `npm run build` 清理产物后，需要重新执行示例编译。
+
+
+## 第八章 Controller 输入与响应
+
+`src/capture-query.ts` 把单值查询转换为业务参数，`src/capture-body.ts` 负责 POST 的唯一 JSON 读取；`src/http.ts` 的 httpResult 将已知失败转成原有 HTTP 错误结构。三个 Controller 方法返回业务结果，创建时只设置 Location。成功响应的自动头部可能变化，业务状态、JSON 和 Location／Allow 约定继续保持。
+
+```bash
+curl -i 'http://127.0.0.1:3000/captures?q=coffee&limit=1'
+curl -i 'http://127.0.0.1:3000/captures?limit=1&limit=2'
+curl -i --get --data-urlencode 'q=C++ & Node' http://127.0.0.1:3000/captures
+```
+
+q 大小写敏感、按字面子串匹配，提供时非空白且最多 200 个 UTF-16 代码单元；limit 是 1～100 的十进制整数文本，不接受前导零、小数和指数。重复已知参数拒绝，未知字段忽略。先筛选，再按 Map 插入顺序截取；没有参数时仍返回全部记录，未增加分页或数据库。失败不改变已有记录。
+
+支线 8A 无需服务端口：
+
+```bash
+node examples/url-inputs.mjs
+```
+
+观察加号与空格、get 与 getAll、百分号只解码一次，以及构造参数值后片段不进入请求目标。
+
+支线 8B 单独编译并监听 3005；常规 build 会清理示例产物，之后需要重新编译：
+
+```bash
+npm exec -- tsc -p examples/controller-responses/tsconfig.json
+node dist/examples/controller-responses/main.js
+```
+
+另一终端依次运行：
+
+```bash
+curl -i http://127.0.0.1:3005/responses/automatic
+curl -i http://127.0.0.1:3005/responses/accepted -H 'Content-Type: application/json' --data '{"message":"hello"}'
+curl -i http://127.0.0.1:3005/responses/manual
+curl -i http://127.0.0.1:3005/responses/passthrough
+curl --max-time 2 -i http://127.0.0.1:3005/responses/forgotten
+```
+
+依次为 200、202、200、200、客户端超时。passthrough 带 X-Example；forgotten 的方法返回并不触发自动发送。按支线先改为 passthrough，再改成手动 json，对照两种完成方式；每次停止、编译、启动后观察，最终恢复原示例。独立应用默认启用 Nest 的 JSON 解析器，与主线不同；临时关闭时 accepted 不再得到 body，观察后恢复。实验结束按 Ctrl+C 停止进程。

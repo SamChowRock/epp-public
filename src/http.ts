@@ -1,3 +1,4 @@
+import { HttpException } from '@nestjs/common';
 import type { IncomingMessage, ServerResponse, OutgoingHttpHeaders } from 'node:http';
 import { errorMessage } from './errors.js';
 import { InvalidCaptureError, CaptureNotFoundError } from './captures.service.js';
@@ -68,12 +69,30 @@ export async function respond(
     await action();
   } catch (error: unknown) {
     if (response.destroyed || response.writableEnded) return;
-    const statusCode = error instanceof HttpError ? error.statusCode
-      : error instanceof InvalidCaptureError ? 400
-      : error instanceof CaptureNotFoundError ? 404 : 500;
-    if (statusCode === 500) console.error(error);
-    sendJson(response, statusCode, {
-      error: statusCode === 500 ? 'Internal server error' : errorMessage(error),
-    }, { Connection: 'close' });
+    const failure = httpFailure(error);
+    sendJson(response, failure.statusCode, failure.body, { Connection: 'close' });
+  }
+}
+
+function httpFailure(error: unknown): {
+  statusCode: number;
+  body: { error: string };
+} {
+  const statusCode = error instanceof HttpError ? error.statusCode
+    : error instanceof InvalidCaptureError ? 400
+    : error instanceof CaptureNotFoundError ? 404 : 500;
+  if (statusCode === 500) console.error(error);
+  return {
+    statusCode,
+    body: { error: statusCode === 500 ? 'Internal server error' : errorMessage(error) },
+  };
+}
+
+export async function httpResult<T>(action: () => T | Promise<T>): Promise<T> {
+  try {
+    return await action();
+  } catch (error: unknown) {
+    const failure = httpFailure(error);
+    throw new HttpException(failure.body, failure.statusCode);
   }
 }
