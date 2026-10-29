@@ -10,18 +10,18 @@ export class CapturesController {
 
   @Get()
   list(@Query('q') q: unknown, @Query('limit') limit: unknown) {
-    return httpResult(() => ({
-      items: this.captures.list(parseListQuery(q, limit)),
+    return httpResult(async () => ({
+      items: await this.captures.list(parseListQuery(q, limit)),
     }));
   }
 
   @Post()
   create(@Body() body: unknown, @Res({ passthrough: true }) response: Response) {
-    return httpResult(() => {
+    return httpResult(async () => {
       if (body === null || typeof body !== 'object' || Array.isArray(body)) {
         throw new HttpError(400, 'Request body must be a JSON object');
       }
-      const capture = this.captures.create(
+      const capture = await this.captures.create(
         'originalText' in body ? body.originalText : undefined,
       );
       response.setHeader('Location', `/captures/${capture.id}`);

@@ -1,11 +1,12 @@
+import { MemoryCaptureStore } from '../../src/memory-capture.store.js';
 import { Module, Controller, Get, Post, Body, Param, HttpError } from './framework.js';
 import {
   CapturesService, InvalidCaptureError, CaptureNotFoundError,
 } from '../../src/captures.service.js';
 
-function asHttp<T>(action: () => T): T {
+async function asHttp<T>(action: () => T | Promise<T>): Promise<T> {
   try {
-    return action();
+    return await action();
   } catch (error) {
     if (error instanceof InvalidCaptureError) throw new HttpError(400, error.message);
     if (error instanceof CaptureNotFoundError) throw new HttpError(404, error.message);
@@ -13,13 +14,18 @@ function asHttp<T>(action: () => T): T {
   }
 }
 
+// This small container supports class providers only; compose the store here.
+class MiniCapturesService extends CapturesService {
+  constructor() { super(new MemoryCaptureStore()); }
+}
+
 @Controller('/captures')
 export class MiniCapturesController {
-  constructor(private readonly captures: CapturesService) {}
+  constructor(private readonly captures: MiniCapturesService) {}
 
   @Get()
-  list() {
-    return { items: this.captures.list() };
+  async list() {
+    return { items: await this.captures.list() };
   }
 
   @Post()
@@ -38,5 +44,5 @@ export class MiniCapturesController {
   }
 }
 
-@Module({ providers: [CapturesService], controllers: [MiniCapturesController] })
+@Module({ providers: [MiniCapturesService], controllers: [MiniCapturesController] })
 export class MiniAppModule {}

@@ -1,4 +1,5 @@
 import { CapturesService } from '../dist/src/captures.service.js';
+import { MemoryCaptureStore } from '../dist/src/memory-capture.store.js';
 
 function makeEntry(captures) {
   return {
@@ -7,11 +8,14 @@ function makeEntry(captures) {
   };
 }
 
-const shared = new CapturesService();
+const store = new MemoryCaptureStore();
+const shared = new CapturesService(store);
 const firstEntry = makeEntry(shared);
 const secondEntry = makeEntry(shared);
-firstEntry.record('I want to explain this clearly.');
-console.log('shared entry count:', secondEntry.list().length);
+await firstEntry.record('I want to explain this clearly.');
+console.log('shared entry count:', (await secondEntry.list()).length);
+console.log('another service, same store:',
+  (await new CapturesService(store).list()).length);
 
-const isolatedEntry = makeEntry(new CapturesService());
-console.log('isolated entry count:', isolatedEntry.list().length);
+const isolatedEntry = makeEntry(new CapturesService(new MemoryCaptureStore()));
+console.log('isolated entry count:', (await isolatedEntry.list()).length);

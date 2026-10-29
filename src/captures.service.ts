@@ -1,23 +1,14 @@
 import { randomUUID } from 'node:crypto';
-
-export type Capture = {
-  id: string;
-  originalText: string;
-  createdAt: string;
-};
-
-export type CaptureListOptions = {
-  text?: string;
-  limit?: number;
-};
+import type { Capture, CaptureListOptions } from './capture.js';
+import type { CaptureStore } from './capture-store.js';
 
 export class InvalidCaptureError extends Error {}
 export class CaptureNotFoundError extends Error {}
 
 export class CapturesService {
-  private readonly captures = new Map<string, Capture>();
+  constructor(private readonly store: CaptureStore) {}
 
-  create(originalText: unknown): Capture {
+  async create(originalText: unknown): Promise<Capture> {
     if (typeof originalText !== 'string' || !originalText.trim()) {
       throw new InvalidCaptureError('originalText must be a non-empty string');
     }
@@ -29,11 +20,11 @@ export class CapturesService {
       originalText,
       createdAt: new Date().toISOString(),
     };
-    this.captures.set(capture.id, capture);
+    await this.store.insert(capture);
     return { ...capture };
   }
 
-  list({ text, limit }: CaptureListOptions = {}): Capture[] {
+  async list({ text, limit }: CaptureListOptions = {}): Promise<Capture[]> {
     if (text !== undefined &&
         (typeof text !== 'string' || !text.trim() || text.length > 200)) {
       throw new InvalidCaptureError('text must be a non-empty string of at most 200 code units');
@@ -42,17 +33,11 @@ export class CapturesService {
         (!Number.isInteger(limit) || limit < 1 || limit > 100)) {
       throw new InvalidCaptureError('limit must be an integer from 1 to 100');
     }
-    const items: Capture[] = [];
-    for (const capture of this.captures.values()) {
-      if (text !== undefined && !capture.originalText.includes(text)) continue;
-      items.push({ ...capture });
-      if (limit !== undefined && items.length === limit) break;
-    }
-    return items;
+    return this.store.list({ text, limit });
   }
 
-  find(id: string): Capture {
-    const capture = this.captures.get(id);
+  async find(id: string): Promise<Capture> {
+    const capture = await this.store.find(id);
     if (!capture) throw new CaptureNotFoundError('Capture not found');
     return { ...capture };
   }

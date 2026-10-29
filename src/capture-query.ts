@@ -1,4 +1,4 @@
-import type { CaptureListOptions } from './captures.service.js';
+import type { CaptureListOptions } from './capture.js';
 import { HttpError } from './http.js';
 
 export function parseListQuery(q: unknown, limit: unknown): CaptureListOptions {

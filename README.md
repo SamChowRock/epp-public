@@ -1,6 +1,6 @@
 # EPP 配套实践代码
 
-当前对应第二篇第 8 章，代码分支 `part-02/chapter-08`，从 `part-02/chapter-07` 继续演进。列表新增可选的 q 与 limit，Controller 通过参数装饰器接收输入，解析器在路由之前读取 JSON，成功结果交给 Nest 发送。记录保存在单个进程的 `Map` 中，停止进程后丢失；当前仅供本机实践。
+当前对应第二篇第 9 章，代码分支 `part-02/chapter-09`，从 `part-02/chapter-08` 继续演进。Service 通过构造参数接收 CaptureStore，Map 移入 MemoryCaptureStore，由 Nest 的 CAPTURE_STORE 令牌与 Service 工厂组装。存储操作统一返回 Promise，HTTP 行为和 q／limit 规则保持；记录仍只保存在当前进程内存，停止进程后丢失，仅供本机实践。
 
 使用 nvm 管理 Node.js；安装方式见 [nvm 官方说明](https://github.com/nvm-sh/nvm#installing-and-updating)。macOS、Linux 使用 Bash 或 Zsh，Windows 使用 WSL。在项目根目录运行：
 
@@ -39,7 +39,7 @@ curl -i http://127.0.0.1:3000/captures \
 
 原文必须是非空白字符串，至多 2000 个 JavaScript UTF-16 代码单元；保留原始空格。请求体限制为 16 KiB。错误通过 HTTP 状态码与 `{ "error": "..." }` 返回：无效输入 `400`、不存在 `404`、方法不支持 `405`、请求体过大 `413`、内容类型不支持 `415`。
 
-先构建，再运行 `npm run debug`，在 Chrome 的 `chrome://inspect` 中打开 Node 调试目标，继续启动后，在 `src/captures.service.ts` 的 `this.captures.set(capture.id, capture)` 设置断点并再次发送创建请求。调试器仅监听本机 `9229` 端口。停止时，在运行服务的终端按 `Ctrl+C`。
+先构建，再运行 `npm run debug`，在 Chrome 的 `chrome://inspect` 中打开 Node 调试目标，继续启动后，在 `src/captures.service.ts` 的 `await this.store.insert(capture)` 和 `src/memory-capture.store.ts` 的 Map 写入处设置断点并再次发送创建请求。调试器仅监听本机 `9229` 端口。停止时，在运行服务的终端按 `Ctrl+C`。
 
 本章不包含数据库、登录、AI、分页、CORS 配置和生产部署。保留 Node 对 `SIGINT`／`SIGTERM` 的默认处理，未实现优雅关闭流程。完整原理与操作步骤见 [EPP 后端开发实践](https://github.com/SamChowRock/EPP-Book)。
 
@@ -266,9 +266,10 @@ cp -R dist "$release_dir/dist" &&
 node examples/manual-composition.mjs
 ```
 
-`makeEntry` 通过普通函数参数接收 Service，两个入口共享同一实例时打印 `shared entry count: 1`，独立组装的入口打印 `isolated entry count: 0`。按正文把第二个入口改用新实例后，应读到零条，再恢复原参数。这只观察同一进程内的对象关系，不表示未来独立运行的 HTTP 与 CLI 进程共享 Map。
+`makeEntry` 通过普通函数参数接收 Service，两个入口共享同一实例时打印 `shared entry count: 1`。第九章新增 `another service, same store: 1`，说明不同 Service 可以共享同一存储；使用独立 MemoryCaptureStore 的入口打印 `isolated entry count: 0`。这只观察同一进程内的对象关系，不表示未来独立运行的 HTTP 与 CLI 进程共享 Map。
 
-- `src/captures.service.ts`：原文规则、记录创建与查询，当前实例持有 Map；返回记录副本。
+- `src/captures.service.ts`：原文规则、记录创建与查询；第九章接收 CaptureStore，不再直接持有 Map。
+- `src/capture.ts`、`src/capture-store.ts`、`src/memory-capture.store.ts`：模型、存储契约与内存实现，复制写入与读取对象，保留查询语义。
 - `src/captures.controller.ts`：三个 HTTP 入口；第八章改用 Nest 返回值响应，创建用 passthrough 设置 Location。
 - `src/http.ts`：沿用流读取、16 KiB 限制与 JSON 输出，转换业务和协议失败。
 - `src/http-boundary.ts`：路由前核对路径与允许方法，保留 404／405、Allow 和原始 ID 行为。
@@ -284,7 +285,7 @@ npm run build
 node examples/nest-metadata.mjs
 ```
 
-观察 Controller 的构造依赖为 `CapturesService`、类值相等；原文副本修改不影响存储，空白输入拒绝且不新增记录，另一 Service 实例的列表为空。
+观察 Controller 的构造依赖为 `CapturesService`、类值相等；原文副本修改不影响存储，空白输入拒绝且不新增记录，另建 Service 并传入独立 MemoryCaptureStore 时列表为空。
 
 支线 7A 对照移除元数据的产物：
 
@@ -336,7 +337,7 @@ node --input-type=module -e 'process.stdout.write(JSON.stringify({message:"a".re
 
 ### 支线 7C：最小 Nest
 
-`examples/mini-nest/framework.ts` 是独立实现的框架核心，约 120 行，支持单根模块、类 Provider、应用内共享实例、GET／POST、Body／Param 和 JSON 响应；不导入 Nest 包。`app.ts` 使用这套自定义装饰器，复用 `src/captures.service.ts`。
+`examples/mini-nest/framework.ts` 是独立实现的框架核心，约 120 行，支持单根模块、类 Provider、应用内共享实例、GET／POST、Body／Param 和 JSON 响应；不导入 Nest 包。`app.ts` 使用这套自定义装饰器，复用 `src/captures.service.ts`。第九章通过无参 MiniCapturesService 适配类创建内存存储，保留小容器仅支持类 Provider 的范围；HTTP 调用和错误边界已等待异步结果。
 
 ```bash
 npm exec -- tsc -p examples/mini-nest/tsconfig.json
@@ -354,7 +355,7 @@ curl -i http://127.0.0.1:3004/captures
 
 创建应为 201，列表包含新记录；使用返回的实际 ID 请求详情，内容应一致。空白原文应为 400 且不写入，缺失详情应为 404。这个独立进程与主线不共享 Map；它只实现实验所需的 HTTP 行为，没有主线完整的 Location、405／Allow 与原始路径兼容约定。
 
-按支线移除 providers 中的 CapturesService，重新编译启动，应在监听前报告未注册依赖。恢复清单后再对照缺失构造参数元数据：
+按支线在当前代码中移除 providers 中的 MiniCapturesService，重新编译启动，应在监听前报告未注册依赖。恢复清单后再对照缺失构造参数元数据：
 
 ```bash
 npm exec -- tsc -p examples/mini-nest/tsconfig.json --emitDecoratorMetadata false
@@ -403,3 +404,50 @@ curl --max-time 2 -i http://127.0.0.1:3005/responses/forgotten
 ```
 
 依次为 200、202、200、200、客户端超时。passthrough 带 X-Example；forgotten 的方法返回并不触发自动发送。按支线先改为 passthrough，再改成手动 json，对照两种完成方式；每次停止、编译、启动后观察，最终恢复原示例。独立应用默认启用 Nest 的 JSON 解析器，与主线不同；临时关闭时 accepted 不再得到 body，观察后恢复。实验结束按 Ctrl+C 停止进程。
+
+
+## 第九章存储契约与 Provider
+
+- `capture-store.ts` 同时导出类型接口与唯一 Symbol 令牌，两者分别服务于静态检查与运行时查找。
+- `MemoryCaptureStore` 实现异步契约，Map 仍是同步内存操作；存储副本、查询语义与不存在／故障区分由契约约定。
+- AppModule 使用 useClass 提供存储，以 useFactory／inject 创建普通 CapturesService；Controller 在成功写入后设置 Location，列表先等待再包装。
+
+先观察慢写入和失败写入如何影响业务完成，以下程序只操作独立内存对象：
+
+```bash
+node examples/storage-completion.mjs slow
+node examples/storage-completion.mjs fail
+```
+
+slow 在 write finished 后才打印 creation succeeded，记录数为 1；fail 打印 creation failed，记录数为 0。拿到 Promise 不代表记录已经保存。正文另提供两段直接运行 src 文件的短对照，允许在 Nest 组装尚未接回时先检查普通业务对象。
+
+独立固定详情示例无需监听端口：
+
+```bash
+npm exec -- tsc -p examples/provider-values/tsconfig.json
+node dist/examples/provider-values/main.js
+```
+
+useValue 提供固定 find，返回 demo-capture。其 insert 和 list 明确失败，不代表真实持久化，也不替换主线 HTTP 应用。应用容器由 finally 关闭。
+
+支线 9A：
+
+```bash
+npm exec -- tsc -p examples/provider-identity/tsconfig.json
+node dist/examples/provider-identity/main.js alias
+node dist/examples/provider-identity/main.js class
+node dist/examples/provider-identity/main.js wrong-token
+node dist/examples/provider-identity/main.js missing
+node dist/examples/provider-identity/main.js fail-factory
+```
+
+前两次成功：alias 的对象相同且两处均读到一条；class 的对象不同，具体类注册为空，令牌对应实例有一条。后三次刻意返回 1，分别暴露不同 Symbol、缺少注册和初始化失败；单独运行并紧接 echo $? 查看退出状态。Reader 的 design type 为 Object，真正身份来自 Inject。
+
+支线 9B：
+
+```bash
+npm exec -- tsc -p examples/provider-scopes/tsconfig.json
+node dist/examples/provider-scopes/main.js
+```
+
+输出共享计数 1、同上下文 Reader 相同、不同上下文不同、请求计数 1／0；两个消费者不共享 transient Stamp，同一消费者保留自己的 Stamp。按支线临时把 Stamp 或 RequestCounter 改成默认作用域，重新编译观察后恢复。显式上下文不代表真实 HTTP 请求或用户身份。所有示例产物在常规 build 后需重新编译。
