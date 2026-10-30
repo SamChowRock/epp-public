@@ -15,3 +15,13 @@ const decoder = new StringDecoder('utf8');
 console.log('第一次解码:', JSON.stringify(decoder.write(first)));
 console.log('第二次解码:', decoder.write(second));
 console.log('结束解码:', JSON.stringify(decoder.end()));
+
+const invalid = Buffer.from([0x61, 0xff, 0x62]);
+console.log('宽松解码非法字节:', invalid.toString('utf8'));
+const strictDecoder = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true });
+try {
+  strictDecoder.decode(invalid);
+} catch (error) {
+  console.log('严格解码拒绝:', error.name);
+}
+console.log('合法替换字符:', strictDecoder.decode(Buffer.from('a�b', 'utf8')));
