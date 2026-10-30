@@ -42,10 +42,11 @@ function readJson(request) {
     request.on('end', () => {
       if (tooLarge) return;
       try {
-        const text = Buffer.concat(chunks).toString('utf8');
+        const text = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true })
+          .decode(Buffer.concat(chunks));
         resolve(JSON.parse(text));
       } catch {
-        reject(new HttpError(400, 'Request body must be valid JSON'));
+        reject(new HttpError(400, 'Request body must be valid UTF-8 JSON'));
       }
     });
 
