@@ -11,7 +11,7 @@ node --version
 npm ci
 npm run typecheck
 npm run build
-npm start
+npm run dev
 ```
 
 `.nvmrc` 固定 Node.js 为 `24.22.1`，`node --version` 应输出 `v24.22.1`。`nvm install` 按文件安装并切换版本；每次新开终端后，在项目内执行 `nvm use`。单独进入目录不会自动切换版本。
