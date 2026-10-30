@@ -266,6 +266,12 @@ cp -R dist "$release_dir/dist" &&
 运行目录不含源码和开发工具，不支持重新构建。保留当前 shell 的 `release_dir`，停止服务后可从其他 cwd 使用绝对入口和 `PORT=3001` 再运行；配置仍从运行目录里的 `dist/config/` 读取。默认配置缺失应在监听前失败。按正文再次核对三个接口、错误输入与重启丢数，结束后只清理自己新建的临时目录。
 
 
+## 第六章独立实践参考
+
+`part-01/chapter-06` 的主服务保持第五章状态。`examples/chapter-06-source.patch` 保存可选来源标签的独立实现，供完成自主实践后对照；该字段不进入第七章及后续主线。
+
+查看参考：`git show part-01/chapter-06:examples/chapter-06-source.patch`。需要运行参考时，从 `part-01/chapter-05` 另建干净的个人 worktree，在新目录执行 `git show part-01/chapter-06:examples/chapter-06-source.patch | git apply -`，然后执行 `nvm use`、`npm ci`、`npm run typecheck`、`npm run build`、`npm start`。不要在已有个人成果上直接应用补丁。详细需求、隔离步骤与响应观察见第六章。
+
 ## 第七章建立的 Nest 组装与业务边界
 
 第七章先从职责变化比较手动组装与框架组织，再解释 Nest 的控制反转、依赖注入、模块封装与平台适配。独立示例在完成构建后运行：
