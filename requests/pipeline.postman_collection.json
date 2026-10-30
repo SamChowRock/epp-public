@@ -1,0 +1,239 @@
+{
+  "info": {
+    "name": "EPP 第十二章请求顺序实验",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "先停止主线 dev，运行 npm run dev:pipeline。逐条 Send，结合终端和断点观察。演示头仅控制实验分支，不是身份认证。"
+  },
+  "variable": [
+    {
+      "key": "labUrl",
+      "value": "http://127.0.0.1:3006",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 正常经过所有层",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{labUrl}}/pipeline",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"value\":\"hello\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "02 Middleware 拒绝",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-demo-middleware-error",
+            "value": "1"
+          }
+        ],
+        "url": "{{labUrl}}/pipeline",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"value\":\"hello\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "03 Guard 拒绝",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-demo-block",
+            "value": "1"
+          }
+        ],
+        "url": "{{labUrl}}/pipeline",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"value\":\"hello\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "04 Pipe 拒绝",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{labUrl}}/pipeline",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"value\":7}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "05 Handler 抛错",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{labUrl}}/pipeline",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"value\":\"fail\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "06 输出失约",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{labUrl}}/pipeline",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"value\":\"bad-output\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "07 转为恢复值",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-demo-recover",
+            "value": "1"
+          }
+        ],
+        "url": "{{labUrl}}/pipeline",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"value\":\"fail\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "08 短路不调用下游",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-demo-short",
+            "value": "1"
+          }
+        ],
+        "url": "{{labUrl}}/pipeline",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"value\":7}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "09 路由过滤器接手",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{labUrl}}/pipeline/local-filter",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"value\":\"hello\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # EPP 配套实践代码
 
-当前对应第二篇第 11 章，代码分支 `part-02/chapter-11`，从 `part-02/chapter-10` 继续演进。记录模块归属不变，Controller 使用 Zod 解析输入并显式映射公开响应；成功响应与 q／limit 规则保持，错误正文升级为 Problem Details。新增 `/docs` 与 `/openapi.json` 文档入口。记录仍只保存在当前进程内存，停止进程后丢失，仅供本机实践。
+当前对应第二篇第 12 章，代码分支 `part-02/chapter-12`，从 `part-02/chapter-11` 继续演进。输入校验由 Pipe 执行，公开响应由 Interceptor 按 Schema 投影与检查，错误统一交给 ProblemFilter。三个业务接口、成功字段、查询规则与 Problem 契约保持；`/docs` 和 `/openapi.json` 在开发模式默认可用。记录仍只保存在当前进程的内存，停止进程后丢失，仅供本机实践。
 
 使用 nvm 管理 Node.js；安装方式见 [nvm 官方说明](https://github.com/nvm-sh/nvm#installing-and-updating)。macOS、Linux 使用 Bash 或 Zsh，Windows 使用 WSL。在项目根目录运行：
 
@@ -18,7 +18,7 @@ npm run dev
 
 `package.json` 中的 `engines.node` 同样声明精确版本，`.npmrc` 开启 `engine-strict`，让 npm 安装时拒绝不匹配的 Node 版本。遇到 `EBADENGINE` 先执行 `nvm use`，再重试安装。
 
-本章新增 Zod `4.6.6` 与 @nestjs/swagger `11.4.7`，后者提供 Swagger UI 及其静态资源。其他运行依赖为 Nest `11.2.5`（common、core、platform-express）、reflect-metadata `0.2.2` 与 rxjs `7.8.2`；沿用的独立支线示例显式依赖 Express `5.2.1`，适配器也使用 Express 5，overrides 固定其间接依赖 Multer `2.5.0`。开发依赖保留 TypeScript `5.9.3`、tsx `4.23.15`、`@types/node` `24.13.3`，以及 `@types/express` `5.0.6`。`npm ci` 按锁文件安装完整依赖；`npm run build` 先清理 `dist/`，编译业务源码，再复制默认配置；`npm start` 只运行产物。服务默认监听 `http://127.0.0.1:3000`。默认端口来自 `config/service.json`，启动时由 `src/config.ts`（产物为 `dist/src/config.js`）相对于模块读取，不依赖调用者的工作目录。
+沿用第十一章的 Zod `4.6.6` 与 @nestjs/swagger `11.4.7`，后者提供 Swagger UI 及其静态资源。其他运行依赖为 Nest `11.2.5`（common、core、platform-express）、reflect-metadata `0.2.2` 与 rxjs `7.8.2`；沿用的独立支线示例显式依赖 Express `5.2.1`，适配器也使用 Express 5，overrides 固定其间接依赖 Multer `2.5.0`。开发依赖保留 TypeScript `5.9.3`、tsx `4.23.15`、`@types/node` `24.13.3`，以及 `@types/express` `5.0.6`。`npm ci` 按锁文件安装完整依赖；`npm run build` 先清理 `dist/`，编译业务源码，再复制默认配置；`npm start` 只运行产物。服务默认监听 `http://127.0.0.1:3000`。默认端口来自 `config/service.json`，启动时由 `src/config.ts`（产物为 `dist/src/config.js`）相对于模块读取，不依赖调用者的工作目录。
 
 可以为一次启动覆盖端口：
 
@@ -26,7 +26,7 @@ npm run dev
 NODE_ENV=production PORT=3001 node --enable-source-maps dist/src/server.js
 ```
 
-`PORT` 必须为十进制数字字符串，转换后的整数范围是 1～65535；缺失时使用默认端口，空值或错误值会在监听前退出并返回非零状态。即使指定 `PORT`，默认配置文件仍必须存在且有效。配置仅在启动时读取；修改源码默认配置后需重新构建，修改运行目录的默认配置后需重启；绑定地址始终为 `127.0.0.1`。改端口后同步修改请求地址。
+`PORT` 必须为十进制数字字符串，转换后的整数范围是 1～65535；缺失时使用默认端口，空值或错误值会在监听前退出并返回非零状态。即使指定 `PORT`，默认配置文件仍必须存在且有效。配置由每个服务进程在启动时读取；dev 会在源配置变化后复制并重启，生产产物则需要重新构建，修改生产运行目录的默认配置后需重启；绑定地址始终为 `127.0.0.1`。改端口后同步修改请求地址。
 
 ## 用 Postman 发送和保存请求
 
@@ -366,7 +366,7 @@ node --input-type=module -e 'process.stdout.write(JSON.stringify({message:"a".re
 
 ## 第八章 Controller 输入与响应
 
-`src/capture-query.ts` 把单值查询转换为业务参数，`src/capture-body.ts` 负责 POST 的唯一 JSON 读取；`src/http.ts` 的 httpResult 将已知失败转成原有 HTTP 错误结构。三个 Controller 方法返回业务结果，创建时只设置 Location。成功响应的自动头部可能变化，业务状态、JSON 和 Location／Allow 约定继续保持。
+`src/capture-query.ts` 把单值查询转换为业务参数，`src/capture-body.ts` 负责 POST 的唯一 JSON 读取；第十二章已把原来的 httpResult 替换为 `src/problem.filter.ts` 的统一 Problem 处理。三个 Controller 方法返回业务结果，创建时只设置 Location。成功响应的自动头部可能变化，业务状态、JSON 和 Location／Allow 约定继续保持。
 
 ```bash
 curl -i 'http://127.0.0.1:3000/captures?q=coffee&limit=1'
@@ -517,7 +517,7 @@ ESM 默认输出 A，eager 在初始化前读取类而失败。双向类程序 l
 
 查询超过 1000 项时返回 `QUERY_TOO_LARGE`；非法 UTF-8、BOM 或 JSON 语法失败返回 `INVALID_JSON`。两个 GET 的 OpenAPI 同时描述 If-None-Match、ETag 以及没有正文的 304。
 
-关键文件：capture-contract.ts 定义输入和公开响应；input-validation.ts 只把输入失败转为 400；Controller 使用解析结果并投影响应；http.ts 统一描述 Problem；openapi.ts 从 Schema 生成字段描述并显式维护操作。
+关键文件：capture-contract.ts 定义输入和公开响应；input-validation.ts 只把输入失败转为 400；第十二章由 Pipe 解析输入、Interceptor 按公开 Schema 投影响应；http.ts 统一描述 Problem；openapi.ts 从 Schema 生成字段描述并显式维护操作。
 
 ```bash
 npm run typecheck
@@ -544,7 +544,40 @@ curl -i -X DELETE http://127.0.0.1:3000/captures
 curl -s http://127.0.0.1:3000/openapi.json
 ```
 
-前两项为 VALIDATION_ERROR，详情不存在为 CAPTURE_NOT_FOUND，不支持的方法为 METHOD_NOT_ALLOWED 并保留 Allow。未知请求字段仍忽略，id／createdAt 继续由服务端生成，原文空格和 UTF-16 长度规则不变。业务规则仍由 Service 维护；独立示例只展示各自的机制，不等同主线新协议。第十二章再将已经明确的边界接入统一请求机制。
+前两项为 VALIDATION_ERROR，详情不存在为 CAPTURE_NOT_FOUND，不支持的方法为 METHOD_NOT_ALLOWED 并保留 Allow。未知请求字段仍忽略，id／createdAt 继续由服务端生成，原文空格和 UTF-16 长度规则不变。业务规则仍由 Service 维护；独立示例只展示各自的机制，不等同主线新协议。第十二章已将这些边界接到 Nest 请求机制，错误约定继续保持。
+
+
+## 第十二章请求机制与独立顺序实验
+
+主线默认 `npm run dev`，继续使用 [基础请求集合](requests/epp.postman_collection.json)。在 schema.pipe.ts 的 transform、Controller、response-schema.interceptor.ts 的 map 和 problem.filter.ts 的 catch 设置断点，分别发送字段类型错误、JSON 格式错误和正常创建，比较哪些位置会执行。输入失败为 400，输出失约为 500；输出失败不撤回已经完成的写入，失败响应会移除成功专用的 Location。
+
+生产构建使用 `tsconfig.build.json`，在相同编译规则下排除 src/labs，clean 清除旧交付目录中的文件。typecheck 和开发监听仍覆盖全部 src；业务模块不导入实验模块。构建交付前检查 dist/src 不包含 labs。
+
+独立实验不挂到主线 AppModule。先停止主线 dev，再执行：
+
+```bash
+npm run dev:pipeline
+```
+
+导入 [请求顺序实验集合](requests/pipeline.postman_collection.json)，目标为 `http://127.0.0.1:3006/pipeline`。VS Code 继续选择 `EPP: attach to npm run dev`，调试端口 9229 不变。修改 src/labs 下的代码会重新编译、重启；这两个开发命令共享 .dev 和 9229，不同时运行；build/test 使用 dist，可以与一个开发进程并行。
+
+集合的九条请求依次展示正常经过、Middleware 失败、Guard 拒绝、Pipe 拒绝、Handler 抛错、输出失约、错误恢复、短路以及局部过滤器接手。演示头仅控制实验分支，不是身份认证。正常与恢复／短路结果为 201，三个早期失败分别为 400、403、400，Handler 与输出失败为 500，局部过滤器请求为 409；对照终端阶段与断点，观察哪一层没有执行。恢复与短路不意味着原来的输入或业务已经成功。
+
+不需要端口的 Observable 实验：
+
+```bash
+node examples/observable-boundaries.mjs
+```
+
+它展示重复订阅执行两次、错误恢复成普通值、等待超时后底层工作继续完成。程序不依赖 dist，也不要求启动服务。
+
+保留一条 Node 自带测试入口的 HTTP 回归，可以保持 dev，在另一终端执行：
+
+```bash
+npm test
+```
+
+命令先构建，再以 NODE_ENV=test 运行 test/captures.test.mjs，默认关闭文档。测试启动独立应用与随机本机端口，检查非法 JSON 的 400／Problem／INVALID_JSON 和空列表，最后关闭应用；需要允许本机监听。构建后源码没有变化时，可以直接 `NODE_ENV=test node --test test/captures.test.mjs`。没有引入额外测试框架，日常排错继续使用 Postman 和调试器。结束实验后运行 `npm run dev` 回到主线；生产运行保持构建产物加 `npm start`。
 
 
 ## 本机配置与交付核对

@@ -68,22 +68,6 @@ export function readJson(request: IncomingMessage): Promise<unknown> {
   });
 }
 
-export async function respond(
-  response: ServerResponse,
-  action: () => void | Promise<void>,
-): Promise<void> {
-  try {
-    await action();
-  } catch (error: unknown) {
-    if (response.destroyed || response.writableEnded) return;
-    const failure = httpFailure(error);
-    sendJson(response, failure.statusCode, failure.body, {
-      'Content-Type': 'application/problem+json; charset=utf-8',
-      Connection: 'close',
-    });
-  }
-}
-
 export type Problem = {
   type: string;
   title: string;
@@ -97,36 +81,28 @@ export function httpFailure(error: unknown): {
   statusCode: number;
   body: Problem;
 } {
+  const nestStatus = error instanceof HttpException ? error.getStatus() : undefined;
+  const clientStatus = nestStatus !== undefined && nestStatus >= 400 && nestStatus < 500
+    ? nestStatus : undefined;
   const statusCode = error instanceof HttpError ? error.statusCode
     : error instanceof InvalidCaptureError ? 400
-    : error instanceof CaptureNotFoundError ? 404 : 500;
+    : error instanceof CaptureNotFoundError ? 404 : clientStatus ?? 500;
   if (statusCode === 500) console.error('Unhandled request failure:', error instanceof Error ? error.name : 'UnknownError');
   const code = statusCode === 500 ? 'INTERNAL_ERROR'
     : error instanceof InvalidCaptureError ? 'INVALID_CAPTURE'
     : error instanceof CaptureNotFoundError ? 'CAPTURE_NOT_FOUND'
-    : error instanceof HttpError ? error.code : 'INTERNAL_ERROR';
+    : error instanceof HttpError ? error.code : `HTTP_${statusCode}`;
   return {
     statusCode,
     body: {
       type: 'about:blank',
       title: STATUS_CODES[statusCode] ?? 'Error',
       status: statusCode,
-      detail: statusCode === 500 ? 'Internal server error' : errorMessage(error),
+      detail: statusCode === 500 ? 'Internal server error'
+        : error instanceof HttpException ? STATUS_CODES[statusCode] ?? 'Request failed'
+        : errorMessage(error),
       code,
       ...(error instanceof HttpError && error.issues ? { issues: error.issues } : {}),
     },
   };
-}
-
-export async function httpResult<T>(
-  action: () => T | Promise<T>,
-  response: ServerResponse,
-): Promise<T> {
-  try {
-    return await action();
-  } catch (error: unknown) {
-    const failure = httpFailure(error);
-    response.setHeader('Content-Type', 'application/problem+json; charset=utf-8');
-    throw new HttpException(failure.body, failure.statusCode);
-  }
 }

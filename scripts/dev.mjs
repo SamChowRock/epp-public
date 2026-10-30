@@ -10,6 +10,8 @@ const format = {
   getCurrentDirectory: ts.sys.getCurrentDirectory,
   getNewLine: () => ts.sys.newLine,
 };
+const entry = process.argv[2] ?? '.dev/src/server.js';
+
 let child;
 let revision = 0;
 let compiled = false;
@@ -33,7 +35,7 @@ function restart(ready) {
     if (stopping || requested !== revision || !ready) return;
     mkdirSync('.dev/config', { recursive: true });
     copyFileSync('config/service.json', '.dev/config/service.json');
-    const current = spawn(process.execPath, ['--inspect=127.0.0.1:9229', '--enable-source-maps', '.dev/src/server.js'], {
+    const current = spawn(process.execPath, ['--inspect=127.0.0.1:9229', '--enable-source-maps', entry], {
       stdio: 'inherit',
     });
     child = current;

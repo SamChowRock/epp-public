@@ -10,9 +10,11 @@
     "dev": "NODE_ENV=development node --env-file-if-exists=.env scripts/dev.mjs",
     "typecheck": "tsc --noEmit",
     "clean": "node scripts/clean.mjs",
-    "build": "npm run clean && tsc && node scripts/copy-assets.mjs",
+    "build": "npm run clean && tsc -p tsconfig.build.json && node scripts/copy-assets.mjs",
     "start": "NODE_ENV=production node --enable-source-maps dist/src/server.js",
     "debug": "NODE_ENV=development node --env-file-if-exists=.env --enable-source-maps --inspect-brk=127.0.0.1:9229 dist/src/server.js",
+    "dev:pipeline": "NODE_ENV=development node --env-file-if-exists=.env scripts/dev.mjs .dev/src/labs/request-pipeline-server.js",
+    "test": "npm run build && NODE_ENV=test node --test test/*.test.mjs",
     "check": "npm run typecheck && npm run build"
   },
   "devDependencies": {

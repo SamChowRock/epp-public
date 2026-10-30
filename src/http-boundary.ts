@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
-import { HttpError, respond } from './http.js';
+import { HttpError } from './http.js';
 
 // Preserve the existing path/method contract before Express route matching.
 export function httpBoundary(
@@ -8,7 +8,7 @@ export function httpBoundary(
   next: NextFunction,
 ): void {
   console.log(JSON.stringify({ event: 'http.request', method: request.method }));
-  void respond(response, () => {
+  try {
     let url: URL;
     try {
       url = new URL(request.url, 'http://127.0.0.1');
@@ -34,5 +34,8 @@ export function httpBoundary(
     }
     request.url = url.pathname + url.search;
     next();
-  });
+  } catch (error: unknown) {
+    response.setHeader('Connection', 'close');
+    next(error);
+  }
 }

@@ -1,39 +1,37 @@
-import { Body, Controller, Get, Param, Post, Query, Res } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Res, UseInterceptors } from '@nestjs/common';
 import type { Response } from 'express';
 import { CapturesService } from './captures.service.js';
-import { parseListQuery } from './capture-query.js';
-import { httpResult } from './http.js';
-import { CreateCaptureSchema, toCaptureResponse } from './capture-contract.js';
-import { parseInput } from './input-validation.js';
+import type { CaptureListOptions } from './capture.js';
+import { CaptureListQueryPipe } from './capture-query.js';
+import { CaptureListResponseSchema, CaptureResponseSchema, CreateCaptureSchema } from './capture-contract.js';
+import type { CreateCaptureInput } from './capture-contract.js';
+import { SchemaPipe } from './schema.pipe.js';
+import { ResponseSchemaInterceptor } from './response-schema.interceptor.js';
 
 @Controller('captures')
 export class CapturesController {
   constructor(private readonly captures: CapturesService) {}
 
   @Get()
-  list(
-    @Query('q') q: unknown,
-    @Query('limit') limit: unknown,
-    @Res({ passthrough: true }) response: Response,
-  ) {
-    return httpResult(async () => ({
-      items: (await this.captures.list(parseListQuery(q, limit))).map(toCaptureResponse),
-    }), response);
+  @UseInterceptors(new ResponseSchemaInterceptor(CaptureListResponseSchema))
+  async list(@Query(CaptureListQueryPipe) options: CaptureListOptions) {
+    return { items: await this.captures.list(options) };
   }
 
   @Post()
-  create(@Body() body: unknown, @Res({ passthrough: true }) response: Response) {
-    return httpResult(async () => {
-      const input = parseInput(CreateCaptureSchema, body);
-      const capture = await this.captures.create(input.originalText);
-      const result = toCaptureResponse(capture);
-      response.setHeader('Location', `/captures/${capture.id}`);
-      return result;
-    }, response);
+  @UseInterceptors(new ResponseSchemaInterceptor(CaptureResponseSchema))
+  async create(
+    @Body(new SchemaPipe(CreateCaptureSchema)) input: CreateCaptureInput,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const capture = await this.captures.create(input.originalText);
+    response.setHeader('Location', `/captures/${capture.id}`);
+    return capture;
   }
 
   @Get(':id')
-  detail(@Param('id') id: string, @Res({ passthrough: true }) response: Response) {
-    return httpResult(async () => toCaptureResponse(await this.captures.find(id)), response);
+  @UseInterceptors(new ResponseSchemaInterceptor(CaptureResponseSchema))
+  detail(@Param('id') id: string) {
+    return this.captures.find(id);
   }
 }
