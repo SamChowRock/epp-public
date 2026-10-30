@@ -26,7 +26,8 @@
       "cwd": "${workspaceFolder}",
       "preLaunchTask": "EPP: build",
       "runtimeArgs": [
-        "--enable-source-maps"
+        "--enable-source-maps",
+        "--env-file-if-exists=.env"
       ],
       "sourceMaps": true,
       "outFiles": [

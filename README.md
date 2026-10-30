@@ -215,11 +215,11 @@ main 与 worker 对照父线程探针和计算完成的先后；后者修改输�
 
 ## 调试 TypeScript 服务
 
-用 VS Code 打开配套代码仓库根目录，在终端执行 `nvm use` 并核对 `node -v`。Run and Debug 中选择 `EPP: build and launch`，启动前会执行 build；已有普通服务应先停止，避免争用业务端口。
+用 VS Code 打开配套代码仓库根目录，在终端执行 `nvm use` 并核对 `node -v`。日常运行 `npm run dev`，在 Run and Debug 选择 `EPP: attach to npm run dev`；默认连接 .dev 产物，保存后自动编译、重启并尝试重连。
 
-若需要沿用终端启动的进程，先执行 `npm run build`、`npm run debug`，再选择 `EPP: attach to npm run debug`。它连接本机 9229，首次连接后继续执行；不要同时再启动 launch。业务 HTTP 端口与 Inspector 端口承担不同职责。
+需要观察启动第一行或构建产物时，先停止 dev，再选择 `EPP: build and launch`；也可依次执行 `npm run build`、`npm run debug`，选择 `EPP: attach to npm run debug` 并继续执行。两条路线使用 dist；launch 和 debug 都使用 development，并加载本机 .env。业务 HTTP 端口与 Inspector 端口承担不同职责，不同时启动多个占用相同端口的进程。
 
-`.vscode/launch.json` 的 outFiles 指向 dist 中的 JavaScript，源码断点依赖对应的 .map 与当前源码。改源码后重建并重启；空心断点先核对目标进程、编译产物和源码映射。Scope、Watch、调用栈、条件断点、日志点与已捕获异常的用法见支线 5B。该配置从第五章起沿用，Nest 章节的断点改放到各自的 Controller、Service 或错误边界。
+源码断点依赖目标产物的 .map 与当前源码。dev 的 outFiles 指向 .dev，构建调试指向 dist；空心断点先核对目标进程、编译产物和映射。Scope、Watch、调用栈、条件断点、日志点与已捕获异常的用法见支线 5B。Nest 章节的断点放到各自的 Controller、Service 或错误边界。
 
 ## 第五章类型、模块与构建
 
