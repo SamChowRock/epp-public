@@ -339,10 +339,12 @@ node dist/decorators/mini-router.js
 ### 支线 7B：Express 请求链
 
 ```bash
-node examples/express-pipeline.js
+npm run dev:express
 ```
 
-独立监听 `127.0.0.1:3003`，没有修改 EPP 的三个业务接口。在另一终端逐条观察：
+独立监听 `127.0.0.1:3003`。先停止其他 dev，使用 VS Code 的 `EPP: attach to npm run dev`；该 JavaScript 示例直接在源文件设断点，Node watch 保存后自动重启。导入 [Express 请求集合](requests/express-pipeline.postman_collection.json)，逐条 Send；挂起请求等约两秒后 Cancel。需要客户端超时对照时，在 Postman 设置中找到 Request Timeout，记下原值、临时设 2000 毫秒，观察后恢复；暂停断点时不要使用短期限。
+
+修改一处响应、保存、等监听日志、再发同一请求核对；不要同时启动占用 9229 的其他实验。开发环境文件改变后仍需手动重启。下面仅为同一请求的终端表示：
 
 ```bash
 curl -i http://127.0.0.1:3003/wait
@@ -383,14 +385,15 @@ node examples/url-inputs.mjs
 
 观察加号与空格、get 与 getAll、百分号只解码一次，以及构造参数值后片段不进入请求目标。
 
-支线 8B 单独编译并监听 3005；常规 build 会清理示例产物，之后需要重新编译：
+支线8B使用独立开发入口监听3005：
 
 ```bash
-npm exec -- tsc -p examples/controller-responses/tsconfig.json
-node dist/examples/controller-responses/main.js
+npm run dev:responses
 ```
 
-另一终端依次运行：
+先停止其他 dev，VS Code 继续使用 `EPP: attach to npm run dev`。产物在 .dev，保存 TypeScript 或实验配置后自动编译重启。导入 [响应责任请求集合](requests/controller-responses.postman_collection.json)，默认3005；先发自动响应，把响应 Headers 的完整 ETag（含双引号与可能的 W/）填入集合 etag，再发匹配请求。检查实际 Headers，禁用客户端额外添加的 Cache-Control: no-cache，避免它要求重新获取完整正文。遗漏响应用 Cancel 或临时2000毫秒 Request Timeout观察，断点时恢复较长等待。修改源码保存，等监听成功再发同一请求；普通 build 清理dist不影响这些开发产物。
+
+下面仅为上述图形请求的终端复现：
 
 ```bash
 curl -i http://127.0.0.1:3005/responses/automatic
@@ -400,13 +403,15 @@ curl -i http://127.0.0.1:3005/responses/passthrough
 curl --max-time 2 -i http://127.0.0.1:3005/responses/forgotten
 ```
 
-依次为 200、202、200、200、客户端超时。passthrough 带 X-Example；forgotten 的方法返回并不触发自动发送。按支线先改为 passthrough，再改成手动 json，对照两种完成方式；每次停止、编译、启动后观察，最终恢复原示例。独立应用默认启用 Nest 的 JSON 解析器，与主线不同；临时关闭时 accepted 不再得到 body，观察后恢复。实验结束按 Ctrl+C 停止进程。
+依次为 200、202、200、200、客户端超时。passthrough 带 X-Example；forgotten 的方法返回并不触发自动发送。按支线先改为 passthrough，再改成手动 json，对照两种完成方式；每次保存后等待自动编译重启，再发已保存的请求观察，最终恢复原示例。独立应用默认启用 Nest 的 JSON 解析器，与主线不同；临时关闭时 accepted 不再得到 body，观察后恢复。实验结束按 Ctrl+C 停止进程。
 
 ### 查询容量与条件读取
 
 从第八章开始，业务入口在 simple 查询解析前拒绝超过 1000 个 `&` 分隔片段的查询（400），包括未知字段和空片段，避免尾部 q 或重复参数被静默丢弃。上限内的未知字段仍忽略。
 
 自动响应会生成 ETag。GET 带匹配的 `If-None-Match`（或 `*`）时可能返回 304，没有响应体及 JSON Content-Type；客户端应复用已有缓存。不带条件或条件不匹配时返回 200 JSON。主线仍不开放 HEAD（405）。此行为从第八章起承接 Express 的条件响应语义，具体操作见支线 8B。
+
+独立 HTTP 实验默认也使用开发调试。TypeScript 实验的 `tsconfig.dev.json` 继承自身编译配置，只把 outDir 改为 .dev；`scripts/dev.mjs` 的第一个可选参数选择输出入口，第二个选择编译配置，不传时仍运行主线。主线与实验共享9229，一次只运行一个；实验的监听地址成功出现后再 Send。它们不挂入 AppModule，生产构建不包含 examples，也不复制 .dev。
 
 ## 开发与生产运行
 

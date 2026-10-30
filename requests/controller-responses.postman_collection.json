@@ -1,0 +1,135 @@
+{
+  "info": {
+    "name": "EPP Nest 响应责任实验",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "本机独立实验；逐条手动 Send，不自动重放。挂起请求约两秒后 Cancel；断点暂停时不要用短超时判断服务故障。"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3005",
+      "type": "string"
+    },
+    {
+      "key": "etag",
+      "value": "replace-with-full-etag-including-quotes",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 自动响应",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/responses/automatic"
+      }
+    },
+    {
+      "name": "02 接受正文",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/responses/accepted",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"message\":\"hello\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "03 手动响应",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/responses/manual"
+      }
+    },
+    {
+      "name": "04 passthrough",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/responses/passthrough"
+      }
+    },
+    {
+      "name": "05 遗漏响应：两秒后 Cancel",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/responses/forgotten"
+      }
+    },
+    {
+      "name": "06 匹配缓存标签",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "If-None-Match",
+            "value": "{{etag}}"
+          }
+        ],
+        "url": "{{baseUrl}}/responses/automatic"
+      }
+    },
+    {
+      "name": "07 不匹配标签",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "If-None-Match",
+            "value": "\"not-the-current-tag\""
+          }
+        ],
+        "url": "{{baseUrl}}/responses/automatic"
+      }
+    },
+    {
+      "name": "08 任意现有表示",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "If-None-Match",
+            "value": "*"
+          }
+        ],
+        "url": "{{baseUrl}}/responses/automatic"
+      }
+    },
+    {
+      "name": "09 HEAD",
+      "request": {
+        "method": "HEAD",
+        "header": [],
+        "url": "{{baseUrl}}/responses/automatic"
+      }
+    },
+    {
+      "name": "10 HEAD 匹配标签",
+      "request": {
+        "method": "HEAD",
+        "header": [
+          {
+            "key": "If-None-Match",
+            "value": "{{etag}}"
+          }
+        ],
+        "url": "{{baseUrl}}/responses/automatic"
+      }
+    }
+  ]
+}
