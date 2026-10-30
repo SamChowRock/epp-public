@@ -335,37 +335,6 @@ node --input-type=module -e 'process.stdout.write(JSON.stringify({message:"a".re
 依次应得到 200、403、500、500、404、客户端超时、200、400、413。结合日志区分 next 返回与响应 finish；正常 echo 看到 body 已解析，失败输入不进入该路由。实验的 JSON 上限为 1 KiB，EPP 仍为 16 KiB；观察完按 Ctrl+C 停止独立进程。
 
 
-### 支线 7C：最小 Nest
-
-`examples/mini-nest/framework.ts` 是独立实现的框架核心，约 120 行，支持单根模块、类 Provider、应用内共享实例、GET／POST、Body／Param 和 JSON 响应；不导入 Nest 包。`app.ts` 使用这套自定义装饰器，复用 `src/captures.service.ts`。第九章通过无参 MiniCapturesService 适配类创建内存存储，保留小容器仅支持类 Provider 的范围；HTTP 调用和错误边界已等待异步结果。
-
-```bash
-npm exec -- tsc -p examples/mini-nest/tsconfig.json
-node dist/examples/mini-nest/main.js
-```
-
-在另一终端运行：
-
-```bash
-curl -i http://127.0.0.1:3004/captures \
-  -H 'Content-Type: application/json' \
-  --data '{"originalText":"  I want to understand how this works.  "}'
-curl -i http://127.0.0.1:3004/captures
-```
-
-创建应为 201，列表包含新记录；使用返回的实际 ID 请求详情，内容应一致。空白原文应为 400 且不写入，缺失详情应为 404。这个独立进程与主线不共享 Map；它只实现实验所需的 HTTP 行为，没有主线完整的 Location、405／Allow 与原始路径兼容约定。
-
-按支线在当前代码中移除 providers 中的 MiniCapturesService，重新编译启动，应在监听前报告未注册依赖。恢复清单后再对照缺失构造参数元数据：
-
-```bash
-npm exec -- tsc -p examples/mini-nest/tsconfig.json --emitDecoratorMetadata false
-node dist/examples/mini-nest/main.js
-npm exec -- tsc -p examples/mini-nest/tsconfig.json
-```
-
-中间一次应报告 `Constructor metadata is missing: MiniCapturesController` 并返回 1；最后一次编译恢复正常产物。示例继承服务的 TypeScript 配置并输出到 dist，常规 `npm run build` 清理产物后，需要重新执行示例编译。
-
-
 ## 第八章 Controller 输入与响应
 
 `src/capture-query.ts` 把单值查询转换为业务参数，`src/capture-body.ts` 负责 POST 的唯一 JSON 读取；`src/http.ts` 的 httpResult 将已知失败转成原有 HTTP 错误结构。三个 Controller 方法返回业务结果，创建时只设置 Location。成功响应的自动头部可能变化，业务状态、JSON 和 Location／Allow 约定继续保持。
