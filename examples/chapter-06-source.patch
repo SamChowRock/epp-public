@@ -1,0 +1,36 @@
+diff --git a/src/server.ts b/src/server.ts
+index a6e776b..d44f9bb 100644
+--- a/src/server.ts
++++ b/src/server.ts
+@@ -8,6 +8,7 @@ type Capture = {
+   id: string;
+   originalText: string;
+   createdAt: string;
++  sourceLabel?: string;
+ };
+ 
+ const host = '127.0.0.1';
+@@ -107,10 +108,23 @@ async function handleRequest(
+         throw new HttpError(400, 'originalText must be at most 2000 code units');
+       }
+ 
++      let sourceLabel: string | undefined;
++      if ('sourceLabel' in body) {
++        if (typeof body.sourceLabel !== 'string') {
++          throw new HttpError(400, 'sourceLabel must be a string when provided');
++        }
++        const normalized = body.sourceLabel.trim();
++        if (normalized.length === 0 || normalized.length > 80) {
++          throw new HttpError(400, 'sourceLabel must contain 1 to 80 code units after trimming');
++        }
++        sourceLabel = normalized;
++      }
++
+       const capture: Capture = {
+         id: randomUUID(),
+         originalText: body.originalText,
+         createdAt: new Date().toISOString(),
++        ...(sourceLabel === undefined ? {} : { sourceLabel }),
+       };
+       captures.set(capture.id, capture);
+       sendJson(response, 201, capture, {
