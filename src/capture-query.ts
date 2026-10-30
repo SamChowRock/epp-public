@@ -1,16 +1,11 @@
 import type { CaptureListOptions } from './capture.js';
-import { HttpError } from './http.js';
+import { ListQuerySchema } from './capture-contract.js';
+import { parseInput } from './input-validation.js';
 
 export function parseListQuery(q: unknown, limit: unknown): CaptureListOptions {
-  if (q !== undefined && typeof q !== 'string') {
-    throw new HttpError(400, 'q must occur once and be a string');
-  }
-  if (limit !== undefined &&
-      (typeof limit !== 'string' || !/^[1-9]\d{0,2}$/.test(limit))) {
-    throw new HttpError(400, 'limit must be a decimal integer from 1 to 100');
-  }
+  const parsed = parseInput(ListQuerySchema, { q, limit });
   return {
-    text: q,
-    limit: limit === undefined ? undefined : Number(limit),
+    text: parsed.q,
+    limit: parsed.limit === undefined ? undefined : Number(parsed.limit),
   };
 }

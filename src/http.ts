@@ -1,4 +1,5 @@
 import { HttpException } from '@nestjs/common';
+import { STATUS_CODES } from 'node:http';
 import type { IncomingMessage, ServerResponse, OutgoingHttpHeaders } from 'node:http';
 import { errorMessage } from './errors.js';
 import { InvalidCaptureError, CaptureNotFoundError } from './captures.service.js';
@@ -8,7 +9,12 @@ const maxBodyBytes = 16 * 1024;
 export class HttpError extends Error {
   readonly statusCode: number;
 
-  constructor(statusCode: number, message: string) {
+  constructor(
+    statusCode: number,
+    message: string,
+    readonly code = `HTTP_${statusCode}`,
+    readonly issues?: Array<{ path: Array<string | number>; message: string }>,
+  ) {
     super(message);
     this.statusCode = statusCode;
   }
@@ -39,7 +45,7 @@ export function readJson(request: IncomingMessage): Promise<unknown> {
       if (bytes > maxBodyBytes) {
         tooLarge = true;
         chunks.length = 0;
-        reject(new HttpError(413, 'Request body is too large'));
+        reject(new HttpError(413, 'Request body is too large', 'BODY_TOO_LARGE'));
         return;
       }
       chunks.push(chunk);
@@ -52,12 +58,12 @@ export function readJson(request: IncomingMessage): Promise<unknown> {
           .decode(Buffer.concat(chunks));
         resolve(JSON.parse(text));
       } catch {
-        reject(new HttpError(400, 'Request body must be valid UTF-8 JSON'));
+        reject(new HttpError(400, 'Request body must be valid UTF-8 JSON', 'INVALID_JSON'));
       }
     });
 
     request.on('error', () => {
-      reject(new HttpError(400, 'Request body could not be read'));
+      reject(new HttpError(400, 'Request body could not be read', 'BODY_READ_FAILED'));
     });
   });
 }
@@ -71,29 +77,56 @@ export async function respond(
   } catch (error: unknown) {
     if (response.destroyed || response.writableEnded) return;
     const failure = httpFailure(error);
-    sendJson(response, failure.statusCode, failure.body, { Connection: 'close' });
+    sendJson(response, failure.statusCode, failure.body, {
+      'Content-Type': 'application/problem+json; charset=utf-8',
+      Connection: 'close',
+    });
   }
 }
 
-function httpFailure(error: unknown): {
+export type Problem = {
+  type: string;
+  title: string;
+  status: number;
+  detail: string;
+  code: string;
+  issues?: Array<{ path: Array<string | number>; message: string }>;
+};
+
+export function httpFailure(error: unknown): {
   statusCode: number;
-  body: { error: string };
+  body: Problem;
 } {
   const statusCode = error instanceof HttpError ? error.statusCode
     : error instanceof InvalidCaptureError ? 400
     : error instanceof CaptureNotFoundError ? 404 : 500;
   if (statusCode === 500) console.error(error);
+  const code = statusCode === 500 ? 'INTERNAL_ERROR'
+    : error instanceof InvalidCaptureError ? 'INVALID_CAPTURE'
+    : error instanceof CaptureNotFoundError ? 'CAPTURE_NOT_FOUND'
+    : error instanceof HttpError ? error.code : 'INTERNAL_ERROR';
   return {
     statusCode,
-    body: { error: statusCode === 500 ? 'Internal server error' : errorMessage(error) },
+    body: {
+      type: 'about:blank',
+      title: STATUS_CODES[statusCode] ?? 'Error',
+      status: statusCode,
+      detail: statusCode === 500 ? 'Internal server error' : errorMessage(error),
+      code,
+      ...(error instanceof HttpError && error.issues ? { issues: error.issues } : {}),
+    },
   };
 }
 
-export async function httpResult<T>(action: () => T | Promise<T>): Promise<T> {
+export async function httpResult<T>(
+  action: () => T | Promise<T>,
+  response: ServerResponse,
+): Promise<T> {
   try {
     return await action();
   } catch (error: unknown) {
     const failure = httpFailure(error);
+    response.setHeader('Content-Type', 'application/problem+json; charset=utf-8');
     throw new HttpException(failure.body, failure.statusCode);
   }
 }

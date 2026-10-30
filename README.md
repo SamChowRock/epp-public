@@ -1,6 +1,6 @@
 # EPP 配套实践代码
 
-当前对应第二篇第 10 章，代码分支 `part-02/chapter-10`，从 `part-02/chapter-09` 继续演进。记录的 Controller、Service 工厂与存储登记移入 CapturesModule，AppModule 导入该模块；只公开 CapturesService，CAPTURE_STORE 保留在模块内部。三个 HTTP 接口、q／limit 规则和 Promise 存储契约继续保持；记录仍只保存在当前进程内存，停止进程后丢失，仅供本机实践。
+当前对应第二篇第 11 章，代码分支 `part-02/chapter-11`，从 `part-02/chapter-10` 继续演进。记录模块归属不变，Controller 使用 Zod 解析输入并显式映射公开响应；成功响应与 q／limit 规则保持，错误正文升级为 Problem Details。新增 `/docs` 与 `/openapi.json` 文档入口。记录仍只保存在当前进程内存，停止进程后丢失，仅供本机实践。
 
 使用 nvm 管理 Node.js；安装方式见 [nvm 官方说明](https://github.com/nvm-sh/nvm#installing-and-updating)。macOS、Linux 使用 Bash 或 Zsh，Windows 使用 WSL。在项目根目录运行：
 
@@ -18,7 +18,7 @@ npm run dev
 
 `package.json` 中的 `engines.node` 同样声明精确版本，`.npmrc` 开启 `engine-strict`，让 npm 安装时拒绝不匹配的 Node 版本。遇到 `EBADENGINE` 先执行 `nvm use`，再重试安装。
 
-本章运行依赖为 Nest `11.2.5`（common、core、platform-express）、reflect-metadata `0.2.2` 与 rxjs `7.8.2`；沿用的独立支线示例显式依赖 Express `5.2.1`，适配器也使用 Express 5，overrides 固定其间接依赖 Multer `2.5.0`。开发依赖保留 TypeScript `5.9.3`、tsx `4.23.15`、`@types/node` `24.13.3`，以及 `@types/express` `5.0.6`。`npm ci` 按锁文件安装完整依赖；`npm run build` 先清理 `dist/`，编译业务源码，再复制默认配置；`npm start` 只运行产物。服务默认监听 `http://127.0.0.1:3000`。默认端口来自 `config/service.json`，启动时由 `src/config.ts`（产物为 `dist/src/config.js`）相对于模块读取，不依赖调用者的工作目录。
+本章新增 Zod `4.6.6` 与 @nestjs/swagger `11.4.7`，后者提供 Swagger UI 及其静态资源。其他运行依赖为 Nest `11.2.5`（common、core、platform-express）、reflect-metadata `0.2.2` 与 rxjs `7.8.2`；沿用的独立支线示例显式依赖 Express `5.2.1`，适配器也使用 Express 5，overrides 固定其间接依赖 Multer `2.5.0`。开发依赖保留 TypeScript `5.9.3`、tsx `4.23.15`、`@types/node` `24.13.3`，以及 `@types/express` `5.0.6`。`npm ci` 按锁文件安装完整依赖；`npm run build` 先清理 `dist/`，编译业务源码，再复制默认配置；`npm start` 只运行产物。服务默认监听 `http://127.0.0.1:3000`。默认端口来自 `config/service.json`，启动时由 `src/config.ts`（产物为 `dist/src/config.js`）相对于模块读取，不依赖调用者的工作目录。
 
 可以为一次启动覆盖端口：
 
@@ -52,7 +52,7 @@ curl -i http://127.0.0.1:3000/captures \
 
 创建成功返回 `201`，复制响应中的 `id`，用 `GET /captures/<id>` 查看详情。列表返回 `{ "items": [...] }`。同一正文重复提交会创建两条记录。
 
-原文必须是非空白字符串，至多 2000 个 JavaScript UTF-16 代码单元；保留原始空格。请求体限制为 16 KiB。错误通过 HTTP 状态码与 `{ "error": "..." }` 返回：无效输入 `400`、不存在 `404`、方法不支持 `405`、请求体过大 `413`、内容类型不支持 `415`。
+原文必须是非空白字符串，至多 2000 个 JavaScript UTF-16 代码单元；保留原始空格。请求体限制为 16 KiB，须为不带 BOM 的合法 UTF-8 JSON；非法编码不会被替换后写入。错误通过 HTTP 状态码与 `application/problem+json` 返回，包含 type、title、status、detail、code，字段校验失败还包含 issues。旧客户端读取 error 的逻辑需要改为使用新结构：无效输入 `400`、不存在 `404`、方法不支持 `405`、请求体过大 `413`、内容类型不支持 `415`。
 
 保持 `npm run dev` 运行，在 Chrome 的 `chrome://inspect` 中打开 Node 调试目标，连接后，在 `src/captures.service.ts` 的 `await this.store.insert(capture)` 和 `src/memory-capture.store.ts` 的 Map 写入处设置断点并再次发送创建请求。调试器仅监听本机 `9229` 端口。停止时，在运行服务的终端按 `Ctrl+C`。
 
@@ -507,3 +507,37 @@ ESM 默认输出 A，eager 在初始化前读取类而失败。双向类程序 l
 先在终端运行 dev，再在 VS Code 选择 `EPP: attach to npm run dev`；`restart: true` 会在服务重启后尝试重连，断点保留。Chrome 可从 chrome://inspect 连接，但重启后可能需要重新选择目标。只有排查启动第一行才使用 `npm run build` 和 `npm run debug`；dev与debug不要同时占用9229或业务端口。依赖、package.json、开发脚本及环境变量改变后手动重启dev。此时的自动重启不保留进程内状态。
 
 生产方式先 `npm ci`、`npm run build`，再按第五章准备运行目录，仅安装运行依赖（`npm ci --omit=dev`），执行 `npm start`。start只运行构建产物，不开启Inspector或文件监听；生产环境不运行dev/debug。配置已复制进dist，修改源配置不会自动更新生产产物。环境变量按部署目标提供；NODE_ENV=production本身不会替代构建或自动关闭调试。完整进程托管、HTTPS与发布恢复在部署篇展开。
+
+
+## 第十一章输入、公开响应与接口文档
+
+查询超过 1000 项时返回 `QUERY_TOO_LARGE`；非法 UTF-8、BOM 或 JSON 语法失败返回 `INVALID_JSON`。两个 GET 的 OpenAPI 同时描述 If-None-Match、ETag 以及没有正文的 304。
+
+关键文件：capture-contract.ts 定义输入和公开响应；input-validation.ts 只把输入失败转为 400；Controller 使用解析结果并投影响应；http.ts 统一描述 Problem；openapi.ts 从 Schema 生成字段描述并显式维护操作。
+
+```bash
+npm run typecheck
+npm run build
+node examples/input-contracts.mjs
+node examples/response-boundary.mjs
+node scripts/export-openapi.mjs
+npm run dev
+```
+
+input-contracts 对照额外字段、缺失／null、转换与 Unicode 长度。response-boundary 输出三个公开字段，故意制造的输出失约返回 500，已保存记录仍为 1；其中 stderr 是开发时内部诊断，不是 HTTP 返回正文。export-openapi 写入 dist/openapi.json；重新 build 会清理该文件，需要再次导出。
+
+在浏览器打开 `http://127.0.0.1:3000/docs`，通过 Try it out 创建原文、提交非法字段、查询记录。该页面会发出真实请求，重复 POST 会创建多条记录。文档和 Swagger UI 资源由本服务提供，`/openapi.json` 可单独读取；不是自动生成所有业务约束，UTF-16 限额等自定义条件仍需核对描述和运行结果。
+
+日常继续使用导入的 Postman 集合：“04 原文类型错误”和“07 详情不存在”可直接发送。查询错误可复制列表请求，在 Params 中添加 limit=01；方法错误可复制列表请求，将方法改成 DELETE。下面保留对应的终端复现。需要根据当前契约扩充集合时，停止 dev、导出 OpenAPI 后，在 Postman 的 Import 中选择 `dist/openapi.json`，完成后重新启动 dev。
+
+```bash
+curl -i http://127.0.0.1:3000/captures \
+  -H 'Content-Type: application/json' \
+  --data '{"originalText":7}'
+curl -i 'http://127.0.0.1:3000/captures?limit=01'
+curl -i http://127.0.0.1:3000/captures/missing
+curl -i -X DELETE http://127.0.0.1:3000/captures
+curl -s http://127.0.0.1:3000/openapi.json
+```
+
+前两项为 VALIDATION_ERROR，详情不存在为 CAPTURE_NOT_FOUND，不支持的方法为 METHOD_NOT_ALLOWED 并保留 Allow。未知请求字段仍忽略，id／createdAt 继续由服务端生成，原文空格和 UTF-16 长度规则不变。业务规则仍由 Service 维护；独立示例只展示各自的机制，不等同主线新协议。第十二章再将已经明确的边界接入统一请求机制。

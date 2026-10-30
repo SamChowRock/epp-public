@@ -1,0 +1,97 @@
+import { z } from 'zod';
+import type { OpenAPIObject, SchemaObject, ResponseObject, ParameterObject } from '@nestjs/swagger';
+import {
+  CreateCaptureSchema, ListQuerySchema, CaptureResponseSchema,
+  CaptureListResponseSchema, ProblemSchema,
+} from './capture-contract.js';
+
+function schema(value: z.ZodType, io: 'input' | 'output'): SchemaObject {
+  return z.toJSONSchema(value, { target: 'openapi-3.0', io }) as SchemaObject;
+}
+function jsonResponse(name: string, description: string): ResponseObject {
+  return { description, content: {
+    'application/json': { schema: { $ref: `#/components/schemas/${name}` } },
+  } };
+}
+function problem(description: string): ResponseObject {
+  return { description, content: {
+    'application/problem+json': { schema: { $ref: '#/components/schemas/Problem' } },
+  } };
+}
+
+const etagHeaders = {
+  ETag: { description: 'Validator for this representation; send back with If-None-Match.', schema: { type: 'string' as const } },
+};
+const ifNoneMatch: ParameterObject = {
+  name: 'If-None-Match', in: 'header', required: false, schema: { type: 'string' },
+  description: 'A matching ETag, or *, can produce 304 without a body. Use a stored response for that URL; omit this header if no cached response is available.',
+};
+const notModified: ResponseObject = {
+  description: 'Not modified. No response body; reuse the cached representation.',
+  headers: etagHeaders,
+};
+
+export function createOpenApiDocument(): OpenAPIObject {
+  return {
+    openapi: '3.0.3',
+    info: {
+      title: 'EPP Capture API', version: '0.2.0',
+      description: 'In-memory records. Errors use Problem Details. Repeated POSTs create separate records.',
+    },
+    paths: {
+      '/captures': {
+        get: {
+          operationId: 'listCaptures', summary: 'List captures',
+          description: 'Insertion order; filter before limit. No limit means all matching records. At most 1000 ampersand-separated query parts, including unknown keys and empty parts. Unknown query keys within that bound are ignored; repeated q or limit is rejected.',
+          parameters: [ifNoneMatch, ...['q', 'limit'].map(name => ({
+            name, in: 'query', required: false,
+            schema: schema(name === 'q' ? ListQuerySchema.shape.q.unwrap() : ListQuerySchema.shape.limit.unwrap(), 'input'),
+          } as ParameterObject))],
+          responses: {
+            '200': { ...jsonResponse('CaptureList', 'Matching records'), headers: etagHeaders },
+            '304': notModified,
+            '400': problem('Invalid query; code VALIDATION_ERROR or QUERY_TOO_LARGE'),
+            '500': problem('Unexpected failure; code INTERNAL_ERROR'),
+          },
+        },
+        post: {
+          operationId: 'createCapture', summary: 'Create a capture',
+          description: 'Only originalText is used. Extra properties, including id and createdAt, are ignored. Body limit: 16 KiB of bytes. Requires valid UTF-8 JSON without a BOM. URL query limit: 1000 ampersand-separated parts.',
+          requestBody: { required: true, content: { 'application/json': {
+            schema: { $ref: '#/components/schemas/CreateCapture' },
+            example: { originalText: 'I want to explain this clearly.' },
+          } } },
+          responses: {
+            '201': { ...jsonResponse('Capture', 'Saved record'), headers: {
+              Location: { description: 'Relative URL of the new record', schema: { type: 'string' } },
+            } },
+            '400': problem('Malformed UTF-8/JSON or invalid input/query; code INVALID_JSON, VALIDATION_ERROR or QUERY_TOO_LARGE'),
+            '413': problem('Body exceeds 16 KiB; code BODY_TOO_LARGE'),
+            '415': problem('Expected application/json; code UNSUPPORTED_MEDIA_TYPE'),
+            '500': problem('Unexpected failure; code INTERNAL_ERROR'),
+          },
+        },
+      },
+      '/captures/{id}': {
+        get: {
+          operationId: 'findCapture', summary: 'Find a capture',
+          parameters: [ifNoneMatch, { name: 'id', in: 'path', required: true, schema: { type: 'string' },
+            description: 'Use the literal ID returned by creation. Unknown IDs return 404.' }],
+          responses: {
+            '200': { ...jsonResponse('Capture', 'Saved record'), headers: etagHeaders },
+            '304': notModified,
+            '400': problem('Query exceeds 1000 parts; code QUERY_TOO_LARGE'),
+            '404': problem('No such record; code CAPTURE_NOT_FOUND'),
+            '500': problem('Unexpected failure; code INTERNAL_ERROR'),
+          },
+        },
+      },
+    },
+    components: { schemas: {
+      CreateCapture: schema(CreateCaptureSchema, 'input'),
+      Capture: schema(CaptureResponseSchema, 'output'),
+      CaptureList: schema(CaptureListResponseSchema, 'output'),
+      Problem: schema(ProblemSchema, 'output'),
+    } },
+  };
+}

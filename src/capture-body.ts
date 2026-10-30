@@ -15,7 +15,7 @@ export function captureBody(
     const mediaType = request.headers['content-type']
       ?.split(';')[0]?.trim().toLowerCase();
     if (mediaType !== 'application/json') {
-      throw new HttpError(415, 'Content-Type must be application/json');
+      throw new HttpError(415, 'Content-Type must be application/json', 'UNSUPPORTED_MEDIA_TYPE');
     }
     request.body = await readJson(request);
     next();
