@@ -7,7 +7,7 @@
     "node": "24.22.1"
   },
   "scripts": {
-    "dev": "tsx watch src/server.ts",
+    "dev": "node scripts/dev.mjs",
     "typecheck": "tsc --noEmit",
     "clean": "node scripts/clean.mjs",
     "build": "npm run clean && tsc && node scripts/copy-assets.mjs",
