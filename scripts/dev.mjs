@@ -31,9 +31,9 @@ function restart(ready) {
   pending = pending.then(async () => {
     await stopServer();
     if (stopping || requested !== revision || !ready) return;
-    mkdirSync('dist/config', { recursive: true });
-    copyFileSync('config/service.json', 'dist/config/service.json');
-    const current = spawn(process.execPath, ['--inspect=127.0.0.1:9229', '--enable-source-maps', 'dist/src/server.js'], {
+    mkdirSync('.dev/config', { recursive: true });
+    copyFileSync('config/service.json', '.dev/config/service.json');
+    const current = spawn(process.execPath, ['--inspect=127.0.0.1:9229', '--enable-source-maps', '.dev/src/server.js'], {
       stdio: 'inherit',
     });
     child = current;
@@ -47,7 +47,7 @@ function restart(ready) {
 }
 
 const host = ts.createWatchCompilerHost(
-  'tsconfig.json', { noEmitOnError: true }, ts.sys,
+  'tsconfig.dev.json', { noEmitOnError: true }, ts.sys,
   ts.createEmitAndSemanticDiagnosticsBuilderProgram,
   diagnostic => {
     console.error(ts.formatDiagnostic(diagnostic, format));

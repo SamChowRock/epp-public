@@ -141,11 +141,11 @@ async function handleRequest(
 }
 
 const server = createServer((request, response) => {
-  console.log(`${request.method} ${request.url}`);
+  console.log(JSON.stringify({ event: 'http.request', method: request.method }));
   handleRequest(request, response).catch((error: unknown) => {
     if (response.destroyed || response.writableEnded) return;
     const statusCode = error instanceof HttpError ? error.statusCode : 500;
-    if (statusCode === 500) console.error(error);
+    if (statusCode === 500) console.error('Unhandled request failure:', error instanceof Error ? error.name : 'UnknownError');
     sendJson(response, statusCode, {
       error: statusCode === 500 ? 'Internal server error' : errorMessage(error),
     }, { Connection: 'close' });
