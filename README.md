@@ -339,10 +339,12 @@ node dist/decorators/mini-router.js
 ### 支线 7B：Express 请求链
 
 ```bash
-node examples/express-pipeline.js
+npm run dev:express
 ```
 
-独立监听 `127.0.0.1:3003`，没有修改 EPP 的三个业务接口。在另一终端逐条观察：
+独立监听 `127.0.0.1:3003`。先停止其他 dev，使用 VS Code 的 `EPP: attach to npm run dev`；该 JavaScript 示例直接在源文件设断点，Node watch 保存后自动重启。导入 [Express 请求集合](requests/express-pipeline.postman_collection.json)，逐条 Send；挂起请求等约两秒后 Cancel。需要客户端超时对照时，在 Postman 设置中找到 Request Timeout，记下原值、临时设 2000 毫秒，观察后恢复；暂停断点时不要使用短期限。
+
+修改一处响应、保存、等监听日志、再发同一请求核对；不要同时启动占用 9229 的其他实验。开发环境文件改变后仍需手动重启。下面仅为同一请求的终端表示：
 
 ```bash
 curl -i http://127.0.0.1:3003/wait
@@ -368,11 +370,10 @@ node --input-type=module -e 'process.stdout.write(JSON.stringify({message:"a".re
 `examples/mini-nest/framework.ts` 是独立实现的框架核心，约 120 行，支持单根模块、类 Provider、应用内共享实例、GET／POST、Body／Param 和 JSON 响应；不导入 Nest 包。`app.ts` 使用这套自定义装饰器，复用 `src/captures.service.ts`。
 
 ```bash
-npm exec -- tsc -p examples/mini-nest/tsconfig.json
-node dist/examples/mini-nest/main.js
+npm run dev:mini-nest
 ```
 
-在另一终端运行：
+导入 [最小 Nest 请求集合](requests/mini-nest.postman_collection.json)，使用 baseUrl 3004，逐条 Send。成功 ID 手动填入 captureId。VS Code 继续 attach，TypeScript 产物在 .dev，保存后自动编译重启；内存清空后要重新创建并更新 ID。下面仅为终端复现：
 
 ```bash
 curl -i http://127.0.0.1:3004/captures \
@@ -383,15 +384,11 @@ curl -i http://127.0.0.1:3004/captures
 
 创建应为 201，列表包含新记录；使用返回的实际 ID 请求详情，内容应一致。空白原文应为 400 且不写入，缺失详情应为 404。这个独立进程与主线不共享 Map；它只实现实验所需的 HTTP 行为，没有主线完整的 Location、405／Allow 与原始路径兼容约定。
 
-按支线移除 providers 中的 CapturesService，重新编译启动，应在监听前报告未注册依赖。恢复清单后再对照缺失构造参数元数据：
+按支线移除 providers 中的 CapturesService，保存后应在监听前报告未注册依赖；恢复清单再保存，服务重新可用。元数据实验在 `examples/mini-nest/tsconfig.dev.json` 的 compilerOptions 中临时加入 `"emitDecoratorMetadata": false`，保存后应报告缺少元数据。删除该覆盖并保存，继承主配置后恢复。失败的是服务子进程，watcher 继续等待修改；只看到 Build succeeded 不代表监听成功。
 
-```bash
-npm exec -- tsc -p examples/mini-nest/tsconfig.json --emitDecoratorMetadata false
-node dist/examples/mini-nest/main.js
-npm exec -- tsc -p examples/mini-nest/tsconfig.json
-```
+本实验只属于第七章；回看用本章分支，第八章起不携带它。主线 build 只编译 src，实验代码与 .dev 不进入交付目录。
 
-中间一次应报告 `Constructor metadata is missing: MiniCapturesController` 并返回 1；最后一次编译恢复正常产物。示例继承服务的 TypeScript 配置并输出到 dist，常规 `npm run build` 清理产物后，需要重新执行示例编译。
+独立 HTTP 实验默认也使用开发调试。TypeScript 实验的 `tsconfig.dev.json` 继承自身编译配置，只把 outDir 改为 .dev；`scripts/dev.mjs` 的第一个可选参数选择输出入口，第二个选择编译配置，不传时仍运行主线。主线与实验共享9229，一次只运行一个；实验的监听地址成功出现后再 Send。它们不挂入 AppModule，生产构建不包含 examples，也不复制 .dev。
 
 ## 开发与生产运行
 

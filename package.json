@@ -13,7 +13,9 @@
     "build": "npm run clean && tsc && node scripts/copy-assets.mjs",
     "start": "NODE_ENV=production node --enable-source-maps dist/src/server.js",
     "debug": "NODE_ENV=development node --env-file-if-exists=.env --enable-source-maps --inspect-brk=127.0.0.1:9229 dist/src/server.js",
-    "check": "npm run typecheck && npm run build"
+    "check": "npm run typecheck && npm run build",
+    "dev:express": "NODE_ENV=development node --env-file-if-exists=.env --watch --watch-preserve-output --inspect=127.0.0.1:9229 examples/express-pipeline.js",
+    "dev:mini-nest": "NODE_ENV=development node --env-file-if-exists=.env scripts/dev.mjs .dev/examples/mini-nest/main.js examples/mini-nest/tsconfig.dev.json"
   },
   "devDependencies": {
     "@types/node": "24.13.3",

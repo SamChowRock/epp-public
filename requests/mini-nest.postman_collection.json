@@ -1,0 +1,89 @@
+{
+  "info": {
+    "name": "EPP 第七章最小 Nest 实验",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "本机独立实验；逐条手动 Send，不自动重放。挂起请求约两秒后 Cancel；断点暂停时不要用短超时判断服务故障。"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3004",
+      "type": "string"
+    },
+    {
+      "key": "captureId",
+      "value": "replace-with-created-id",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 创建",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/captures",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"originalText\":\"  understand the mechanism  \"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "02 列表",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/captures"
+      }
+    },
+    {
+      "name": "03 详情",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/captures/{{captureId}}"
+      }
+    },
+    {
+      "name": "04 空白原文",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/captures",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"originalText\":\"   \"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "05 不存在",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/captures/missing"
+      }
+    }
+  ]
+}
