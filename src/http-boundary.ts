@@ -15,6 +15,11 @@ export function httpBoundary(
     } catch {
       throw new HttpError(400, 'Request URL is invalid');
     }
+    // The simple parser silently stops after 1000 entries; reject before parsing.
+    const queryParts = url.search === '' ? 0 : url.search.slice(1).split('&').length;
+    if (queryParts > 1000) {
+      throw new HttpError(400, 'Query string must contain at most 1000 parameters');
+    }
     const detail = /^\/captures\/([^/]+)$/.exec(url.pathname);
     const allowed = url.pathname === '/captures' ? ['GET', 'POST']
       : detail ? ['GET'] : undefined;
