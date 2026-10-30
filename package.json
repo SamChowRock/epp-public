@@ -15,7 +15,8 @@
     "debug": "NODE_ENV=development node --env-file-if-exists=.env --enable-source-maps --inspect-brk=127.0.0.1:9229 dist/src/server.js",
     "dev:pipeline": "NODE_ENV=development node --env-file-if-exists=.env scripts/dev.mjs .dev/src/labs/request-pipeline-server.js",
     "test": "npm run build && NODE_ENV=test node --test test/*.test.mjs",
-    "check": "npm run typecheck && npm run build"
+    "check": "npm run typecheck && npm run build",
+    "dev:lifecycle": "NODE_ENV=development PORT=3007 node --env-file-if-exists=.env scripts/dev.mjs .dev/src/labs/lifecycle-server.js"
   },
   "devDependencies": {
     "@types/node": "24.13.3",

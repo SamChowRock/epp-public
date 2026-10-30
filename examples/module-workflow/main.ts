@@ -2,6 +2,9 @@ import 'reflect-metadata';
 import { Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { CapturesModule } from '../../src/captures.module.js';
+import { RuntimeModule } from '../../src/runtime.module.js';
+import { parseConfig } from '../../src/config.js';
+import { AppLogger } from '../../src/app-logger.js';
 import { CapturesService } from '../../src/captures.service.js';
 import type { Capture } from '../../src/capture.js';
 
@@ -23,7 +26,7 @@ class CreatePreview {
 }
 
 @Module({
-  imports: [CapturesModule],
+  imports: [RuntimeModule.register(parseConfig({ port: 3000 }, { NODE_ENV: 'test' }), new AppLogger('error')), CapturesModule],
   providers: [{
     provide: CreatePreview,
     useFactory: (captures: CapturesService) => new CreatePreview(captures),

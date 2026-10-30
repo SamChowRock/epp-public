@@ -87,7 +87,6 @@ export function httpFailure(error: unknown): {
   const statusCode = error instanceof HttpError ? error.statusCode
     : error instanceof InvalidCaptureError ? 400
     : error instanceof CaptureNotFoundError ? 404 : clientStatus ?? 500;
-  if (statusCode === 500) console.error('Unhandled request failure:', error instanceof Error ? error.name : 'UnknownError');
   const code = statusCode === 500 ? 'INTERNAL_ERROR'
     : error instanceof InvalidCaptureError ? 'INVALID_CAPTURE'
     : error instanceof CaptureNotFoundError ? 'CAPTURE_NOT_FOUND'

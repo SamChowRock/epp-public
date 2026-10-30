@@ -22,7 +22,7 @@ async function stopServer() {
   const current = child;
   if (!current || current.exitCode !== null || current.signalCode !== null) return;
   await new Promise(resolve => {
-    const deadline = setTimeout(() => current.kill('SIGKILL'), 2000);
+    const deadline = setTimeout(() => current.kill('SIGKILL'), 35000);
     current.once('exit', () => { clearTimeout(deadline); resolve(); });
     current.kill('SIGTERM');
   });

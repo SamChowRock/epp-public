@@ -7,7 +7,6 @@ export function httpBoundary(
   response: Response,
   next: NextFunction,
 ): void {
-  console.log(JSON.stringify({ event: 'http.request', method: request.method }));
   try {
     let url: URL;
     try {

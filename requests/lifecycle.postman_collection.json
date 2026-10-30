@@ -1,0 +1,140 @@
+{
+  "info": {
+    "name": "EPP 生命周期实验",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "独立实验端口3007。逐条Send；观察请求处理中SIGTERM、客户端取消、超时与资源释放。不要同时启动主线dev。"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3007",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 正常收尾",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"delayMs\": 1500}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/lifecycle/work",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "lifecycle",
+            "work"
+          ]
+        }
+      }
+    },
+    {
+      "name": "02 资源失败",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"delayMs\": 100, \"fail\": true}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/lifecycle/work",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "lifecycle",
+            "work"
+          ]
+        }
+      }
+    },
+    {
+      "name": "03 超过关闭期限",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"delayMs\": 15000}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/lifecycle/work",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "lifecycle",
+            "work"
+          ]
+        }
+      }
+    },
+    {
+      "name": "04 立即完成",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"delayMs\": 0}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/lifecycle/work",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "lifecycle",
+            "work"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # EPP 配套实践代码
 
-当前对应第二篇第 12 章，代码分支 `part-02/chapter-12`，从 `part-02/chapter-11` 继续演进。输入校验由 Pipe 执行，公开响应由 Interceptor 按 Schema 投影与检查，错误统一交给 ProblemFilter。三个业务接口、成功字段、查询规则与 Problem 契约保持；`/docs` 和 `/openapi.json` 在开发模式默认可用。记录仍只保存在当前进程的内存，停止进程后丢失，仅供本机实践。
+当前对应第二篇第 13 章，代码分支 `part-02/chapter-13`，从 `part-02/chapter-12` 继续演进。集中解析启动配置，提供结构化日志与服务端 X-Request-Id；SIGINT/SIGTERM 先停止接收，再等待已有工作并释放资源。三个业务接口、成功字段与 Problem 契约保持，关闭期间明确拒绝的新请求使用 503／SERVICE_DRAINING。Swagger 开发默认开启，生产默认关闭。数据仍只在 Map 中，退出会丢失，仅供本机实践。
 
 使用 nvm 管理 Node.js；安装方式见 [nvm 官方说明](https://github.com/nvm-sh/nvm#installing-and-updating)。macOS、Linux 使用 Bash 或 Zsh，Windows 使用 WSL。在项目根目录运行：
 
@@ -9,8 +9,7 @@ nvm install
 nvm use
 node --version
 npm ci
-npm run typecheck
-npm run build
+npm run check
 npm run dev
 ```
 
@@ -97,7 +96,7 @@ node examples/cwd-config.js
 也可以只读取配置，不启动服务。在项目根目录执行：
 
 ```bash
-node --import=tsx --input-type=module -e 'import { loadConfig } from "./src/config.ts"; console.log(await loadConfig());'
+node --import=tsx --input-type=module -e 'import { loadConfig } from "./src/config.ts"; const c = await loadConfig(); console.log({ port: c.port, mode: c.mode });'
 NODE_ENV=production PORT=3001oops node --enable-source-maps dist/src/server.js
 echo $?
 ```
@@ -504,7 +503,7 @@ ESM 默认输出 A，eager 在初始化前读取类而失败。双向类程序 l
 
 运行模式由命令明确提供：`npm run dev` 和 `npm run debug` 使用 development，`npm start` 使用 production。NODE_ENV 决定库与应用的环境行为，文件监听和 Inspector 则由命令参数分别控制；更改模式要重新启动进程。请用开发进程修改代码，用独立的交付运行核对实际产物，不把本机调试服务当作生产进程。
 
-请求日志只记录方法，不写原始 URL、查询值、请求正文或凭据。需要核对输入时，在 Postman 中查看自己发送的请求，并在调试器中观察变量；内部失败日志只记录异常类型，避免错误消息或堆栈带出数据。后续请求关联和结构化诊断在相应章节继续建立。
+请求日志记录服务端编号、方法、固定路由标签、状态与耗时，不写原始 URL、查询值、原文或凭据。内部失败只记录稳定错误码，不输出原异常消息/堆栈。正常存储耗时为 debug；需要核对实际输入时使用自己保存的 Postman 请求与开发调试器。
 
 学习和日常修改默认使用 `npm run dev`。scripts/dev.mjs 使用项目锁定的 TypeScript watch 与 tsconfig.dev.json 编译到 .dev，成功后复制配置并启动开启本机 Inspector 的服务；保存源码、修改 tsconfig.json 或 config/service.json 后自动重启。类型错误时停止旧服务，修复保存后恢复；终端的 Build succeeded 只表示编译成功，还要看到服务监听日志。重启会清空 Map，浏览器页面不会自动刷新，需要重新发请求。
 
@@ -528,7 +527,7 @@ node scripts/export-openapi.mjs
 npm run dev
 ```
 
-input-contracts 对照额外字段、缺失／null、转换与 Unicode 长度。response-boundary 输出三个公开字段，故意制造的输出失约返回 500，已保存记录仍为 1；其中 stderr 是开发时内部诊断，不是 HTTP 返回正文。export-openapi 写入 dist/openapi.json；重新 build 会清理该文件，需要再次导出。
+input-contracts 对照额外字段、缺失／null、转换与 Unicode 长度。response-boundary 输出三个公开字段，故意制造的输出失约返回 500，已保存记录仍为 1；httpFailure 只负责转换，不自行打印异常；主线由 Filter 统一记录诊断。export-openapi 写入 dist/openapi.json；重新 build 会清理该文件，需要再次导出。
 
 在浏览器打开 `http://127.0.0.1:3000/docs`，通过 Try it out 创建原文、提交非法字段、查询记录。该页面会发出真实请求，重复 POST 会创建多条记录。文档和 Swagger UI 资源由本服务提供，`/openapi.json` 可单独读取；不是自动生成所有业务约束，UTF-16 限额等自定义条件仍需核对描述和运行结果。
 
@@ -588,3 +587,38 @@ npm test
 
 
 第十一章起，Swagger 在 development 默认开启，在 test/production 默认关闭。NODE_ENV 只接受 development/test/production；DOCS_ENABLED 只接受 true/false，非法值在创建应用前失败。确需开启文档时由目标环境显式提供 DOCS_ENABLED=true；开放文档是一项有意的入口配置，不代表已有访问权限控制。生产关闭时 /docs 和 /openapi.json 返回路由不存在，业务接口照常可用；静态契约仍可用 scripts/export-openapi.mjs 导出。
+
+
+## 第十三章配置、日志与关闭
+
+本机 .env 可新增 LOG_LEVEL=debug、SHUTDOWN_TIMEOUT_MS=5000；已有 .env 不要直接覆盖。NODE_ENV 与文档开关由 src/config.ts 集中解析，src/http-options.ts 不再使用。PORT 和关闭期限先校验十进制表示；关闭期限为1～30000毫秒。配置无效时在创建应用前记录 CONFIG_INVALID 和字段名，返回非零退出码，不打印原值。APP_CONFIG 注入不可变配置快照；启动后改环境需重启。
+
+Postman 发送已有请求后，在响应 Headers 复制 X-Request-Id，在本机日志中搜索同一编号。开发时保存输出：
+
+```bash
+mkdir -p logs
+LOG_LEVEL=debug npm run dev 2>&1 | tee logs/dev.log
+```
+
+应用 JSON 的 message.event 是事件名，message.requestId 是编号；有编号的请求可关联 http.started、store.completed/failed 与 http.completed/aborted/failed。非法 JSON 或字段错误不应出现 insert 成功。可用 `node examples/filter-logs.mjs <实际编号> < logs/dev.log` 精确筛选；将尖括号占位符整体换掉。日志含编译器的非 JSON 行时脚本会跳过，不把原文作为检索身份。
+
+生产目录继续 `PORT=3001 npm start`；先观察 app.ready，再用产物请求集合核对三个业务接口、失败输入、X-Request-Id 和默认关闭的文档。结束时 SIGINT/SIGTERM 只触发一次关闭；等 app.stopped 后确认子进程退出。默认五秒期限覆盖正在处理的存储操作与资源关闭；超时记录 app.stop_timeout 并失败退出，不保证最后响应或日志送达，不等于回滚。开发 runner 给出35秒兜底，确保不早于应用允许的最大期限。
+
+资源实验与业务应用隔离。停止其他开发入口，执行：
+
+```bash
+npm run dev:lifecycle
+```
+
+导入 [生命周期实验集合](requests/lifecycle.postman_collection.json)，固定目标3007。选择“01 正常收尾”，Send 后向 app.ready 中的服务子进程 pid 发 SIGTERM，观察 resource.used → HTTP完成 → resource.closed → app.stopped。再次启动后取消正在执行的请求，http.aborted 后工作仍可能完成；已追踪工作在释放资源前结束。“02”返回500；“03”处理中停止会触发默认五秒期限，不能假定获得503响应。父 watcher 不等于服务子进程；子进程退出后父进程仍等待修改。
+
+停止父 watcher 后，分别用 `LAB_MODE=init-fail npm run dev:lifecycle` 与 `LAB_MODE=close-hang npm run dev:lifecycle` 观察部分初始化清理及关闭挂起。前者没有 app.ready，后者在关闭期限到达后失败退出。强制结束可能留下本实验的临时目录；确认进程结束后，检查系统临时目录的 epp-lifecycle-*，只清理准确识别的实验路径，不用宽泛通配删除。最终恢复 normal 并切回主线 dev。
+
+普通独立示例不需要端口：
+
+```bash
+node examples/lifecycle-order.mjs
+node examples/request-context.mjs
+```
+
+前者观察初始化与关闭钩子；后者对照全局变量串值、AsyncLocalStorage 与事件绑定。第十章直接消费 CapturesModule 的示例已在自身根模块登记 RuntimeModule，容器之间不共享 global 模块。主服务继续使用原内存存储，生命周期实验不构成数据库实现。build 排除全部 src/labs；dev:lifecycle 与 dev:pipeline 都只运行 .dev 产物。
