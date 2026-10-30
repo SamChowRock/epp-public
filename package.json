@@ -7,6 +7,7 @@
     "node": "24.22.1"
   },
   "scripts": {
+    "dev": "node --watch --inspect=127.0.0.1:9229 src/server.js",
     "start": "node src/server.js",
     "debug": "node --inspect-brk=127.0.0.1:9229 src/server.js"
   }
