@@ -1,0 +1,147 @@
+{
+  "info": {
+    "name": "EPP 本机接口调试",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "第二章起通用的手动调试请求。先 npm run dev，再逐条 Send；不需要 Runner 或脚本。无凭据，不自动传递 id。第八章起可在列表 Params 中添加 q、limit，第十一章可使用 Swagger /docs 对照契约。"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000",
+      "type": "string"
+    },
+    {
+      "key": "captureId",
+      "value": "replace-with-created-id",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 查看列表",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/captures",
+        "description": "预期 200；初次启动 items 为空。先查看列表，再创建。"
+      },
+      "response": []
+    },
+    {
+      "name": "02 创建原文",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/captures",
+        "description": "预期 201；查看响应 Body 与 Headers 中的 Location。复制返回的 id 到集合变量 captureId。每次 Send 都会新增记录。",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"originalText\": \"I'm not much of cook.\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "03 查看详情",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/captures/{{captureId}}",
+        "description": "先将创建响应中的 id 填入集合变量 captureId，再发送，预期 200。服务重启清空 Map 后需重新创建并更新 id。"
+      },
+      "response": []
+    },
+    {
+      "name": "04 原文类型错误",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/captures",
+        "description": "预期 400；切回列表确认未新增记录。各章错误正文结构随实现演进。",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"originalText\":42}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "05 JSON 格式错误",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/captures",
+        "description": "预期 400；Content-Type 正确，但正文不是完整 JSON。",
+        "body": {
+          "mode": "raw",
+          "raw": "{",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "06 内容类型错误",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "text/plain"
+          }
+        ],
+        "url": "{{baseUrl}}/captures",
+        "description": "预期 415；正文看似 JSON，但声明了 text/plain。",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"originalText\":\"hello\"}",
+          "options": {
+            "raw": {
+              "language": "text"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "07 详情不存在",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/captures/missing",
+        "description": "预期 404；与连接失败区分，响应表示服务已处理请求。"
+      },
+      "response": []
+    }
+  ]
+}
