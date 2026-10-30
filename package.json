@@ -16,7 +16,9 @@
     "dev:pipeline": "NODE_ENV=development node --env-file-if-exists=.env scripts/dev.mjs .dev/src/labs/request-pipeline-server.js",
     "test": "npm run build && NODE_ENV=test node --test test/*.test.mjs",
     "check": "npm run typecheck && npm run build",
-    "dev:lifecycle": "NODE_ENV=development PORT=3007 node --env-file-if-exists=.env scripts/dev.mjs .dev/src/labs/lifecycle-server.js"
+    "dev:lifecycle": "NODE_ENV=development PORT=3007 node --env-file-if-exists=.env scripts/dev.mjs .dev/src/labs/lifecycle-server.js",
+    "dev:express": "NODE_ENV=development node --env-file-if-exists=.env --watch --watch-preserve-output --inspect=127.0.0.1:9229 examples/express-pipeline.js",
+    "dev:responses": "NODE_ENV=development node --env-file-if-exists=.env scripts/dev.mjs .dev/examples/controller-responses/main.js examples/controller-responses/tsconfig.dev.json"
   },
   "devDependencies": {
     "@types/node": "24.13.3",
