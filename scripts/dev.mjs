@@ -11,6 +11,7 @@ const format = {
   getNewLine: () => ts.sys.newLine,
 };
 const entry = process.argv[2] ?? '.dev/src/server.js';
+const configFile = process.argv[3] ?? 'tsconfig.dev.json';
 
 let child;
 let revision = 0;
@@ -49,7 +50,7 @@ function restart(ready) {
 }
 
 const host = ts.createWatchCompilerHost(
-  'tsconfig.dev.json', { noEmitOnError: true }, ts.sys,
+  configFile, { noEmitOnError: true }, ts.sys,
   ts.createEmitAndSemanticDiagnosticsBuilderProgram,
   diagnostic => {
     console.error(ts.formatDiagnostic(diagnostic, format));

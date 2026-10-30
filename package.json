@@ -15,7 +15,9 @@
     "debug": "NODE_ENV=development node --env-file-if-exists=.env --enable-source-maps --inspect-brk=127.0.0.1:9229 dist/src/server.js",
     "dev:pipeline": "NODE_ENV=development node --env-file-if-exists=.env scripts/dev.mjs .dev/src/labs/request-pipeline-server.js",
     "test": "npm run build && NODE_ENV=test node --test test/*.test.mjs",
-    "check": "npm run typecheck && npm run build"
+    "check": "npm run typecheck && npm run build",
+    "dev:express": "NODE_ENV=development node --env-file-if-exists=.env --watch --watch-preserve-output --inspect=127.0.0.1:9229 examples/express-pipeline.js",
+    "dev:responses": "NODE_ENV=development node --env-file-if-exists=.env scripts/dev.mjs .dev/examples/controller-responses/main.js examples/controller-responses/tsconfig.dev.json"
   },
   "devDependencies": {
     "@types/node": "24.13.3",
