@@ -2,16 +2,40 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "EPP: attach to npm run dev",
+      "type": "node",
+      "request": "attach",
+      "address": "127.0.0.1",
+      "port": 9229,
+      "restart": true,
+      "timeout": 30000,
+      "sourceMaps": true,
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js"
+      ],
+      "skipFiles": [
+        "<node_internals>/**",
+        "${workspaceFolder}/node_modules/**"
+      ]
+    },
+    {
       "name": "EPP: build and launch",
       "type": "node",
       "request": "launch",
       "program": "${workspaceFolder}/dist/src/server.js",
       "cwd": "${workspaceFolder}",
       "preLaunchTask": "EPP: build",
-      "runtimeArgs": ["--enable-source-maps"],
+      "runtimeArgs": [
+        "--enable-source-maps"
+      ],
       "sourceMaps": true,
-      "outFiles": ["${workspaceFolder}/dist/**/*.js"],
-      "skipFiles": ["<node_internals>/**", "${workspaceFolder}/node_modules/**"],
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js"
+      ],
+      "skipFiles": [
+        "<node_internals>/**",
+        "${workspaceFolder}/node_modules/**"
+      ],
       "console": "integratedTerminal"
     },
     {
@@ -21,8 +45,13 @@
       "address": "127.0.0.1",
       "port": 9229,
       "sourceMaps": true,
-      "outFiles": ["${workspaceFolder}/dist/**/*.js"],
-      "skipFiles": ["<node_internals>/**", "${workspaceFolder}/node_modules/**"]
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js"
+      ],
+      "skipFiles": [
+        "<node_internals>/**",
+        "${workspaceFolder}/node_modules/**"
+      ]
     }
   ]
 }
