@@ -215,11 +215,11 @@ main 与 worker 对照父线程探针和计算完成的先后；后者修改输�
 
 ## 调试 TypeScript 服务
 
-用 VS Code 打开配套代码仓库根目录，在终端执行 `nvm use` 并核对 `node -v`。Run and Debug 中选择 `EPP: build and launch`，启动前会执行 build；已有普通服务应先停止，避免争用业务端口。
+用 VS Code 打开配套代码仓库根目录，在终端执行 `nvm use` 并核对 `node -v`。日常运行 `npm run dev`，在 Run and Debug 选择 `EPP: attach to npm run dev`；默认连接 .dev 产物，保存后自动编译、重启并尝试重连。
 
-若需要沿用终端启动的进程，先执行 `npm run build`、`npm run debug`，再选择 `EPP: attach to npm run debug`。它连接本机 9229，首次连接后继续执行；不要同时再启动 launch。业务 HTTP 端口与 Inspector 端口承担不同职责。
+需要观察启动第一行或构建产物时，先停止 dev，再选择 `EPP: build and launch`；也可依次执行 `npm run build`、`npm run debug`，选择 `EPP: attach to npm run debug` 并继续执行。两条路线使用 dist；launch 和 debug 都使用 development，并加载本机 .env。业务 HTTP 端口与 Inspector 端口承担不同职责，不同时启动多个占用相同端口的进程。
 
-`.vscode/launch.json` 的 outFiles 指向 dist 中的 JavaScript，源码断点依赖对应的 .map 与当前源码。改源码后重建并重启；空心断点先核对目标进程、编译产物和源码映射。Scope、Watch、调用栈、条件断点、日志点与已捕获异常的用法见支线 5B。该配置从第五章起沿用，Nest 章节的断点改放到各自的 Controller、Service 或错误边界。
+源码断点依赖目标产物的 .map 与当前源码。dev 的 outFiles 指向 .dev，构建调试指向 dist；空心断点先核对目标进程、编译产物和映射。Scope、Watch、调用栈、条件断点、日志点与已捕获异常的用法见支线 5B。Nest 章节的断点放到各自的 Controller、Service 或错误边界。
 
 ## 第五章类型、模块与构建
 
@@ -532,7 +532,7 @@ input-contracts 对照额外字段、缺失／null、转换与 Unicode 长度。
 
 在浏览器打开 `http://127.0.0.1:3000/docs`，通过 Try it out 创建原文、提交非法字段、查询记录。该页面会发出真实请求，重复 POST 会创建多条记录。文档和 Swagger UI 资源由本服务提供，`/openapi.json` 可单独读取；不是自动生成所有业务约束，UTF-16 限额等自定义条件仍需核对描述和运行结果。
 
-日常继续使用导入的 Postman 集合：“04 原文类型错误”和“07 详情不存在”可直接发送。查询错误可复制列表请求，在 Params 中添加 limit=01；方法错误可复制列表请求，将方法改成 DELETE。下面保留对应的终端复现。需要根据当前契约扩充集合时，停止 dev、导出 OpenAPI 后，在 Postman 的 Import 中选择 `dist/openapi.json`，完成后重新启动 dev。
+日常继续使用导入的 Postman 集合：“04 原文类型错误”和“07 详情不存在”可直接发送。查询错误可复制列表请求，在 Params 中添加 limit=01；方法错误可复制列表请求，将方法改成 DELETE。下面保留对应的终端复现。需要根据当前契约扩充集合时，保持 dev，在另一个终端构建并导出 OpenAPI 后，在 Postman 的 Import 中选择 `dist/openapi.json`，导出只使用 dist，不会清理开发产物。
 
 ```bash
 curl -i http://127.0.0.1:3000/captures \
