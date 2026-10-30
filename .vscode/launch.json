@@ -1,0 +1,28 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "EPP: build and launch",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/dist/src/server.js",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "EPP: build",
+      "runtimeArgs": ["--enable-source-maps"],
+      "sourceMaps": true,
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"],
+      "skipFiles": ["<node_internals>/**", "${workspaceFolder}/node_modules/**"],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "EPP: attach to npm run debug",
+      "type": "node",
+      "request": "attach",
+      "address": "127.0.0.1",
+      "port": 9229,
+      "sourceMaps": true,
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"],
+      "skipFiles": ["<node_internals>/**", "${workspaceFolder}/node_modules/**"]
+    }
+  ]
+}
