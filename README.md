@@ -198,6 +198,14 @@ node examples/worker-boundary.js timeout
 main 与 worker 对照父线程探针和计算完成的先后；后者修改输入副本，父线程的 note 保持不变。fail、empty、timeout 分别报告异常、无结果退出与期限终止，并返回 1。完整示例同时等待结果和退出，只处理无外部副作用的计算，不代替持久化后台任务或生产线程池。
 
 
+## 调试 TypeScript 服务
+
+用 VS Code 打开配套代码仓库根目录，在终端执行 `nvm use` 并核对 `node -v`。Run and Debug 中选择 `EPP: build and launch`，启动前会执行 build；已有普通服务应先停止，避免争用业务端口。
+
+若需要沿用终端启动的进程，先执行 `npm run build`、`npm run debug`，再选择 `EPP: attach to npm run debug`。它连接本机 9229，首次连接后继续执行；不要同时再启动 launch。业务 HTTP 端口与 Inspector 端口承担不同职责。
+
+`.vscode/launch.json` 的 outFiles 指向 dist 中的 JavaScript，源码断点依赖对应的 .map 与当前源码。改源码后重建并重启；空心断点先核对目标进程、编译产物和源码映射。Scope、Watch、调用栈、条件断点、日志点与已捕获异常的用法见支线 5B。该配置从第五章起沿用，Nest 章节的断点改放到各自的 Controller、Service 或错误边界。
+
 ## 第五章类型、模块与构建
 
 开发入口与产物入口分别运行，不要同时占用默认端口：
