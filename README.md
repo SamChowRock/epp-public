@@ -23,7 +23,7 @@ npm run dev
 可以为一次启动覆盖端口：
 
 ```bash
-PORT=3001 node --enable-source-maps dist/src/server.js
+NODE_ENV=production PORT=3001 node --enable-source-maps dist/src/server.js
 ```
 
 `PORT` 必须为十进制数字字符串，转换后的整数范围是 1～65535；缺失时使用默认端口，空值或错误值会在监听前退出并返回非零状态。即使指定 `PORT`，默认配置文件仍必须存在且有效。配置仅在启动时读取；修改源码默认配置后需重新构建，修改运行目录的默认配置后需重启；绑定地址始终为 `127.0.0.1`。改端口后同步修改请求地址。
@@ -90,7 +90,7 @@ node examples/cwd-config.js
 (
   cd src
   node ../examples/cwd-config.js
-  PORT=3001 node --enable-source-maps ../dist/src/server.js
+  NODE_ENV=production PORT=3001 node --enable-source-maps ../dist/src/server.js
 )
 ```
 
@@ -98,7 +98,7 @@ node examples/cwd-config.js
 
 ```bash
 node --import=tsx --input-type=module -e 'import { loadConfig } from "./src/config.ts"; console.log(await loadConfig());'
-PORT=3001oops node --enable-source-maps dist/src/server.js
+NODE_ENV=production PORT=3001oops node --enable-source-maps dist/src/server.js
 echo $?
 ```
 
