@@ -55,7 +55,7 @@ curl -i http://127.0.0.1:3000/captures \
 
 保持 `npm run dev` 运行，在 Chrome 的 `chrome://inspect` 中打开 Node 调试目标，连接后，在 `src/captures.service.ts` 的 `await this.store.insert(capture)` 和 `src/memory-capture.store.ts` 的 Map 写入处设置断点并再次发送创建请求。调试器仅监听本机 `9229` 端口。停止时，在运行服务的终端按 `Ctrl+C`。
 
-本章不包含数据库、登录、AI、分页、CORS 配置和生产部署。保留 Node 对 `SIGINT`／`SIGTERM` 的默认处理，未实现优雅关闭流程。完整原理与操作步骤见 [EPP 后端开发实践](https://github.com/SamChowRock/EPP-Book)。
+本章不包含数据库、登录、AI、分页、CORS 配置和生产部署。第十三章统一协调 `SIGINT`／`SIGTERM`：停止接收、等待传输和已追踪工作、释放资源；达到关闭期限时以失败状态退出。完整原理与操作步骤见 [EPP 后端开发实践](https://github.com/SamChowRock/EPP-Book)。
 
 第二章支线“从字节到 JSON”另有独立示例。在项目根目录执行：
 
