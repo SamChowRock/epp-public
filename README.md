@@ -1,6 +1,6 @@
 # EPP 配套实践代码
 
-当前对应第二篇第 9 章，代码分支 `part-02/chapter-09`，从 `part-02/chapter-08` 继续演进。Service 通过构造参数接收 CaptureStore，Map 移入 MemoryCaptureStore，由 Nest 的 CAPTURE_STORE 令牌与 Service 工厂组装。存储操作统一返回 Promise，HTTP 行为和 q／limit 规则保持；记录仍只保存在当前进程内存，停止进程后丢失，仅供本机实践。
+当前对应第二篇第 10 章，代码分支 `part-02/chapter-10`，从 `part-02/chapter-09` 继续演进。记录的 Controller、Service 工厂与存储登记移入 CapturesModule，AppModule 导入该模块；只公开 CapturesService，CAPTURE_STORE 保留在模块内部。三个 HTTP 接口、q／limit 规则和 Promise 存储契约继续保持；记录仍只保存在当前进程内存，停止进程后丢失，仅供本机实践。
 
 使用 nvm 管理 Node.js；安装方式见 [nvm 官方说明](https://github.com/nvm-sh/nvm#installing-and-updating)。macOS、Linux 使用 Bash 或 Zsh，Windows 使用 WSL。在项目根目录运行：
 
@@ -273,7 +273,7 @@ node examples/manual-composition.mjs
 - `src/captures.controller.ts`：三个 HTTP 入口；第八章改用 Nest 返回值响应，创建用 passthrough 设置 Location。
 - `src/http.ts`：沿用流读取、16 KiB 限制与 JSON 输出，转换业务和协议失败。
 - `src/http-boundary.ts`：路由前核对路径与允许方法，保留 404／405、Allow 和原始 ID 行为。
-- `src/app.module.ts` 与 `src/app.ts`：注册组件、创建 Nest Express 应用，关闭默认解析器；第八章由 captureBody 在路由前唯一读取 JSON。
+- `src/captures.module.ts`、`src/app.module.ts` 与 `src/app.ts`：第十章由记录模块拥有组件登记，根模块导入它；创建 Nest Express 应用时关闭默认解析器，由 captureBody 在路由前唯一读取 JSON。
 - `src/server.ts`：加载启动配置、监听以及启动失败收尾。
 
 路径仍精确匹配；`/Captures` 和 `/captures/` 不等于 `/captures`。HEAD 与 OPTIONS 仍返回 405；没有增加 CORS。详情 ID 按原始路径段查询，生成的 UUID 直接用于请求地址。未知业务异常返回通用 500，诊断保留在服务端。
@@ -410,7 +410,7 @@ curl --max-time 2 -i http://127.0.0.1:3005/responses/forgotten
 
 - `capture-store.ts` 同时导出类型接口与唯一 Symbol 令牌，两者分别服务于静态检查与运行时查找。
 - `MemoryCaptureStore` 实现异步契约，Map 仍是同步内存操作；存储副本、查询语义与不存在／故障区分由契约约定。
-- AppModule 使用 useClass 提供存储，以 useFactory／inject 创建普通 CapturesService；Controller 在成功写入后设置 Location，列表先等待再包装。
+- 使用 useClass 提供存储，以 useFactory／inject 创建普通 CapturesService；第十章将这组登记移入 CapturesModule。Controller 在成功写入后设置 Location，列表先等待再包装。
 
 先观察慢写入和失败写入如何影响业务完成，以下程序只操作独立内存对象：
 
@@ -451,3 +451,47 @@ node dist/examples/provider-scopes/main.js
 ```
 
 输出共享计数 1、同上下文 Reader 相同、不同上下文不同、请求计数 1／0；两个消费者不共享 transient Stamp，同一消费者保留自己的 Stamp。按支线临时把 Stamp 或 RequestCounter 改成默认作用域，重新编译观察后恢复。显式上下文不代表真实 HTTP 请求或用户身份。所有示例产物在常规 build 后需重新编译。
+
+
+## 第十章模块边界与循环依赖示例
+
+先完成主项目构建，再单独编译示例。`npm run build` 会清空 dist，重新构建后要重新执行对应示例的 tsc 命令。以下程序各自创建应用上下文，不与另一个 HTTP 进程共享内存，也不增加业务路由。
+
+```bash
+npm run build
+npm exec -- tsc -p examples/module-consumer/tsconfig.json
+npm exec -- tsc -p examples/module-visibility/tsconfig.json
+npm exec -- tsc -p examples/module-workflow/tsconfig.json
+npm exec -- tsc -p examples/module-cycles/tsconfig.json
+node dist/examples/module-consumer/main.js
+node dist/examples/module-visibility/main.js shared
+node dist/examples/module-visibility/main.js duplicate
+node dist/examples/module-visibility/main.js reexport
+node dist/examples/module-workflow/main.js
+```
+
+摘要输出一条原文；shared 与 reexport 输出同一 Service、两侧数量均为 1，duplicate 输出不同 Service、数量为 1／0。预览程序创建一次、展示两次，最终记录数为 1。
+
+下面各命令用于观察启动失败，应单独运行：
+
+```bash
+node dist/examples/module-visibility/main.js hidden
+node dist/examples/module-visibility/main.js root-only
+node dist/examples/module-visibility/main.js private
+node dist/examples/module-visibility/main.js bridge
+node dist/examples/module-workflow/cycle.js
+```
+
+四种可见性失败分别是未导出 Service、只有根模块导入、消费者直接要求内部存储、中间模块没有再导出。cycle 则是两个工厂互相要求对方实例，均以非零状态退出。更完整的关系与修法见第十章，不通过重复登记或扩大所有导出来掩盖失败。
+
+支线先观察 ESM 求值，再观察双向类关系：
+
+```bash
+node examples/module-cycles/esm-a.mjs
+node examples/module-cycles/esm-a.mjs eager
+node dist/examples/module-cycles/main.js linked
+node dist/examples/module-cycles/main.js hidden
+node dist/examples/module-cycles/main.js eager
+```
+
+ESM 默认输出 A，eager 在初始化前读取类而失败。双向类程序 linked 输出两者互相引用、字段已经可用、元数据为 Object；hidden 因缺少导出失败；eager 因构造时读取尚未准备好的对方字段失败。显式 Inject 决定运行时令牌；Pick 类型避免该示例的参数元数据提前读取后声明的类。forwardRef 不替代模块导出，不保证构造次序，也不修复主线的工厂环。
