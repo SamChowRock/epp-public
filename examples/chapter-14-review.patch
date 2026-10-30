@@ -1,0 +1,151 @@
+diff --git a/examples/review-contract.mjs b/examples/review-contract.mjs
+new file mode 100644
+index 0000000..398c973
+--- /dev/null
++++ b/examples/review-contract.mjs
+@@ -0,0 +1,32 @@
++import { randomUUID } from 'node:crypto';
++import { ArrayCaptureStore } from '../dist/src/array-capture.store.js';
++import { MemoryCaptureStore } from '../dist/src/memory-capture.store.js';
++import { CapturesService } from '../dist/src/captures.service.js';
++import { CreateCaptureSchema, toCaptureResponse } from '../dist/src/capture-contract.js';
++
++console.log('input 1200:', CreateCaptureSchema.safeParse({ originalText: 'x'.repeat(1200) }).success);
++console.log('input 1201:', CreateCaptureSchema.safeParse({ originalText: 'x'.repeat(1201) }).success);
++for (const Store of [MemoryCaptureStore, ArrayCaptureStore]) {
++  const store = new Store();
++  const service = new CapturesService(store);
++  const legacy = { id: randomUUID(), originalText: 'x'.repeat(1500), createdAt: new Date().toISOString() };
++  // Model a record accepted by the old rule; this is not a migration or an HTTP route.
++  await store.insert(legacy);
++  legacy.originalText = 'caller changed its own input';
++  const found = await service.find(legacy.id);
++  console.log(Store.name, 'old response length:', toCaptureResponse(found).originalText.length);
++  found.originalText = 'caller changed its own result';
++  console.log('stored copy length:', (await service.find(legacy.id)).originalText.length);
++  const before = (await service.list()).length;
++  try { await service.create('x'.repeat(1201)); }
++  catch (error) { console.log('direct create rejected:', error.constructor.name); }
++  console.log('invalid create changed count:', (await service.list()).length !== before);
++  await service.create('no match');
++  await service.create('match first');
++  await service.create('match second');
++  console.log('filter before limit:', (await service.list({ text: 'match ', limit: 1 })).map(x => x.originalText));
++  const list = await service.list();
++  list[0].originalText = 'changed list item';
++  list.length = 0;
++  console.log('list mutation changed stored value:', (await service.find(legacy.id)).originalText.length !== 1500);
++}
+diff --git a/src/array-capture.store.ts b/src/array-capture.store.ts
+new file mode 100644
+index 0000000..19ff8ce
+--- /dev/null
++++ b/src/array-capture.store.ts
+@@ -0,0 +1,27 @@
++import type { Capture, CaptureListOptions } from './capture.js';
++import type { CaptureStore } from './capture-store.js';
++
++// Alternative in-memory representation for the isolated chapter-14 practice.
++export class ArrayCaptureStore implements CaptureStore {
++  private readonly captures: Capture[] = [];
++
++  async insert(capture: Capture): Promise<void> {
++    if (this.captures.some(item => item.id === capture.id)) {
++      throw new Error('Capture ID already exists');
++    }
++    this.captures.push({ ...capture });
++  }
++  async list({ text, limit }: CaptureListOptions): Promise<Capture[]> {
++    const result: Capture[] = [];
++    for (const capture of this.captures) {
++      if (text !== undefined && !capture.originalText.includes(text)) continue;
++      result.push({ ...capture });
++      if (limit !== undefined && result.length === limit) break;
++    }
++    return result;
++  }
++  async find(id: string): Promise<Capture | undefined> {
++    const capture = this.captures.find(item => item.id === id);
++    return capture === undefined ? undefined : { ...capture };
++  }
++}
+diff --git a/src/capture-contract.ts b/src/capture-contract.ts
+index e583445..f32e305 100644
+--- a/src/capture-contract.ts
++++ b/src/capture-contract.ts
+@@ -1,12 +1,17 @@
+ import { z } from 'zod';
+ import type { Capture } from './capture.js';
++import { MAX_NEW_ORIGINAL_TEXT_LENGTH } from './capture-policy.js';
+ 
+ export const OriginalTextSchema = z.string()
+   .regex(/\S/, 'originalText must contain a non-whitespace character')
+   .refine(text => text.length <= 2000, 'originalText must be at most 2000 code units')
+   .describe('Original text; whitespace is preserved. Maximum 2000 UTF-16 code units.');
+ 
+-export const CreateCaptureSchema = z.object({ originalText: OriginalTextSchema });
++export const NewOriginalTextSchema = OriginalTextSchema
++  .refine(text => text.length <= MAX_NEW_ORIGINAL_TEXT_LENGTH,
++    `originalText must be at most ${MAX_NEW_ORIGINAL_TEXT_LENGTH} code units`)
++  .describe(`New original text; whitespace is preserved. Maximum ${MAX_NEW_ORIGINAL_TEXT_LENGTH} UTF-16 code units.`);
++export const CreateCaptureSchema = z.object({ originalText: NewOriginalTextSchema });
+ export type CreateCaptureInput = z.infer<typeof CreateCaptureSchema>;
+ 
+ export const ListQuerySchema = z.object({
+diff --git a/src/capture-policy.ts b/src/capture-policy.ts
+new file mode 100644
+index 0000000..ed94385
+--- /dev/null
++++ b/src/capture-policy.ts
+@@ -0,0 +1 @@
++export const MAX_NEW_ORIGINAL_TEXT_LENGTH = 1200;
+diff --git a/src/captures.module.ts b/src/captures.module.ts
+index 5a0b878..f3d7d61 100644
+--- a/src/captures.module.ts
++++ b/src/captures.module.ts
+@@ -4,7 +4,7 @@ import { CapturesService } from './captures.service.js';
+ import { CAPTURE_STORE } from './capture-store.js';
+ import type { CaptureStore } from './capture-store.js';
+ import { CaptureListQueryPipe } from './capture-query.js';
+-import { MemoryCaptureStore } from './memory-capture.store.js';
++import { ArrayCaptureStore } from './array-capture.store.js';
+ import { ObservedCaptureStore } from './observed-capture.store.js';
+ import { AppLogger } from './app-logger.js';
+ import { ApplicationState } from './application-state.js';
+@@ -13,12 +13,12 @@ import { ApplicationState } from './application-state.js';
+   controllers: [CapturesController],
+   providers: [
+     CaptureListQueryPipe,
+-    MemoryCaptureStore,
++    ArrayCaptureStore,
+     {
+       provide: CAPTURE_STORE,
+-      useFactory: (store: MemoryCaptureStore, logger: AppLogger, state: ApplicationState) =>
++      useFactory: (store: ArrayCaptureStore, logger: AppLogger, state: ApplicationState) =>
+         new ObservedCaptureStore(store, logger, state),
+-      inject: [MemoryCaptureStore, AppLogger, ApplicationState],
++      inject: [ArrayCaptureStore, AppLogger, ApplicationState],
+     },
+     {
+       provide: CapturesService,
+diff --git a/src/captures.service.ts b/src/captures.service.ts
+index c5d90ad..98d707e 100644
+--- a/src/captures.service.ts
++++ b/src/captures.service.ts
+@@ -1,4 +1,5 @@
+ import { randomUUID } from 'node:crypto';
++import { MAX_NEW_ORIGINAL_TEXT_LENGTH } from './capture-policy.js';
+ import type { Capture, CaptureListOptions } from './capture.js';
+ import type { CaptureStore } from './capture-store.js';
+ 
+@@ -12,8 +13,8 @@ export class CapturesService {
+     if (typeof originalText !== 'string' || !originalText.trim()) {
+       throw new InvalidCaptureError('originalText must be a non-empty string');
+     }
+-    if (originalText.length > 2000) {
+-      throw new InvalidCaptureError('originalText must be at most 2000 code units');
++    if (originalText.length > MAX_NEW_ORIGINAL_TEXT_LENGTH) {
++      throw new InvalidCaptureError(`originalText must be at most ${MAX_NEW_ORIGINAL_TEXT_LENGTH} code units`);
+     }
+     const capture: Capture = {
+       id: randomUUID(),

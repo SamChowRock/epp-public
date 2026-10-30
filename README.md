@@ -1,6 +1,8 @@
 # EPP 配套实践代码
 
-当前对应第二篇第 13 章，代码分支 `part-02/chapter-13`，从 `part-02/chapter-12` 继续演进。集中解析启动配置，提供结构化日志与服务端 X-Request-Id；SIGINT/SIGTERM 先停止接收，再等待已有工作并释放资源。三个业务接口、成功字段与 Problem 契约保持，关闭期间明确拒绝的新请求使用 503／SERVICE_DRAINING。Swagger 开发默认开启，生产默认关闭。数据仍只在 Map 中，退出会丢失，仅供本机实践。
+当前对应第二篇第 14 章，代码分支 `part-02/chapter-14`，主服务沿用 `part-02/chapter-13` 的接口、2000 单元创建规则与 Map 存储。第十四章的 1200 单元新建限制、旧记录读取兼容与数组存储在隔离练习中实现，参考补丁和图形请求见下方“第十四章综合实践”。
+
+主服务集中解析启动配置，提供结构化日志与服务端 X-Request-Id；SIGINT/SIGTERM 先停止接收，再等待已有工作并释放资源。三个业务接口、成功字段与 Problem 契约保持，关闭期间明确拒绝的新请求使用 503／SERVICE_DRAINING。Swagger 开发默认开启，生产默认关闭。数据仍只在内存中，退出会丢失，仅供本机实践。
 
 使用 nvm 管理 Node.js；安装方式见 [nvm 官方说明](https://github.com/nvm-sh/nvm#installing-and-updating)。macOS、Linux 使用 Bash 或 Zsh，Windows 使用 WSL。在项目根目录运行：
 
@@ -622,3 +624,54 @@ node examples/request-context.mjs
 ```
 
 前者观察初始化与关闭钩子；后者对照全局变量串值、AsyncLocalStorage 与事件绑定。第十章直接消费 CapturesModule 的示例已在自身根模块登记 RuntimeModule，容器之间不共享 global 模块。主服务继续使用原内存存储，生命周期实验不构成数据库实现。build 排除全部 src/labs；dev:lifecycle 与 dev:pipeline 都只运行 .dev 产物。
+
+## 第十四章综合实践
+
+先独立完成需求，再对照参考：新建 originalText 上限收紧为 1200 个 UTF-16 代码单元，旧记录仍可按原有 2000 单元范围读取；用数组替换 Map，同时保留 CAPTURE_STORE、观测包装、顺序、副本与失败约定。练习不改变本分支主服务，第三篇继续从主线接入数据库。
+
+停止已有 dev，在本分支根目录创建独立练习目录：
+
+```bash
+review_root=$(pwd)
+git worktree add -b practice/chapter-14 ../epp-chapter-14-practice part-02/chapter-13
+```
+
+确认创建成功后进入目录，按第十四章实现自己的版本；已存在的目录或分支应保留，换新名称。review_root 只保存在当前 shell，后面仍使用这个终端回到原目录。
+
+```bash
+cd ../epp-chapter-14-practice
+nvm use
+npm ci
+npm run check
+PORT=3008 LOG_LEVEL=debug npm run dev
+```
+
+用 VS Code 打开练习目录并 attach。业务端口为 3008，Inspector 仍为 9229，不能与另一份 dev 同时启动。保存后自动编译重启，内存清空；比较失败前后的记录数量时，先建立当前进程的基线。
+
+从最初的第十四章目录导入 [requests/review.postman_collection.json](requests/review.postman_collection.json)，集合默认 baseUrl 为 `http://127.0.0.1:3008`。逐条 Send：普通输入、1200 单元、600 个表情成功；1201 单元、601 个表情及纯空白返回400且不写入。普通输入的首尾空格保留。成功响应 id 手动填入集合 captureId，核对详情、Location 与 X-Request-Id。集合不自动发请求；第十三章基线本身仍允许 1201 单元。
+
+需运行参考时，保留自己的实现，在另一个 worktree 使用 [examples/chapter-14-review.patch](examples/chapter-14-review.patch)：
+
+```bash
+cd "$review_root"
+git worktree add -b practice/chapter-14-reference ../epp-chapter-14-reference part-02/chapter-13
+```
+
+创建成功后进入目录，只有补丁检查成功才应用；失败先检查基线和已有修改。
+
+```bash
+cd ../epp-chapter-14-reference
+git apply --check "$review_root/examples/chapter-14-review.patch" &&
+git apply "$review_root/examples/chapter-14-review.patch"
+nvm use
+npm ci
+npm run check
+node examples/review-contract.mjs
+PORT=3008 LOG_LEVEL=debug npm run dev
+```
+
+启动前停止另一份 dev。独立示例直接放入 1500 单元旧记录，验证仍能投影为公开响应；两种存储都应保留副本，拒绝新建 1201 单元，筛选后再取 limit。这个进程的数据不进入 dev 服务；直接插入只用于受控旧数据条件，不是迁移或跳过校验的业务接口。
+
+正文继续用两次可恢复故障区分写入前失败与输出失约；恢复源码后再构建交付。关闭对照复用 `npm run dev:lifecycle` 和生命周期集合，勿与业务 dev 同时运行。生产产物按前文所述文件布局在独立目录运行时，将端口改为 3009，复制练习集合并设置该目标，重新创建数据；`npm start` 使用 production、不加载开发 .env、不启用 Inspector，文档默认关闭。数组仍不持久化，停止后重新启动应为空。
+
+本章的独立产物步骤与前面的生产运行说明使用相同文件布局；以第十四章正文的 3009 命令为准。退出并保存成果后再管理 worktree，不强制清除未提交实现。
