@@ -1,6 +1,6 @@
 # EPP 配套实践代码
 
-当前对应第一篇第 5 章，代码分支 `part-01/chapter-05`，从第 4 章的 `part-01/chapter-04` 继续演进。服务迁入 TypeScript，建立检查、开发运行与编译产物运行入口；原有三个接口与启动配置继续沿用。记录保存在单个进程的 `Map` 中，停止进程后丢失；当前仅供本机实践。
+当前对应第一篇第 6 章，代码分支 `part-01/chapter-06`，从第五章 `part-01/chapter-05` 继续。主服务保留第五章的三个接口、TypeScript 构建与启动配置，独立需求的参考改动位于 `examples/chapter-06-source.patch`；先完成自己的实现，再按下方说明对照或在另一个干净目录应用。来源标签不进入第七章及后续主线。记录保存在单个进程的 `Map` 中，停止进程后丢失；当前仅供本机实践。
 
 使用 nvm 管理 Node.js；安装方式见 [nvm 官方说明](https://github.com/nvm-sh/nvm#installing-and-updating)。macOS、Linux 使用 Bash 或 Zsh，Windows 使用 WSL。在项目根目录运行：
 
