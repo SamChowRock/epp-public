@@ -233,7 +233,7 @@ main 与 worker 对照父线程探针和计算完成的先后；后者修改输�
 npm run dev
 ```
 
-该命令以 tsx watch 执行 `src/server.ts`；重新启动会清空内存记录，不做完整类型检查。停止后单独执行 `npm run typecheck`、`npm run build`，再 `npm start`。构建产物保留 `dist/src/` 与 `dist/config/` 的相对关系，默认配置是构建时复制的快照。
+该命令使用项目锁定的 TypeScript watch 将源码编译到 `.dev`，只有编译无错误才重启服务；类型错误会停止旧服务，修复保存后恢复，重启会清空 Map。`npm run typecheck` 单独检查，`npm run build` 生成独立的 `dist`；核对产物时用 `PORT=3001 npm start`，与开发端口区分。构建产物保留 `dist/src/` 与 `dist/config/` 的相对关系，默认配置是构建时复制的快照。
 
 仅查看开发源码配置，也可执行 `node --import=tsx` 加载入口；不要把 `node src/server.ts` 当成 tsx 的通用替代，本项目源码以 `.js` 导入匹配最终产物。
 
@@ -268,7 +268,7 @@ node examples/modules/consumer.js require
 
 前两次成功；后三次分别刻意触发包子路径未导出、缺少扩展名、ESM 中裸 require 不存在，均返回非零状态。包自引用依赖 `examples/modules/package.json` 的名称与公开入口，不是全局安装。
 
-完成服务构建后，在独立目录核对运行单元：
+完成服务构建后，在独立目录核对运行单元。先停止上一轮占用 3001 的产物服务；Postman 使用集合副本，将 baseUrl 设为 http://127.0.0.1:3001：
 
 ```bash
 npm run build &&
@@ -278,7 +278,7 @@ cp -R dist "$release_dir/dist" &&
 (
   cd "$release_dir" &&
   npm ci --omit=dev &&
-  npm start
+  PORT=3001 npm start
 )
 ```
 
