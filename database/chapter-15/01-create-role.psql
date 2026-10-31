@@ -1,0 +1,10 @@
+\set ON_ERROR_STOP on
+
+CREATE ROLE epp_owner
+  LOGIN
+  NOSUPERUSER
+  NOCREATEDB
+  NOCREATEROLE
+  NOREPLICATION;
+
+\password epp_owner
