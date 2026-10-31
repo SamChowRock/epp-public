@@ -144,7 +144,7 @@ node examples/signal-lifetime.js drain
 
 继续从项目根目录运行，沿用 Node.js `24.22.1`，这些 JavaScript 示例没有第三方依赖。记录接口保持前文行为，以下实验不增加业务路由。
 
-先在一个终端按默认端口运行 `npm start`；另一个终端用慢速上传与独立 GET 观察请求重叠：
+先在一个终端运行 `PORT=3000 npm run dev`；在 Postman 保留主线集合的列表请求，另一个终端用慢速上传与独立 GET 观察请求重叠。下面的 curl 用于控制并发时序；日常查看结果仍可点击列表请求的 Send：
 
 ```bash
 node examples/slow-upload.js &
@@ -155,13 +155,17 @@ wait "$upload_pid"
 curl -sS http://127.0.0.1:3000/captures
 ```
 
-先确认服务已收到 POST、上传尚未完成，期间列表仍应能返回；之后列表增加本次原文。改服务端口时同步改客户端与 curl 地址。重复运行会创建新记录。
+先确认服务已收到 POST、上传尚未完成：第4章快照的服务日志输出 JSON，其中 event 为 http.request、method 为 POST；后续章节日志格式演进后，按对应章的入口事件核对。期间列表仍应能返回；之后列表增加本次原文。改服务端口时同步改客户端与 curl 地址。重复运行会创建新记录。
 
-独立实验服务使用 `127.0.0.1:3002`：
+独立实验服务使用 `127.0.0.1:3002`。先停止主服务，释放共用的 Inspector 端口 9229，再启动实验：
 
 ```bash
-node examples/event-loop-server.js
+NODE_ENV=development node --watch --watch-preserve-output --inspect=127.0.0.1:9229 examples/event-loop-server.js
 ```
+
+在 Postman 导入 [requests/event-loop.postman_collection.json](requests/event-loop.postman_collection.json)，集合变量 experimentBaseUrl 为 http://127.0.0.1:3002，与主线集合分开。四条 GET 请求分别观察 /quick、/wait、/block、/slice，逐条 Send；集合不自动运行或重放请求。Chrome 的 chrome://inspect 可连接实验；观察处理分支时使用断点，测量并发和耗时时先禁用断点并恢复执行。
+
+保存源码后 Node 会重启实验进程，待监听日志重新出现再发请求；语法或启动错误时先读终端错误，修复保存后确认监听，不能拿旧结果页当作已恢复。运行中途停止后，下次使用同一命令和已保存的请求继续。
 
 等待打印监听地址后，在另一个终端执行：
 
@@ -173,7 +177,7 @@ curl -sS -w '\nquick total=%{time_total}s\n' http://127.0.0.1:3002/quick
 wait "$slow_pid"
 ```
 
-把第一条 URL 的 `/wait` 分别换成 `/block`、`/slice`，每轮完成后再开始下一轮。对照快请求顺序与 curl 的总耗时，再看服务里的 100 ms 探针。`/wait` 是定时器等待；`/block` 连续计算约 600 ms；`/slice` 分段让事件循环推进，仍累计消耗约 600 ms 计算时间。实验只供本机短时观察，结束后在两个服务终端分别按 `Ctrl+C`。
+把第一条 URL 的 `/wait` 分别换成 `/block`、`/slice`，每轮完成后再开始下一轮。对照快请求顺序与 curl 的总耗时，再看服务里的 100 ms 探针。`/wait` 是定时器等待；`/block` 连续计算约 600 ms；`/slice` 分段让事件循环推进，仍累计消耗约 600 ms 计算时间。实验只供本机短时观察，结束后在当前实验服务终端按 `Ctrl+C`。
 
 以下程序不需要监听端口：
 
@@ -229,7 +233,7 @@ main 与 worker 对照父线程探针和计算完成的先后；后者修改输�
 npm run dev
 ```
 
-该命令以 tsx watch 执行 `src/server.ts`；重新启动会清空内存记录，不做完整类型检查。停止后单独执行 `npm run typecheck`、`npm run build`，再 `npm start`。构建产物保留 `dist/src/` 与 `dist/config/` 的相对关系，默认配置是构建时复制的快照。
+该命令使用项目锁定的 TypeScript watch 将源码编译到 `.dev`，只有编译无错误才重启服务；类型错误会停止旧服务，修复保存后恢复，重启会清空 Map。`npm run typecheck` 单独检查，`npm run build` 生成独立的 `dist`；核对产物时用 `PORT=3001 npm start`，与开发端口区分。构建产物保留 `dist/src/` 与 `dist/config/` 的相对关系，默认配置是构建时复制的快照。
 
 仅查看开发源码配置，也可执行 `node --import=tsx` 加载入口；不要把 `node src/server.ts` 当成 tsx 的通用替代，本项目源码以 `.js` 导入匹配最终产物。
 
@@ -264,7 +268,7 @@ node examples/modules/consumer.js require
 
 前两次成功；后三次分别刻意触发包子路径未导出、缺少扩展名、ESM 中裸 require 不存在，均返回非零状态。包自引用依赖 `examples/modules/package.json` 的名称与公开入口，不是全局安装。
 
-完成服务构建后，在独立目录核对运行单元：
+完成服务构建后，在独立目录核对运行单元。先停止上一轮占用 3001 的产物服务；Postman 使用集合副本，将 baseUrl 设为 http://127.0.0.1:3001：
 
 ```bash
 npm run build &&
@@ -274,7 +278,7 @@ cp -R dist "$release_dir/dist" &&
 (
   cd "$release_dir" &&
   npm ci --omit=dev &&
-  npm start
+  PORT=3001 npm start
 )
 ```
 
