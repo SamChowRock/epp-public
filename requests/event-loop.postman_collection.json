@@ -1,0 +1,56 @@
+{
+  "info": {
+    "name": "第4章执行实验",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "先按README启动独立实验服务，逐条手动Send。测量时禁用断点；并发对照使用正文终端命令。无凭据、无脚本、不自动重放。"
+  },
+  "variable": [
+    {
+      "key": "experimentBaseUrl",
+      "value": "http://127.0.0.1:3002",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 quick",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{experimentBaseUrl}}/quick",
+        "description": "立即回应；可在另一个慢请求期间发送并观察完成顺序。"
+      },
+      "response": []
+    },
+    {
+      "name": "02 wait",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{experimentBaseUrl}}/wait",
+        "description": "等待约600 ms，期间事件循环仍可处理其他请求。"
+      },
+      "response": []
+    },
+    {
+      "name": "03 block",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{experimentBaseUrl}}/block",
+        "description": "连续计算约600 ms，观察快请求及定时器被延后。"
+      },
+      "response": []
+    },
+    {
+      "name": "04 slice",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{experimentBaseUrl}}/slice",
+        "description": "累计计算约600 ms，分段让事件循环推进；总CPU成本仍存在。"
+      },
+      "response": []
+    }
+  ]
+}
