@@ -1,6 +1,6 @@
 # EPP 配套实践代码
 
-当前对应第三篇第 15 章，代码分支 `part-03/chapter-15`，从 `part-02/chapter-14` 的主线继续。主服务仍是第十三章的接口、2000 单元创建规则与 Map 存储；新增的 PostgreSQL 环境准备、psql 文件与共用诊断 SQL 见 [database/chapter-15](database/chapter-15/README.md)。本章先建立独立数据库环境，第十六章建业务表，第十九章才替换 Nest 存储。
+当前对应第三篇第 16 章，代码分支 `part-03/chapter-16`，从 `part-03/chapter-15` 继续。主服务仍是第十三章的接口、2000 单元创建规则与 Map 存储；环境准备见 [database/chapter-15](database/chapter-15/README.md)，新增用户／记录表、开发数据、约束与时间实验见 [database/chapter-16](database/chapter-16/README.md)。本章在 SQL 客户端操作业务表，第十九章才替换 Nest 存储。
 
 第十四章的 1200 单元新建限制、旧记录读取兼容与数组存储属于隔离练习，参考补丁和图形请求仍保留在下方“第十四章综合实践”，不作为当前主服务行为。
 
@@ -59,7 +59,7 @@ curl -i http://127.0.0.1:3000/captures \
 
 保持 `npm run dev` 运行，在 Chrome 的 `chrome://inspect` 中打开 Node 调试目标，连接后，在 `src/captures.service.ts` 的 `await this.store.insert(capture)` 和 `src/memory-capture.store.ts` 的 Map 写入处设置断点并再次发送创建请求。调试器仅监听本机 `9229` 端口。停止时，在运行服务的终端按 `Ctrl+C`。
 
-当前主服务尚未接入数据库，也不包含登录、AI、分页、CORS 配置和生产部署。本章新增独立的 PostgreSQL 开发环境，Nest 适配层在第十九章接入。第十三章统一协调 `SIGINT`／`SIGTERM`：停止接收、等待传输和已追踪工作、释放资源；达到关闭期限时以失败状态退出。完整原理与操作步骤见 [EPP 后端开发实践](https://github.com/SamChowRock/EPP-Book)。
+当前主服务尚未接入数据库，也不包含登录、AI、分页、CORS 配置和生产部署。数据库侧已建立用户与记录表，Nest 适配层在第十九章接入。第十三章统一协调 `SIGINT`／`SIGTERM`：停止接收、等待传输和已追踪工作、释放资源；达到关闭期限时以失败状态退出。完整原理与操作步骤见 [EPP 后端开发实践](https://github.com/SamChowRock/EPP-Book)。
 
 第二章支线“从字节到 JSON”另有独立示例。在项目根目录执行：
 
