@@ -1,6 +1,6 @@
 # EPP 配套实践代码
 
-当前对应第三篇第 16 章，代码分支 `part-03/chapter-16`，从 `part-03/chapter-15` 继续。主服务仍是第十三章的接口、2000 单元创建规则与 Map 存储；环境准备见 [database/chapter-15](database/chapter-15/README.md)，新增用户／记录表、开发数据、约束与时间实验见 [database/chapter-16](database/chapter-16/README.md)。本章在 SQL 客户端操作业务表，第十九章才替换 Nest 存储。
+当前对应第三篇第 17 章，代码分支 `part-03/chapter-17`，从 `part-03/chapter-16` 继续。主服务仍是第十三章的接口、2000 单元创建规则与 Map 存储；环境准备见 [database/chapter-15](database/chapter-15/README.md)，已有表与开发数据见 [database/chapter-16](database/chapter-16/README.md)，本章查询、参数与双会话实验见 [database/chapter-17](database/chapter-17/README.md)。默认在 DBeaver 研究 SQL，第十九章才替换 Nest 存储。
 
 第十四章的 1200 单元新建限制、旧记录读取兼容与数组存储属于隔离练习，参考补丁和图形请求仍保留在下方“第十四章综合实践”，不作为当前主服务行为。
 
