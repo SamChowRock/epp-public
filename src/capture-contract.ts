@@ -8,11 +8,18 @@ export const OriginalTextSchema = z.string()
   .refine(text => text.length <= 2000, 'originalText must be at most 2000 code units')
   .describe('Original text; whitespace is preserved. Maximum 2000 UTF-16 code units; well-formed Unicode without NUL.');
 
-export const ChineseIntentSchema = z.string()
-  .refine(isPostgresText, 'chineseIntent must be well-formed Unicode without NUL')
-  .regex(/\S/, 'chineseIntent must contain a non-whitespace character')
-  .refine(text => text.length <= 1000, 'chineseIntent must be at most 1000 code units')
-  .describe('User-supplied intent; whitespace preserved. Maximum 1000 UTF-16 code units; well-formed Unicode without NUL. No language detection.');
+function createChineseIntentSchema(maxLength: number) {
+  return z.string()
+    .refine(isPostgresText, 'chineseIntent must be well-formed Unicode without NUL')
+    .regex(/\S/, 'chineseIntent must contain a non-whitespace character')
+    .refine(text => text.length <= maxLength,
+      `chineseIntent must be at most ${maxLength} code units`)
+    .describe(`User-supplied intent; whitespace preserved. Maximum ${maxLength} UTF-16 code units; well-formed Unicode without NUL. No language detection.`);
+}
+
+// Separate the write policy from values that readers must understand.
+export const ChineseIntentSchema = createChineseIntentSchema(2000);
+export const StoredChineseIntentSchema = createChineseIntentSchema(2000);
 
 export const CreateCaptureSchema = z.object({
   originalText: OriginalTextSchema,
@@ -35,7 +42,7 @@ export const ListQuerySchema = z.object({
 export const CaptureResponseSchema = z.object({
   id: z.uuid(),
   originalText: OriginalTextSchema,
-  chineseIntent: ChineseIntentSchema.nullable(),
+  chineseIntent: StoredChineseIntentSchema.nullable(),
   createdAt: z.iso.datetime(),
 });
 export const CaptureListResponseSchema = z.object({

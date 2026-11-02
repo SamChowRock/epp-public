@@ -1,0 +1,21 @@
+--- a/src/capture-contract.ts
++++ b/src/capture-contract.ts
+@@ -20,3 +20,3 @@
+ // Separate the write policy from values that readers must understand.
+-export const ChineseIntentSchema = createChineseIntentSchema(2000);
++export const ChineseIntentSchema = createChineseIntentSchema(1000);
+ export const StoredChineseIntentSchema = createChineseIntentSchema(2000);
+--- a/src/captures.service.ts
++++ b/src/captures.service.ts
+@@ -14,4 +14,4 @@
+     if (typeof value !== 'string' || !value.trim() ||
+-        value.length > 2000 || !isPostgresText(value)) {
+-      throw new InvalidCaptureError('chineseIntent must be null or non-empty, at most 2000 code units, and well-formed Unicode without NUL');
++        value.length > 1000 || !isPostgresText(value)) {
++      throw new InvalidCaptureError('chineseIntent must be null or non-empty, at most 1000 code units, and well-formed Unicode without NUL');
+     }
+@@ -27,3 +27,3 @@
+     if (originalText.length > 2000) {
+-      throw new InvalidCaptureError('originalText must be at most 2000 code units');
++      throw new InvalidCaptureError('originalText must be at most 1000 code units');
+     }

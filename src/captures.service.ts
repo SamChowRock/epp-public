@@ -12,8 +12,8 @@ export class CapturesService {
   private validateIntent(value: unknown): asserts value is string | null {
     if (value === null) return;
     if (typeof value !== 'string' || !value.trim() ||
-        value.length > 1000 || !isPostgresText(value)) {
-      throw new InvalidCaptureError('chineseIntent must be null or non-empty, at most 1000 code units, and well-formed Unicode without NUL');
+        value.length > 2000 || !isPostgresText(value)) {
+      throw new InvalidCaptureError('chineseIntent must be null or non-empty, at most 2000 code units, and well-formed Unicode without NUL');
     }
   }
 

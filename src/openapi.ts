@@ -35,7 +35,7 @@ export function createOpenApiDocument(): OpenAPIObject {
   const document: OpenAPIObject = {
     openapi: '3.0.3',
     info: {
-      title: 'EPP Capture API', version: '0.4.0',
+      title: 'EPP Capture API', version: '0.5.0',
       description: 'PostgreSQL records for one fixed development user; no authentication. Errors use Problem Details. Repeated POSTs create separate records.',
     },
     paths: {

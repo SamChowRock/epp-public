@@ -1,6 +1,6 @@
 # EPP 配套实践代码
 
-当前对应第三篇第 20 章，代码分支 `part-03/chapter-20`，从 `part-03/chapter-19` 继续。保留原记录追加可空中文意图，创建和读取返回 chineseIntent，并新增 `PATCH /captures/:id` 修改或清空意图。运行前先完成[环境准备](database/chapter-15/README.md)、[表与数据](database/chapter-16/README.md)、[迁移基线](database/chapter-18/README.md)与[持久化接入](database/chapter-19/README.md)，再按[第二十章说明](database/chapter-20/README.md)应用追加迁移、联调并完成隔离恢复实验。
+当前对应第三篇第 21 章，代码分支 `part-03/chapter-21`，从 `part-03/chapter-20` 继续。保留旧记录，将中文意图上限扩到2000 UTF-16单元；通过兼容读取版本解释发布和回退。先完成[环境准备](database/chapter-15/README.md)、[表与数据](database/chapter-16/README.md)、[迁移基线](database/chapter-18/README.md)、[持久化接入](database/chapter-19/README.md)与[意图字段](database/chapter-20/README.md)，再按[第二十一章说明](database/chapter-21/README.md)应用追加迁移并核对三版本行为。
 
 第十四章的 1200 单元新建限制、旧记录读取兼容与数组存储属于隔离练习，参考补丁和图形请求仍保留在下方“第十四章综合实践”，不作为当前主服务行为。
 
@@ -14,7 +14,7 @@ nvm use
 node --version
 npm ci
 npm run check
-# 先按第二十章说明应用迁移，并在 .env 配置运行连接，再启动。
+# 先按第二十一章说明应用迁移，并在 .env 配置运行连接，再启动。
 npm run dev
 ```
 
@@ -34,7 +34,7 @@ NODE_ENV=production PORT=3001 node --enable-source-maps dist/src/server.js
 
 `PORT` 必须为十进制数字字符串，转换后的整数范围是 1～65535；缺失时使用默认端口，空值或错误值会在监听前退出并返回非零状态。即使指定 `PORT`，默认配置文件仍必须存在且有效。配置由每个服务进程在启动时读取；dev 会在源配置变化后复制并重启，生产产物则需要重新构建，修改生产运行目录的默认配置后需重启；绑定地址始终为 `127.0.0.1`。改端口后同步修改请求地址。
 
-本章提供 [中文意图请求集合](requests/chapter-20.postman_collection.json)，按顺序核对旧请求、补充、非法值和清空；[第十九章持久化集合](requests/chapter-19.postman_collection.json)继续用于原文、特殊字符与连接等待。
+本章提供 [兼容演进请求集合](requests/chapter-21.postman_collection.json)，逐阶段核对1000/1001/2000/2001和emoji边界；[第二十章集合](requests/chapter-20.postman_collection.json)继续用于旧请求、补充与清空；[第十九章持久化集合](requests/chapter-19.postman_collection.json)继续用于原文、特殊字符与连接等待。
 
 ## 用 Postman 发送和保存请求
 
@@ -58,7 +58,7 @@ curl -i http://127.0.0.1:3000/captures \
   --data '{"originalText":"I am not much of cook."}'
 ```
 
-创建成功返回 `201`，复制响应中的 `id`，用 `GET /captures/<id>` 查看详情。列表返回 `{ "items": [...] }`。同一正文重复提交会创建两条记录。创建可以省略 chineseIntent，响应明确返回 null；PATCH 必须提供该字段，字符串替换、null清空、缺失或空白拒绝。意图最多1000个UTF-16单元，原文和创建时间不由PATCH修改。q仍只搜索原文。
+创建成功返回 `201`，复制响应中的 `id`，用 `GET /captures/<id>` 查看详情。列表返回 `{ "items": [...] }`。同一正文重复提交会创建两条记录。创建可以省略 chineseIntent，响应明确返回 null；PATCH 必须提供该字段，字符串替换、null清空、缺失或空白拒绝。意图最多2000个UTF-16单元，原文和创建时间不由PATCH修改。q仍只搜索原文。
 
 原文必须是无 NUL、无孤立代理项的非空白字符串，至多 2000 个 JavaScript UTF-16 代码单元；保留原始空格。q 同样拒绝不可原样表示的文本。请求体限制为 16 KiB，须为不带 BOM 的合法 UTF-8 JSON；非法编码不会被替换后写入。错误通过 HTTP 状态码与 `application/problem+json` 返回，包含 type、title、status、detail、code，字段校验失败还包含 issues。旧客户端读取 error 的逻辑需要改为使用新结构：无效输入 `400`、不存在 `404`、方法不支持 `405`、请求体过大 `413`、内容类型不支持 `415`。
 

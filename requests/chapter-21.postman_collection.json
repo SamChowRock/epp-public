@@ -1,0 +1,332 @@
+{
+  "info": {
+    "name": "EPP 第21章：字段放宽与读写兼容",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "逐项手动发送，先新建本章记录并复制 id。Scripts 的 Pre-request 只产生长度明确的正文变量，不发送额外请求、不自动清理数据。A为第20章；B为兼容读取阶段；C为第21章最终版。"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000"
+    },
+    {
+      "key": "captureId",
+      "value": "填写本章新建记录的ID"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 新建本章实验记录：复制 id 到 captureId",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/captures",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"originalText\": \"Chapter 21 compatibility sample\", \"chineseIntent\": \"原有短意图\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "02 按 ID 读取（A/B/C 对照）",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/captures/{{captureId}}"
+      }
+    },
+    {
+      "name": "PATCH 1000 单元：B≤1000，C≤2000",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/captures/{{captureId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"chineseIntent\": {{intentJson}}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(\"intentJson\", JSON.stringify(\"长\".repeat(1000)));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PATCH 1001 单元：B≤1000，C≤2000",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/captures/{{captureId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"chineseIntent\": {{intentJson}}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(\"intentJson\", JSON.stringify(\"长\".repeat(1001)));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PATCH 2000 单元：B≤1000，C≤2000",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/captures/{{captureId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"chineseIntent\": {{intentJson}}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(\"intentJson\", JSON.stringify(\"长\".repeat(2000)));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PATCH 2001 单元：B≤1000，C≤2000",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/captures/{{captureId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"chineseIntent\": {{intentJson}}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(\"intentJson\", JSON.stringify(\"长\".repeat(2001)));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PATCH 1000 个 emoji，占 2000 单元",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/captures/{{captureId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"chineseIntent\": {{intentJson}}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(\"intentJson\", JSON.stringify(\"😀\".repeat(1000)));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PATCH 1001 个 emoji，占 2002 单元",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/captures/{{captureId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"chineseIntent\": {{intentJson}}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(\"intentJson\", JSON.stringify(\"😀\".repeat(1001)));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST 1001 单元：B 拒绝，C 创建",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/captures",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"originalText\":\"Chapter 21 create boundary\", \"chineseIntent\": {{intentJson}}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(\"intentJson\", JSON.stringify(\"长\".repeat(1001)));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET 列表（含长值时 A 返回 500）",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/captures"
+      }
+    },
+    {
+      "name": "PATCH 缺失意图：400",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/captures/{{captureId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "PATCH 清空：200，按需手动发送",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/captures/{{captureId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"chineseIntent\":null}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    }
+  ]
+}
