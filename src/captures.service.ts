@@ -1,3 +1,4 @@
+import { isPostgresText } from './postgres-text.js';
 import { randomUUID } from 'node:crypto';
 import type { Capture, CaptureListOptions } from './capture.js';
 import type { CaptureStore } from './capture-store.js';
@@ -11,6 +12,9 @@ export class CapturesService {
   async create(originalText: unknown): Promise<Capture> {
     if (typeof originalText !== 'string' || !originalText.trim()) {
       throw new InvalidCaptureError('originalText must be a non-empty string');
+    }
+    if (!isPostgresText(originalText)) {
+      throw new InvalidCaptureError('originalText must be well-formed Unicode without NUL');
     }
     if (originalText.length > 2000) {
       throw new InvalidCaptureError('originalText must be at most 2000 code units');
@@ -26,8 +30,8 @@ export class CapturesService {
 
   async list({ text, limit }: CaptureListOptions = {}): Promise<Capture[]> {
     if (text !== undefined &&
-        (typeof text !== 'string' || !text.trim() || text.length > 200)) {
-      throw new InvalidCaptureError('text must be a non-empty string of at most 200 code units');
+        (typeof text !== 'string' || !text.trim() || text.length > 200 || !isPostgresText(text))) {
+      throw new InvalidCaptureError('text must be non-empty, at most 200 code units, and well-formed Unicode without NUL');
     }
     if (limit !== undefined &&
         (!Number.isInteger(limit) || limit < 1 || limit > 100)) {

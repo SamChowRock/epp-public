@@ -1,18 +1,20 @@
 import { z } from 'zod';
+import { isPostgresText } from './postgres-text.js';
 import type { Capture } from './capture.js';
 
 export const OriginalTextSchema = z.string()
+  .refine(isPostgresText, 'originalText must be well-formed Unicode without NUL')
   .regex(/\S/, 'originalText must contain a non-whitespace character')
   .refine(text => text.length <= 2000, 'originalText must be at most 2000 code units')
-  .describe('Original text; whitespace is preserved. Maximum 2000 UTF-16 code units.');
+  .describe('Original text; whitespace is preserved. Maximum 2000 UTF-16 code units; well-formed Unicode without NUL.');
 
 export const CreateCaptureSchema = z.object({ originalText: OriginalTextSchema });
 export type CreateCaptureInput = z.infer<typeof CreateCaptureSchema>;
 
 export const ListQuerySchema = z.object({
-  q: z.string().regex(/\S/, 'q must contain a non-whitespace character')
+  q: z.string().refine(isPostgresText, 'q must be well-formed Unicode without NUL').regex(/\S/, 'q must contain a non-whitespace character')
     .refine(text => text.length <= 200, 'q must be at most 200 code units')
-    .describe('Literal, case-sensitive substring; maximum 200 UTF-16 code units.').optional(),
+    .describe('Literal, case-sensitive substring; maximum 200 UTF-16 code units; well-formed Unicode without NUL.').optional(),
   limit: z.string().regex(/^(?:[1-9]\d?|100)$/)
     .describe('One decimal integer from 1 to 100; no signs, spaces or leading zeros.').optional(),
 });

@@ -1,0 +1,389 @@
+{
+  "info": {
+    "name": "EPP \u7b2c\u5341\u4e5d\u7ae0\u6301\u4e45\u5316\u8054\u8c03",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "\u4f7f\u7528\u72ec\u7acb\u5f00\u53d1\u5e93\u3002\u521b\u5efa\u8bf7\u6c42\u4f1a\u7559\u4e0b\u65b0\u8bb0\u5f55\uff1b\u65e0\u81ea\u52a8\u91cd\u8bd5\u3002\u6309\u54cd\u5e94\u66f4\u65b0 captureId\u3002"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000"
+    },
+    {
+      "key": "captureId",
+      "value": "20000000-0000-4000-8000-000000000001"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 \u5df2\u6709\u5217\u8868",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/captures",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "captures"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "02 \u524d\u7ae0\u56fa\u5b9a\u8be6\u60c5",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/captures/20000000-0000-4000-8000-000000000001",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "captures",
+            "20000000-0000-4000-8000-000000000001"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "03 \u521b\u5efa\u7279\u6b8a\u5b57\u7b26\u539f\u6587",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/captures",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "captures"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"originalText\": \"  Literal 100% a_b C:\\\\temp \\ud83d\\ude00  \"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "04 \u6309\u8fd4\u56de ID \u8bfb\u53d6",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/captures/{{captureId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "captures",
+            "{{captureId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "05 \u5b57\u9762\u641c\u7d22 %",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/captures?q=%25&limit=10",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "captures"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "%"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "06 \u5b57\u9762\u641c\u7d22 _",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/captures?q=_&limit=10",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "captures"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "_"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "07 \u5b57\u9762\u641c\u7d22 \\",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/captures?q=%5C&limit=10",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "captures"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "\\"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "08 \u5b57\u9762\u641c\u7d22 \ud83d\ude00",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/captures?q=%F0%9F%98%80&limit=10",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "captures"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "\ud83d\ude00"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "09 \u5b57\u9762\u641c\u7d22 ' OR 1=1 --",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/captures?q=%27+OR+1%3D1+--&limit=10",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "captures"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "' OR 1=1 --"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "10 \u5b57\u9762\u641c\u7d22 Literal",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/captures?q=Literal&limit=10",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "captures"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "Literal"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "11 \u5b57\u9762\u641c\u7d22 literal",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/captures?q=literal&limit=10",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "captures"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "literal"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "12 \u62d2\u7edd NUL",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/captures",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "captures"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"originalText\": \"a\\u0000b\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "13 \u62d2\u7edd\u5b64\u7acb\u4ee3\u7406\u9879",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/captures",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "captures"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"originalText\": \"a\\ud800b\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "14 \u975e UUID \u4e3a 404",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/captures/not-a-uuid",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "captures",
+            "not-a-uuid"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "15 \u91cd\u590d\u5217\u8868\u89c2\u5bdf\u6c60\u7b49\u5f85",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/captures",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "captures"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

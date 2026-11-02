@@ -35,14 +35,14 @@ export function createOpenApiDocument(): OpenAPIObject {
   const document: OpenAPIObject = {
     openapi: '3.0.3',
     info: {
-      title: 'EPP Capture API', version: '0.2.0',
-      description: 'In-memory records. Errors use Problem Details. Repeated POSTs create separate records.',
+      title: 'EPP Capture API', version: '0.3.0',
+      description: 'PostgreSQL records for one fixed development user; no authentication. Errors use Problem Details. Repeated POSTs create separate records.',
     },
     paths: {
       '/captures': {
         get: {
           operationId: 'listCaptures', summary: 'List captures',
-          description: 'Insertion order; filter before limit. No limit means all matching records. At most 1000 ampersand-separated query parts, including unknown keys and empty parts. Unknown query keys within that bound are ignored; repeated q or limit is rejected.',
+          description: 'createdAt ascending, then UUID ascending; filter before limit. No limit means all matching records. At most 1000 ampersand-separated query parts, including unknown keys and empty parts. Unknown query keys within that bound are ignored; repeated q or limit is rejected.',
           parameters: [ifNoneMatch, ...['q', 'limit'].map(name => ({
             name, in: 'query', required: false,
             schema: schema(name === 'q' ? ListQuerySchema.shape.q.unwrap() : ListQuerySchema.shape.limit.unwrap(), 'input'),
@@ -97,7 +97,7 @@ export function createOpenApiDocument(): OpenAPIObject {
   for (const path of Object.values(document.paths)) {
     for (const operation of [path.get, path.post]) {
       if (!operation?.responses) continue;
-      operation.responses['503'] = problem('Shutdown in progress; code SERVICE_DRAINING');
+      operation.responses['503'] = problem('Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry POST.');
       for (const response of Object.values(operation.responses)) {
         if (!response || '$ref' in response) continue;
         response.headers = { ...response.headers, 'X-Request-Id': {

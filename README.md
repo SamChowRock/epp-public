@@ -1,10 +1,10 @@
 # EPP 配套实践代码
 
-当前对应第三篇第 18 章，代码分支 `part-03/chapter-18`，从 `part-03/chapter-17` 继续。主服务仍是第十三章的接口、2000 单元创建规则与 Map 存储；环境准备见 [database/chapter-15](database/chapter-15/README.md)，已有表与开发数据见 [database/chapter-16](database/chapter-16/README.md)，SQL 实验见 [database/chapter-17](database/chapter-17/README.md)。本章 [Prisma 模型与迁移基线](database/chapter-18/README.md)固定使用 Prisma 7.10.1，通过 DBeaver 核对结构与数据，先在独立空库重放，再登记日常库基线；第十九章才替换 Nest 存储。配套设计实验另对照映射改名、物理列操作与索引漂移，帮助判断差异应恢复还是纳入演进。
+当前对应第三篇第 19 章，代码分支 `part-03/chapter-19`，从 `part-03/chapter-18` 继续。三个接口通过 Prisma 使用 PostgreSQL 中的固定开发用户与已有记录；本章不修改模型和迁移。运行前先完成[环境准备](database/chapter-15/README.md)、[表与数据](database/chapter-16/README.md)及[迁移基线](database/chapter-18/README.md)，再按[第十九章联调说明](database/chapter-19/README.md)配置运行连接、观察字段与真实时间点、制造连接等待并恢复。
 
 第十四章的 1200 单元新建限制、旧记录读取兼容与数组存储属于隔离练习，参考补丁和图形请求仍保留在下方“第十四章综合实践”，不作为当前主服务行为。
 
-主服务集中解析启动配置，提供结构化日志与服务端 X-Request-Id；SIGINT/SIGTERM 先停止接收，再等待已有工作并释放资源。三个业务接口、成功字段与 Problem 契约保持，关闭期间明确拒绝的新请求使用 503／SERVICE_DRAINING。Swagger 开发默认开启，生产默认关闭。数据仍只在内存中，退出会丢失，仅供本机实践。
+主服务集中解析启动配置，提供结构化日志与服务端 X-Request-Id；SIGINT/SIGTERM 先停止接收，再等待已有工作并释放资源。三个业务接口、成功字段与 Problem 契约保持，关闭期间明确拒绝的新请求使用 503／SERVICE_DRAINING。Swagger 开发默认开启，生产默认关闭。记录保存在 PostgreSQL；API 退出会释放连接并保留已提交行。当前使用固定用户，尚无认证，仅供本机实践。
 
 使用 nvm 管理 Node.js；安装方式见 [nvm 官方说明](https://github.com/nvm-sh/nvm#installing-and-updating)。macOS、Linux 使用 Bash 或 Zsh，Windows 使用 WSL。在项目根目录运行：
 
@@ -14,12 +14,13 @@ nvm use
 node --version
 npm ci
 npm run check
+# 先按 .env.example 在 .env 配置数据库连接，再启动。
 npm run dev
 ```
 
 `.nvmrc` 固定 Node.js 为 `24.22.1`，`node --version` 应输出 `v24.22.1`。`nvm install` 按文件安装并切换版本；每次新开终端后，在项目内执行 `nvm use`。单独进入目录不会自动切换版本。
 
-第十八章新增 `prisma` 与 `@prisma/client` 7.10.1。开发启动、类型检查与构建前先生成客户端；模型与锁文件提交，`src/generated/prisma/` 不提交。生成和编译不需要数据库密码，也不执行迁移。数据库命令单独读取 `.env.database` 或 `.env.database-verify`，详见本章说明。
+Prisma CLI、Client 与 adapter-pg 固定 7.10.1，pg 为 8.16.3；本章连接池逐连接设置 UTC，避免非 UTC 会话下当前适配器的时间偏移。开发启动、类型检查与构建前先生成客户端；模型与锁文件提交，`src/generated/prisma/` 不提交。生成和编译不需要数据库密码，也不执行迁移。数据库命令单独读取 `.env.database` 或 `.env.database-verify`，API 单独从 `.env`／进程读取 DATABASE_URL，不加载 CLI 文件。详见本章说明。
 
 `package.json` 中的 `engines.node` 同样声明精确版本，`.npmrc` 开启 `engine-strict`，让 npm 安装时拒绝不匹配的 Node 版本。遇到 `EBADENGINE` 先执行 `nvm use`，再重试安装。
 
@@ -33,16 +34,18 @@ NODE_ENV=production PORT=3001 node --enable-source-maps dist/src/server.js
 
 `PORT` 必须为十进制数字字符串，转换后的整数范围是 1～65535；缺失时使用默认端口，空值或错误值会在监听前退出并返回非零状态。即使指定 `PORT`，默认配置文件仍必须存在且有效。配置由每个服务进程在启动时读取；dev 会在源配置变化后复制并重启，生产产物则需要重新构建，修改生产运行目录的默认配置后需重启；绑定地址始终为 `127.0.0.1`。改端口后同步修改请求地址。
 
+本章另提供 [持久化联调集合](requests/chapter-19.postman_collection.json)，包含旧记录、特殊字符、输入拒绝与连接等待请求。
+
 ## 用 Postman 发送和保存请求
 
 保持 `npm run dev` 运行。在 [Postman 桌面客户端](https://www.postman.com/downloads/) 中选择 **Import**，导入 [requests/epp.postman_collection.json](requests/epp.postman_collection.json)，打开“EPP 本机接口调试”集合。已有同类客户端也可以按相同方法、地址、头部和正文创建请求。
 
-1. 打开“01 查看列表”，点击 **Send**，查看响应状态、Body 和 Headers。新进程应返回 200 与空的 items。
+1. 打开“01 查看列表”，点击 **Send**，查看响应状态、Body 和 Headers。应返回 200 与前章已有的数据库记录。
 2. 打开“02 创建原文”，在 **Body → raw → JSON** 修改 originalText，点击 Send，查看 201、返回的 id 和响应头 Location。
 3. 将实际 id 填入集合 **Variables** 的 captureId，再发送“03 查看详情”，应返回 200。baseUrl 默认是 `http://127.0.0.1:3000`；改端口时一起修改，发送前核对变量解析后的实际 URL。所选环境中的同名变量可能覆盖集合变量。
 4. 集合还保存了字段类型错误、JSON 格式错误、内容类型错误与详情不存在的输入，分别观察 400、400、415、404，再查看列表确认失败没有新增记录。各章错误正文以当前实现为准。
 
-需要修改请求时，在 Headers、Body 或 Params 中编辑，保存后可反复点击 Send；查询条件由 Params 处理 URL 编码，第八章起再使用 q／limit。保存源码后等待服务自动重启，再点 Send 查看新响应；重启会清空 Map，需要重新创建记录并更新 captureId。每次 POST 都可能新增记录，集合保存的是请求，不会自动发送或保留服务数据。
+需要修改请求时，在 Headers、Body 或 Params 中编辑，保存后可反复点击 Send；查询条件由 Params 处理 URL 编码，第八章起再使用 q／limit。保存源码后等待服务自动重启，再点 Send 查看新响应；重启保留数据库记录；按已保存 captureId 继续查询，不必重复创建。每次 POST 都可能新增记录，集合保存的是请求，不会自动发送或保留服务数据。
 
 调试时保持同一个请求，在源码中设置断点后点击 Send。暂停期间客户端会等待；继续执行后才会收到响应。第五章起可用 VS Code 的 `EPP: attach to npm run dev` 自动重连，前面章节通过 Chrome 的 `chrome://inspect` 连接；重启后若连接断开，重新选择目标。生产运行方式见文末，日常学习保持 dev 模式。
 
@@ -57,11 +60,11 @@ curl -i http://127.0.0.1:3000/captures \
 
 创建成功返回 `201`，复制响应中的 `id`，用 `GET /captures/<id>` 查看详情。列表返回 `{ "items": [...] }`。同一正文重复提交会创建两条记录。
 
-原文必须是非空白字符串，至多 2000 个 JavaScript UTF-16 代码单元；保留原始空格。请求体限制为 16 KiB，须为不带 BOM 的合法 UTF-8 JSON；非法编码不会被替换后写入。错误通过 HTTP 状态码与 `application/problem+json` 返回，包含 type、title、status、detail、code，字段校验失败还包含 issues。旧客户端读取 error 的逻辑需要改为使用新结构：无效输入 `400`、不存在 `404`、方法不支持 `405`、请求体过大 `413`、内容类型不支持 `415`。
+原文必须是无 NUL、无孤立代理项的非空白字符串，至多 2000 个 JavaScript UTF-16 代码单元；保留原始空格。q 同样拒绝不可原样表示的文本。请求体限制为 16 KiB，须为不带 BOM 的合法 UTF-8 JSON；非法编码不会被替换后写入。错误通过 HTTP 状态码与 `application/problem+json` 返回，包含 type、title、status、detail、code，字段校验失败还包含 issues。旧客户端读取 error 的逻辑需要改为使用新结构：无效输入 `400`、不存在 `404`、方法不支持 `405`、请求体过大 `413`、内容类型不支持 `415`。
 
-保持 `npm run dev` 运行，在 Chrome 的 `chrome://inspect` 中打开 Node 调试目标，连接后，在 `src/captures.service.ts` 的 `await this.store.insert(capture)` 和 `src/memory-capture.store.ts` 的 Map 写入处设置断点并再次发送创建请求。调试器仅监听本机 `9229` 端口。停止时，在运行服务的终端按 `Ctrl+C`。
+保持 `npm run dev` 运行，在 Chrome 的 `chrome://inspect` 中打开 Node 调试目标，连接后，在 `src/captures.service.ts` 的 `await this.store.insert(capture)` 和 `src/prisma-capture.store.ts` 的数据库写入处设置断点并再次发送创建请求。调试器仅监听本机 `9229` 端口。停止时，在运行服务的终端按 `Ctrl+C`。
 
-当前主服务尚未接入数据库，也不包含登录、AI、分页、CORS 配置和生产部署。数据库侧已建立用户与记录表，Nest 适配层在第十九章接入。第十三章统一协调 `SIGINT`／`SIGTERM`：停止接收、等待传输和已追踪工作、释放资源；达到关闭期限时以失败状态退出。完整原理与操作步骤见 [EPP 后端开发实践](https://github.com/SamChowRock/EPP-Book)。
+当前主服务已接入数据库，尚不包含登录、AI、分页、CORS 配置和生产部署。第十三章统一协调 `SIGINT`／`SIGTERM`：停止接收、等待传输和已追踪工作、释放资源；达到关闭期限时以失败状态退出。完整原理与操作步骤见 [EPP 后端开发实践](https://github.com/SamChowRock/EPP-Book)。
 
 第二章支线“从字节到 JSON”另有独立示例。在项目根目录执行：
 
@@ -238,7 +241,7 @@ main 与 worker 对照父线程探针和计算完成的先后；后者修改输�
 npm run dev
 ```
 
-第五章建立的默认开发入口继续使用项目锁定的 TypeScript watch 将源码编译到 `.dev`，本章新增的装饰器元数据也由编译器生成。只有编译无错误才重启服务；类型错误会停止旧服务，修复保存后恢复，重启会清空 Map。`npm run typecheck` 单独检查，`npm run build` 生成独立的 `dist`；核对产物时用 `PORT=3001 npm start`，与开发端口区分。构建产物保留 `dist/src/` 与 `dist/config/` 的相对关系，默认配置是构建时复制的快照。
+第五章建立的默认开发入口继续使用项目锁定的 TypeScript watch 将源码编译到 `.dev`，本章新增的装饰器元数据也由编译器生成。只有编译无错误才重启服务；类型错误会停止旧服务，修复保存后恢复，重启保留 PostgreSQL 记录。`npm run typecheck` 单独检查，`npm run build` 生成独立的 `dist`；核对产物时用 `PORT=3001 npm start`，与开发端口区分。构建产物保留 `dist/src/` 与 `dist/config/` 的相对关系，默认配置是构建时复制的快照。
 
 仅查看不使用装饰器的 `src/config.ts` 或运行第五章独立示例，仍可使用 `node --import=tsx`；当前 Nest 应用入口必须按上述 tsc 路径构建运行，不能直接用 tsx 替代。源码中的 `.js` 导入继续匹配最终产物。
 
@@ -287,7 +290,7 @@ cp -R dist "$release_dir/dist" &&
 )
 ```
 
-运行目录不含源码和开发工具，不支持重新构建。保留当前 shell 的 `release_dir`，停止服务后可从其他 cwd 使用绝对入口和 `PORT=3001` 再运行；配置仍从运行目录里的 `dist/config/` 读取。默认配置缺失应在监听前失败。按正文再次核对三个接口、错误输入与重启丢数，结束后只清理自己新建的临时目录。
+运行目录不含源码和开发工具，不支持重新构建。保留当前 shell 的 `release_dir`，停止服务后可从其他 cwd 使用绝对入口和 `PORT=3001` 再运行；配置仍从运行目录里的 `dist/config/` 读取。默认配置缺失应在监听前失败。本章需先通过进程环境提供 DATABASE_URL 且保持 DB_QUERY_DEBUG=false；可在独立目录用 VS Code 新建本机验证专用 `.env`，按 `.env.example` 填写后改用 `NODE_ENV=production PORT=3001 node --env-file=.env dist/src/server.js`，验证结束移除该秘密文件，正式部署仍由环境注入。按正文再次核对三个接口、错误输入与重启保留数据，结束后只清理自己新建的临时目录。
 
 
 ## 第六章独立实践参考
@@ -385,7 +388,7 @@ curl -i 'http://127.0.0.1:3000/captures?limit=1&limit=2'
 curl -i --get --data-urlencode 'q=C++ & Node' http://127.0.0.1:3000/captures
 ```
 
-q 大小写敏感、按字面子串匹配，提供时非空白且最多 200 个 UTF-16 代码单元；limit 是 1～100 的十进制整数文本，不接受前导零、小数和指数。重复已知参数拒绝，未知字段忽略。先筛选，再按 Map 插入顺序截取；没有参数时仍返回全部记录，未增加分页或数据库。失败不改变已有记录。
+q 大小写敏感、按字面子串匹配，提供时非空白且最多 200 个 UTF-16 代码单元；limit 是 1～100 的十进制整数文本，不接受前导零、小数和指数。重复已知参数拒绝，未知字段忽略。当前主服务先按固定归属和字面条件筛选，再按 created_at/id 升序截取；没有参数时仍返回全部匹配记录，未增加分页。失败不改变已有记录。
 
 支线 8A 无需服务端口：
 
@@ -471,6 +474,8 @@ node dist/examples/provider-scopes/main.js
 
 ## 第十章模块边界与循环依赖示例
 
+下面这一节在 `part-02/chapter-10` 快照中运行，保持原来的内存语义。module-consumer 和 module-workflow 直接导入 CapturesModule；若在当前分支运行，它们会连接数据库并写入，已不适合用来观察原章节的隔离 Map 结果。回看原实验请使用对应快照。
+
 先完成主项目构建，再单独编译示例。`npm run build` 会清空 dist，重新构建后要重新执行对应示例的 tsc 命令。以下程序各自创建应用上下文，不与另一个 HTTP 进程共享内存，也不增加业务路由。
 
 ```bash
@@ -520,7 +525,7 @@ ESM 默认输出 A，eager 在初始化前读取类而失败。双向类程序 l
 
 请求日志记录服务端编号、方法、固定路由标签、状态与耗时，不写原始 URL、查询值、原文或凭据。内部失败只记录稳定错误码，不输出原异常消息/堆栈。正常存储耗时为 debug；需要核对实际输入时使用自己保存的 Postman 请求与开发调试器。
 
-学习和日常修改默认使用 `npm run dev`。scripts/dev.mjs 使用项目锁定的 TypeScript watch 与 tsconfig.dev.json 编译到 .dev，成功后复制配置并启动开启本机 Inspector 的服务；保存源码、修改 tsconfig.json 或 config/service.json 后自动重启。类型错误时停止旧服务，修复保存后恢复；终端的 Build succeeded 只表示编译成功，还要看到服务监听日志。重启会清空 Map，浏览器页面不会自动刷新，需要重新发请求。
+学习和日常修改默认使用 `npm run dev`。scripts/dev.mjs 使用项目锁定的 TypeScript watch 与 tsconfig.dev.json 编译到 .dev，成功后复制配置并启动开启本机 Inspector 的服务；保存源码、修改 tsconfig.json 或 config/service.json 后自动重启。类型错误时停止旧服务，修复保存后恢复；终端的 Build succeeded 只表示编译成功，还要看到服务监听日志。重启保留数据库记录，浏览器页面不会自动刷新，需要重新发请求。
 
 先在终端运行 dev，再在 VS Code 选择 `EPP: attach to npm run dev`；`restart: true` 会在服务重启后尝试重连，断点保留。Chrome 可从 chrome://inspect 连接，但重启后可能需要重新选择目标。只有排查启动第一行才使用 `npm run build` 和 `npm run debug`；dev与debug不要同时占用9229或业务端口。dev 使用 .dev，build/clean 使用 dist，二者不会相互清理；并行检查不会自动重启开发服务。依赖、package.json、开发脚本及环境变量改变后手动重启dev。此时的自动重启不保留进程内状态。
 
@@ -558,7 +563,7 @@ curl -i -X DELETE http://127.0.0.1:3000/captures
 curl -s http://127.0.0.1:3000/openapi.json
 ```
 
-前两项为 VALIDATION_ERROR，详情不存在为 CAPTURE_NOT_FOUND，不支持的方法为 METHOD_NOT_ALLOWED 并保留 Allow。未知请求字段仍忽略，id／createdAt 继续由服务端生成，原文空格和 UTF-16 长度规则不变。业务规则仍由 Service 维护；独立示例只展示各自的机制，不等同主线新协议。第十二章已将这些边界接到 Nest 请求机制，错误约定继续保持。
+前两项为 VALIDATION_ERROR，详情不存在为 CAPTURE_NOT_FOUND，不支持的方法为 METHOD_NOT_ALLOWED 并保留 Allow。未知请求字段仍忽略，id／createdAt 继续由服务端生成，原文空格和 UTF-16 长度规则不变，第十九章另拒绝 NUL 与孤立代理项。业务规则仍由 Service 维护；独立示例只展示各自的机制，不等同主线新协议。第十二章已将这些边界接到 Nest 请求机制，错误约定继续保持。
 
 
 ## 第十二章请求机制与独立顺序实验
@@ -585,13 +590,13 @@ node examples/observable-boundaries.mjs
 
 它展示重复订阅执行两次、错误恢复成普通值、等待超时后底层工作继续完成。程序不依赖 dist，也不要求启动服务。
 
-保留一条 Node 自带测试入口的 HTTP 回归，可以保持 dev，在另一终端执行：
+保留一条 Node 自带测试入口的 HTTP 回归，需要已配置数据库且 DB_QUERY_DEBUG=false；比较前后基线时暂停其他写入，在另一终端执行：
 
 ```bash
 npm test
 ```
 
-命令先构建，再以 NODE_ENV=test 运行 test/captures.test.mjs，默认关闭文档。测试启动独立应用与随机本机端口，检查非法 JSON 的 400／Problem／INVALID_JSON 和空列表，最后关闭应用；需要允许本机监听。构建后源码没有变化时，可以直接 `NODE_ENV=test node --test test/captures.test.mjs`。没有引入额外测试框架，日常排错继续使用 Postman 和调试器。结束实验后运行 `npm run dev` 回到主线；生产运行保持构建产物加 `npm start`。
+命令先构建，再以 NODE_ENV=test 运行 test/captures.test.mjs，默认关闭文档。测试启动独立应用与随机本机端口，读取现有基线后，检查非法 JSON 的 400／Problem／INVALID_JSON 和数据未变，最后关闭应用；需要允许本机监听。构建后源码没有变化时，可以直接 `NODE_ENV=test node --env-file-if-exists=.env --test test/captures.test.mjs`。没有引入额外测试框架，日常排错继续使用 Postman 和调试器。结束实验后运行 `npm run dev` 回到主线；生产运行保持构建产物加 `npm start`。
 
 
 ## 本机配置与交付核对
@@ -636,11 +641,11 @@ node examples/lifecycle-order.mjs
 node examples/request-context.mjs
 ```
 
-前者观察初始化与关闭钩子；后者对照全局变量串值、AsyncLocalStorage 与事件绑定。第十章直接消费 CapturesModule 的示例已在自身根模块登记 RuntimeModule，容器之间不共享 global 模块。主服务继续使用原内存存储，生命周期实验不构成数据库实现。build 排除全部 src/labs；dev:lifecycle 与 dev:pipeline 都只运行 .dev 产物。
+前者观察初始化与关闭钩子；后者对照全局变量串值、AsyncLocalStorage 与事件绑定。第十章直接消费 CapturesModule 的示例已在自身根模块登记 RuntimeModule，容器之间不共享 global 模块。主服务使用数据库；独立生命周期实验仍只管理自己的文件资源，不连接数据库。build 排除全部 src/labs；dev:lifecycle 与 dev:pipeline 都只运行 .dev 产物。
 
-## 第十四章综合实践
+## 第十四章综合实践（在第十四章快照进行）
 
-先独立完成需求，再对照参考：新建 originalText 上限收紧为 1200 个 UTF-16 代码单元，旧记录仍可按原有 2000 单元范围读取；用数组替换 Map，同时保留 CAPTURE_STORE、观测包装、顺序、副本与失败约定。练习不改变本分支主服务，第三篇继续从主线接入数据库。
+先独立完成需求，再对照参考：新建 originalText 上限收紧为 1200 个 UTF-16 代码单元，旧记录仍可按原有 2000 单元范围读取；用数组替换 Map，同时保留 CAPTURE_STORE、观测包装、顺序、副本与失败约定。练习使用 `part-02/chapter-14` 快照；不要在本章持久化分支套用旧 Map／数组补丁。
 
 停止已有 dev，在本分支根目录创建独立练习目录：
 

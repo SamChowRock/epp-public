@@ -4,21 +4,26 @@ import { CapturesService } from './captures.service.js';
 import { CAPTURE_STORE } from './capture-store.js';
 import type { CaptureStore } from './capture-store.js';
 import { CaptureListQueryPipe } from './capture-query.js';
-import { MemoryCaptureStore } from './memory-capture.store.js';
+import { DatabaseModule } from './database.module.js';
+import { DatabaseService } from './database.service.js';
+import { PrismaCaptureStore } from './prisma-capture.store.js';
 import { ObservedCaptureStore } from './observed-capture.store.js';
 import { AppLogger } from './app-logger.js';
 import { ApplicationState } from './application-state.js';
 
 @Module({
+  imports: [DatabaseModule],
   controllers: [CapturesController],
   providers: [
     CaptureListQueryPipe,
-    MemoryCaptureStore,
+    { provide: PrismaCaptureStore,
+      useFactory: (database: DatabaseService) => new PrismaCaptureStore(database),
+      inject: [DatabaseService] },
     {
       provide: CAPTURE_STORE,
-      useFactory: (store: MemoryCaptureStore, logger: AppLogger, state: ApplicationState) =>
+      useFactory: (store: PrismaCaptureStore, logger: AppLogger, state: ApplicationState) =>
         new ObservedCaptureStore(store, logger, state),
-      inject: [MemoryCaptureStore, AppLogger, ApplicationState],
+      inject: [PrismaCaptureStore, AppLogger, ApplicationState],
     },
     {
       provide: CapturesService,
