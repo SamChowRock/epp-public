@@ -30,7 +30,7 @@ VALUES ('30000000-0000-4000-8000-000000000004',
         '10000000-0000-4000-8000-000000000001', '');
 ROLLBACK;
 
--- 23503: deleting the owner cannot leave existing captures without a parent.
+-- 23001 (PostgreSQL 18 RESTRICT): the owner is still referenced by captures.
 BEGIN;
 DELETE FROM public.users WHERE id = '10000000-0000-4000-8000-000000000001';
 ROLLBACK;
