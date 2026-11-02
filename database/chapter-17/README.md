@@ -18,6 +18,7 @@ SQL 编辑器保存只保存文字；Execute SQL Statement 执行当前／选中
 | 06-session-a.sql／06-session-b.sql | **两个不同 PID，会话交替逐阶段执行** | 未提交不可见、提交后可见、更新回滚；最后删除专用实验行 |
 | 07-query-builder.mjs | 独立 Node 运行或断点 | 输出 SQL 与 values，不连接数据库、不表示已经执行 |
 | 08-join-multiplicity.sql | 支线只读查询，可反复执行 | 两个一对多得到七行；错误计数 6／6；预聚合得到 2／3、0／1；NULL 反例 |
+| 09-session-state.sql | 第三个空闲观察编辑器，Auto-commit、不包 BEGIN | 按已取得的 A／B PID 找到会话，比较 idle 与 idle in transaction；只查看当前库、当前角色 |
 
 `02`、`03`、`05` 的实验都在一个事务中回滚，操作期间不切到另一个编辑器查看它们的未提交数据。固定实验 ID 如果已存在，先回滚并检查，不用覆盖写入或清空数据库处理冲突。03 的数量依据第十六章的一位用户与两条 seed；已有额外数据时先识别来源，不为对齐预期删除真实内容。
 
@@ -33,7 +34,7 @@ node database/chapter-17/07-query-builder.mjs
 
 ## 双会话阶段与恢复
 
-在 DBeaver 为 SQL Editor 的独立连接选择 Always，然后新开 A、B；或建立两份同参数的连接配置。各自运行 current_database/current_user/pg_backend_pid：库和角色相同，PID 不同。保持会话固定，Data 页可能使用另一个连接，不能替代已核对的编辑器。
+默认沿第十五章向导建立 `EPP · DEV-A`、`EPP · DEV-B` 两份相同开发参数的连接配置，各自打开一个编辑器；也可为 SQL Editor 的独立连接选择 Always，再新开 A、B，两种方式选一种。各自运行 current_database/current_user/pg_backend_pid：库和角色相同，PID 不同。保持会话固定，Data 页可能使用另一个连接，不能替代已核对的编辑器。
 
 1. A0 检查实验 ID `40000000-0000-4000-8000-000000000006` 不存在。B0 开始 READ COMMITTED 事务。
 2. A1 插入但不提交；B1 查询零行。
@@ -42,6 +43,8 @@ node database/chapter-17/07-query-builder.mjs
 5. A4 ROLLBACK；B4 重查不变，B 随后 COMMIT。
 6. A5 按固定 ID、拥有者和原文删除专用实验行并提交；B5 重查零行。
 7. 两边结束事务，运行第十六章的核对文件，保留原用户和两条原始记录。
+
+需要确认事务状态时，在原 DEV 的第三个空闲编辑器执行 09-session-state.sql；它自身不包 BEGIN，每个阶段重新查询。按 A／B 的实际 PID 匹配，不按结果顺序或相同的 application_name 猜测。A1／B1 都应为 idle in transaction；A2／B2 后 A 为 idle、B 仍在事务中；A4 与 B4 提交后两边均为 idle。出现 idle in transaction (aborted) 时回到那条连接 ROLLBACK，其他编辑器不能替它回滚。视图说明会话状态，行可见性仍由 B 的 SELECT 核对。
 
 06 文件禁止作为初始化或自动批处理运行；每次选中一条完整 SQL 执行，完成当前阶段的全部语句后再切换会话。B1～B4 重复执行的是同一条 SELECT，每次重新发到服务器；查看旧结果网格不算重查。B 的读事务不应留到下次学习。
 
