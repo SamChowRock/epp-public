@@ -1,6 +1,6 @@
 # EPP 配套实践代码
 
-当前对应第三篇第 17 章，代码分支 `part-03/chapter-17`，从 `part-03/chapter-16` 继续。主服务仍是第十三章的接口、2000 单元创建规则与 Map 存储；环境准备见 [database/chapter-15](database/chapter-15/README.md)，已有表与开发数据见 [database/chapter-16](database/chapter-16/README.md)，本章查询、参数与双会话实验见 [database/chapter-17](database/chapter-17/README.md)。默认在 DBeaver 研究 SQL，第十九章才替换 Nest 存储。
+当前对应第三篇第 18 章，代码分支 `part-03/chapter-18`，从 `part-03/chapter-17` 继续。主服务仍是第十三章的接口、2000 单元创建规则与 Map 存储；环境准备见 [database/chapter-15](database/chapter-15/README.md)，已有表与开发数据见 [database/chapter-16](database/chapter-16/README.md)，SQL 实验见 [database/chapter-17](database/chapter-17/README.md)。本章 [Prisma 模型与迁移基线](database/chapter-18/README.md)固定使用 Prisma 7.10.1，通过 DBeaver 核对结构与数据，先在独立空库重放，再登记日常库基线；第十九章才替换 Nest 存储。配套设计实验另对照映射改名、物理列操作与索引漂移，帮助判断差异应恢复还是纳入演进。
 
 第十四章的 1200 单元新建限制、旧记录读取兼容与数组存储属于隔离练习，参考补丁和图形请求仍保留在下方“第十四章综合实践”，不作为当前主服务行为。
 
@@ -18,6 +18,8 @@ npm run dev
 ```
 
 `.nvmrc` 固定 Node.js 为 `24.22.1`，`node --version` 应输出 `v24.22.1`。`nvm install` 按文件安装并切换版本；每次新开终端后，在项目内执行 `nvm use`。单独进入目录不会自动切换版本。
+
+第十八章新增 `prisma` 与 `@prisma/client` 7.10.1。开发启动、类型检查与构建前先生成客户端；模型与锁文件提交，`src/generated/prisma/` 不提交。生成和编译不需要数据库密码，也不执行迁移。数据库命令单独读取 `.env.database` 或 `.env.database-verify`，详见本章说明。
 
 `package.json` 中的 `engines.node` 同样声明精确版本，`.npmrc` 开启 `engine-strict`，让 npm 安装时拒绝不匹配的 Node 版本。遇到 `EBADENGINE` 先执行 `nvm use`，再重试安装。
 

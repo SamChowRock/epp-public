@@ -1,0 +1,24 @@
+// Comparison fixture only; do not generate or migrate from this file.
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String    @id(map: "users_pkey") @db.Uuid
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  captures  Capture[]
+
+  @@map("users")
+}
+
+/// CHECK captures_original_text_nonempty is maintained in migration SQL.
+model Capture {
+  id           String   @id(map: "captures_pkey") @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  text         String   @map("original_text") @db.Text
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "captures_user_id_fkey")
+
+  @@index([userId], map: "captures_user_id_idx")
+  @@map("captures")
+}
