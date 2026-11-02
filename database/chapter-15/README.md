@@ -42,7 +42,9 @@ psql -X -W -v ON_ERROR_STOP=1 \
 
 ## 日常返回，不重复初始化
 
-已完成建库后，新终端先恢复程序路径：macOS 执行 `export PATH="$(brew --prefix postgresql@18)/bin:$PATH"`，Ubuntu／WSL 执行 `export PATH="/usr/lib/postgresql/18/bin:$PATH"`。然后检查原实例：
+首次配置 DBeaver 时保存 DEV（epp_dev／epp_owner）与 ADMIN（postgres／epp_admin）两条连接，均使用 127.0.0.1:55432。显示名称分别为 `EPP · DEV · 55432 · epp_dev`、`EPP · ADMIN · 55432 · postgres`。日常业务 SQL 用 DEV；04 的认证检查与后续建校验库用 ADMIN。每次从查询确认实际身份，不能只信连接标签。
+
+日常先在 DBeaver 连接 DEV，执行 03-inspect.sql。成功且目标符合预期就继续，不必重复终端核对。备注写入也在 DEV 的 Auto-commit 模式、关闭 Smart commit、没有显式事务时执行，再重新查询观察。连接被拒绝，需要检查实例时，才在新终端恢复程序路径：macOS 执行 `export PATH="$(brew --prefix postgresql@18)/bin:$PATH"`，Ubuntu／WSL 执行 `export PATH="/usr/lib/postgresql/18/bin:$PATH"`。然后检查原实例：
 
 ```bash
 export EPP_PGDATA="$HOME/.local/share/epp-book/postgresql-18"
@@ -51,7 +53,7 @@ pg_ctl -D "$EPP_PGDATA" status
 
 用的是初始化时的目录；若当时更改过路径，这里同步修改。已经运行就直接连接。明确报告未运行时，执行 `pg_ctl -D "$EPP_PGDATA" -l "$EPP_PGDATA/server.log" -w start`；目录不存在或不可访问则先修正路径和权限，不自动重建。
 
-接着执行上面的开发所有者连接与 `-f database/chapter-15/03-inspect.sql`。已经配置过 DBeaver 时重新连接并查询核对；尚未配置时回到正文 15.3 建立连接。不要重跑文件 01、02；后续章节已经建表时，也不再要求 public 为空。中断在首次创建过程中的情况，仍按前面的失败恢复说明处理。
+启动后回到 DBeaver 重新连接并执行 03-inspect.sql；上面的 psql `-f` 是等效备用入口。尚未配置时回到正文 15.3 建立连接。不要重跑文件 01、02；后续章节已经建表时，也不再要求 public 为空。中断在首次创建过程中的情况，仍按前面的失败恢复说明处理。
 
 本章不创建用户表或记录表，不新增 Prisma 和数据库驱动，不把连接串加入尚未消费它的 Nest 配置。主服务依旧使用 Map；`npm run dev` 保持断点与自动重启，`npm run check`、`npm start` 保持既有构建和生产运行行为。业务表、SQL、迁移与接口替换依次在第十六至十九章建立。
 
