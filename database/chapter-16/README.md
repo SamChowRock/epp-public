@@ -33,11 +33,15 @@ seed 创建一个用户和两条记录。用户 ID 为 `10000000-0000-4000-8000-
 | 02-seed-development.sql | 开发库首次显式执行 | 一个用户与两条合法演示记录，一起提交 |
 | 03-inspect-model.sql | psql 或 DBeaver，可反复读取 | 连接、列、约束、索引与已有数据 |
 | 04-rejected-writes.sql | 手动逐组运行，**不是初始化脚本** | 外键、非空、主键、CHECK、删除引用五类拒绝 |
-| 05-time-representation.sql | 空闲会话运行完整事务 | 同一时间点的 UTC／上海显示，结束后还原会话设置 |
+| 05-time-representation.sql | 空闲会话逐条运行，比较两个 SELECT 后回滚 | server_text 显示服务器时区，epoch_seconds 证明时间点不变；结束后还原设置 |
 | 06-text-boundaries.sql | 支线只读查询 | 字符／字节、NULL、空白及显式截断的区别 |
 | 07-text-boundaries.mjs | `node database/chapter-16/07-text-boundaries.mjs` | JS 字符与编码边界对照，不需数据库连接 |
 
+03 同时检查约束的 convalidated／conenforced：本章创建的约束均应为 true。定义存在不等于已有数据已验证、后续写入会被执行检查；图中的关系线不能代替这个核对。
+
 04 每组的操作顺序：执行 BEGIN 和一条预期失败语句；读取 SQLSTATE／约束名；**另外执行 ROLLBACK**；重新读取原有数据。不要用 ON_ERROR_STOP 的批处理整份运行，因为第一个预期错误就会停下。即使实验意外成功也回滚，先查目标、结构与前提。psql 使用 `\errverbose` 查看上次错误，DBeaver 使用错误详情；不公开含真实数据的完整错误。
+
+05 的两个 SELECT 分别在 UTC 与 Asia/Shanghai 下执行。server_text 为 `2026-10-31 08:00:00.123+00` 和 `2026-10-31 16:00:00.123+08`，epoch_seconds 都为 `1793433600.123`。created_at 单元格可能被客户端再次格式化；文本列和数值列用于分清服务器输出、客户端展示与实际时间点。不要用 UPDATE 修正显示时差。
 
 DBeaver 的 SQL 文件保存只保存文字；Data 页 Save 发送网格修改，Cancel 放弃未保存修改；Manual commit 模式下还要 Commit 或 Rollback 结束事务。已自动提交的更改不能用 Cancel 撤销。本章可以修改单元格后不保存、直接 Cancel 观察界面状态，保留后续章节需要的原始 seed 数据。
 

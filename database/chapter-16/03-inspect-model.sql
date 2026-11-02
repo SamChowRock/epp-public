@@ -7,6 +7,7 @@ WHERE table_schema = 'public' AND table_name IN ('users', 'captures')
 ORDER BY table_name, ordinal_position;
 
 SELECT conrelid::regclass AS table_name, conname,
+       convalidated, conenforced,
        pg_get_constraintdef(oid) AS definition
 FROM pg_constraint
 WHERE conrelid IN ('public.users'::regclass, 'public.captures'::regclass)
