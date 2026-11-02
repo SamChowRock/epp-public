@@ -9,7 +9,15 @@ export class CaptureNotFoundError extends Error {}
 export class CapturesService {
   constructor(private readonly store: CaptureStore) {}
 
-  async create(originalText: unknown): Promise<Capture> {
+  private validateIntent(value: unknown): asserts value is string | null {
+    if (value === null) return;
+    if (typeof value !== 'string' || !value.trim() ||
+        value.length > 1000 || !isPostgresText(value)) {
+      throw new InvalidCaptureError('chineseIntent must be null or non-empty, at most 1000 code units, and well-formed Unicode without NUL');
+    }
+  }
+
+  async create(originalText: unknown, chineseIntent: unknown = null): Promise<Capture> {
     if (typeof originalText !== 'string' || !originalText.trim()) {
       throw new InvalidCaptureError('originalText must be a non-empty string');
     }
@@ -19,9 +27,11 @@ export class CapturesService {
     if (originalText.length > 2000) {
       throw new InvalidCaptureError('originalText must be at most 2000 code units');
     }
+    this.validateIntent(chineseIntent);
     const capture: Capture = {
       id: randomUUID(),
       originalText,
+      chineseIntent,
       createdAt: new Date().toISOString(),
     };
     await this.store.insert(capture);
@@ -38,6 +48,13 @@ export class CapturesService {
       throw new InvalidCaptureError('limit must be an integer from 1 to 100');
     }
     return this.store.list({ text, limit });
+  }
+
+  async updateIntent(id: string, chineseIntent: unknown): Promise<Capture> {
+    this.validateIntent(chineseIntent);
+    const capture = await this.store.updateIntent(id, chineseIntent);
+    if (!capture) throw new CaptureNotFoundError('Capture not found');
+    return { ...capture };
   }
 
   async find(id: string): Promise<Capture> {

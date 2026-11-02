@@ -14,6 +14,7 @@ const store = {
     console.log('write finished');
   },
   list: (options) => memory.list(options),
+  updateIntent: (id, intent) => memory.updateIntent(id, intent),
   find: (id) => memory.find(id),
 };
 const captures = new CapturesService(store);

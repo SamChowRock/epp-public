@@ -33,7 +33,7 @@ class Reader {
       useFactory: async (store: CaptureStore, seed: { text: string }) => {
         if (mode === 'fail-factory') throw new Error('Seed preparation failed');
         await store.insert({
-          id: 'seed', originalText: seed.text, createdAt: '2026-01-01T00:00:00.000Z',
+          id: 'seed', originalText: seed.text, chineseIntent: null, createdAt: '2026-01-01T00:00:00.000Z',
         });
         return store;
       },

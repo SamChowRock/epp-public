@@ -18,11 +18,12 @@ model User {
   @@map("users")
 }
 
-/// CHECK captures_original_text_nonempty is maintained in migration SQL.
+/// CHECK constraints are maintained in migration SQL.
 model Capture {
   id           String   @id(map: "captures_pkey") @db.Uuid
   userId       String   @map("user_id") @db.Uuid
   originalText String   @map("original_text") @db.Text
+  chineseIntent String? @map("chinese_intent") @db.Text
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   user         User     @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "captures_user_id_fkey")
 

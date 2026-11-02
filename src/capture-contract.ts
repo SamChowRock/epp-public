@@ -8,7 +8,20 @@ export const OriginalTextSchema = z.string()
   .refine(text => text.length <= 2000, 'originalText must be at most 2000 code units')
   .describe('Original text; whitespace is preserved. Maximum 2000 UTF-16 code units; well-formed Unicode without NUL.');
 
-export const CreateCaptureSchema = z.object({ originalText: OriginalTextSchema });
+export const ChineseIntentSchema = z.string()
+  .refine(isPostgresText, 'chineseIntent must be well-formed Unicode without NUL')
+  .regex(/\S/, 'chineseIntent must contain a non-whitespace character')
+  .refine(text => text.length <= 1000, 'chineseIntent must be at most 1000 code units')
+  .describe('User-supplied intent; whitespace preserved. Maximum 1000 UTF-16 code units; well-formed Unicode without NUL. No language detection.');
+
+export const CreateCaptureSchema = z.object({
+  originalText: OriginalTextSchema,
+  chineseIntent: ChineseIntentSchema.nullable().optional(),
+});
+export const UpdateCaptureIntentSchema = z.object({
+  chineseIntent: ChineseIntentSchema.nullable(),
+});
+export type UpdateCaptureIntentInput = z.infer<typeof UpdateCaptureIntentSchema>;
 export type CreateCaptureInput = z.infer<typeof CreateCaptureSchema>;
 
 export const ListQuerySchema = z.object({
@@ -22,6 +35,7 @@ export const ListQuerySchema = z.object({
 export const CaptureResponseSchema = z.object({
   id: z.uuid(),
   originalText: OriginalTextSchema,
+  chineseIntent: ChineseIntentSchema.nullable(),
   createdAt: z.iso.datetime(),
 });
 export const CaptureListResponseSchema = z.object({
@@ -44,6 +58,7 @@ export function toCaptureResponse(capture: Capture): CaptureResponse {
   return CaptureResponseSchema.parse({
     id: capture.id,
     originalText: capture.originalText,
+    chineseIntent: capture.chineseIntent,
     createdAt: capture.createdAt,
   });
 }

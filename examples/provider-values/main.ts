@@ -8,10 +8,11 @@ import { CapturesService } from '../../src/captures.service.js';
 const fixedStore: CaptureStore = {
   async find(id) {
     return id === 'demo-capture' ? {
-      id, originalText: 'A fixed example.', createdAt: '2026-01-01T00:00:00.000Z',
+      id, originalText: 'A fixed example.', chineseIntent: null, createdAt: '2026-01-01T00:00:00.000Z',
     } : undefined;
   },
   async insert() { throw new Error('This example supports find only'); },
+  async updateIntent() { throw new Error('This example supports find only'); },
   async list() { throw new Error('This example supports find only'); },
 };
 

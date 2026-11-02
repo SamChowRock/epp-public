@@ -1,10 +1,10 @@
 # EPP 配套实践代码
 
-当前对应第三篇第 19 章，代码分支 `part-03/chapter-19`，从 `part-03/chapter-18` 继续。三个接口通过 Prisma 使用 PostgreSQL 中的固定开发用户与已有记录；本章不修改模型和迁移。运行前先完成[环境准备](database/chapter-15/README.md)、[表与数据](database/chapter-16/README.md)及[迁移基线](database/chapter-18/README.md)，再按[第十九章联调说明](database/chapter-19/README.md)配置运行连接、观察字段与真实时间点、制造连接等待并恢复。
+当前对应第三篇第 20 章，代码分支 `part-03/chapter-20`，从 `part-03/chapter-19` 继续。保留原记录追加可空中文意图，创建和读取返回 chineseIntent，并新增 `PATCH /captures/:id` 修改或清空意图。运行前先完成[环境准备](database/chapter-15/README.md)、[表与数据](database/chapter-16/README.md)、[迁移基线](database/chapter-18/README.md)与[持久化接入](database/chapter-19/README.md)，再按[第二十章说明](database/chapter-20/README.md)应用追加迁移、联调并完成隔离恢复实验。
 
 第十四章的 1200 单元新建限制、旧记录读取兼容与数组存储属于隔离练习，参考补丁和图形请求仍保留在下方“第十四章综合实践”，不作为当前主服务行为。
 
-主服务集中解析启动配置，提供结构化日志与服务端 X-Request-Id；SIGINT/SIGTERM 先停止接收，再等待已有工作并释放资源。三个业务接口、成功字段与 Problem 契约保持，关闭期间明确拒绝的新请求使用 503／SERVICE_DRAINING。Swagger 开发默认开启，生产默认关闭。记录保存在 PostgreSQL；API 退出会释放连接并保留已提交行。当前使用固定用户，尚无认证，仅供本机实践。
+主服务集中解析启动配置，提供结构化日志与服务端 X-Request-Id；SIGINT/SIGTERM 先停止接收，再等待已有工作并释放资源。既有三个接口增加可空意图响应，另提供修改意图接口；Problem 契约沿用，关闭期间明确拒绝的新请求使用 503／SERVICE_DRAINING。Swagger 开发默认开启，生产默认关闭。记录保存在 PostgreSQL；API 退出会释放连接并保留已提交行。当前使用固定用户，尚无认证，仅供本机实践。
 
 使用 nvm 管理 Node.js；安装方式见 [nvm 官方说明](https://github.com/nvm-sh/nvm#installing-and-updating)。macOS、Linux 使用 Bash 或 Zsh，Windows 使用 WSL。在项目根目录运行：
 
@@ -14,7 +14,7 @@ nvm use
 node --version
 npm ci
 npm run check
-# 先按 .env.example 在 .env 配置数据库连接，再启动。
+# 先按第二十章说明应用迁移，并在 .env 配置运行连接，再启动。
 npm run dev
 ```
 
@@ -34,7 +34,7 @@ NODE_ENV=production PORT=3001 node --enable-source-maps dist/src/server.js
 
 `PORT` 必须为十进制数字字符串，转换后的整数范围是 1～65535；缺失时使用默认端口，空值或错误值会在监听前退出并返回非零状态。即使指定 `PORT`，默认配置文件仍必须存在且有效。配置由每个服务进程在启动时读取；dev 会在源配置变化后复制并重启，生产产物则需要重新构建，修改生产运行目录的默认配置后需重启；绑定地址始终为 `127.0.0.1`。改端口后同步修改请求地址。
 
-本章另提供 [持久化联调集合](requests/chapter-19.postman_collection.json)，包含旧记录、特殊字符、输入拒绝与连接等待请求。
+本章提供 [中文意图请求集合](requests/chapter-20.postman_collection.json)，按顺序核对旧请求、补充、非法值和清空；[第十九章持久化集合](requests/chapter-19.postman_collection.json)继续用于原文、特殊字符与连接等待。
 
 ## 用 Postman 发送和保存请求
 
@@ -58,7 +58,7 @@ curl -i http://127.0.0.1:3000/captures \
   --data '{"originalText":"I am not much of cook."}'
 ```
 
-创建成功返回 `201`，复制响应中的 `id`，用 `GET /captures/<id>` 查看详情。列表返回 `{ "items": [...] }`。同一正文重复提交会创建两条记录。
+创建成功返回 `201`，复制响应中的 `id`，用 `GET /captures/<id>` 查看详情。列表返回 `{ "items": [...] }`。同一正文重复提交会创建两条记录。创建可以省略 chineseIntent，响应明确返回 null；PATCH 必须提供该字段，字符串替换、null清空、缺失或空白拒绝。意图最多1000个UTF-16单元，原文和创建时间不由PATCH修改。q仍只搜索原文。
 
 原文必须是无 NUL、无孤立代理项的非空白字符串，至多 2000 个 JavaScript UTF-16 代码单元；保留原始空格。q 同样拒绝不可原样表示的文本。请求体限制为 16 KiB，须为不带 BOM 的合法 UTF-8 JSON；非法编码不会被替换后写入。错误通过 HTTP 状态码与 `application/problem+json` 返回，包含 type、title、status、detail、code，字段校验失败还包含 issues。旧客户端读取 error 的逻辑需要改为使用新结构：无效输入 `400`、不存在 `404`、方法不支持 `405`、请求体过大 `413`、内容类型不支持 `415`。
 
@@ -290,7 +290,7 @@ cp -R dist "$release_dir/dist" &&
 )
 ```
 
-运行目录不含源码和开发工具，不支持重新构建。保留当前 shell 的 `release_dir`，停止服务后可从其他 cwd 使用绝对入口和 `PORT=3001` 再运行；配置仍从运行目录里的 `dist/config/` 读取。默认配置缺失应在监听前失败。本章需先通过进程环境提供 DATABASE_URL 且保持 DB_QUERY_DEBUG=false；可在独立目录用 VS Code 新建本机验证专用 `.env`，按 `.env.example` 填写后改用 `NODE_ENV=production PORT=3001 node --env-file=.env dist/src/server.js`，验证结束移除该秘密文件，正式部署仍由环境注入。按正文再次核对三个接口、错误输入与重启保留数据，结束后只清理自己新建的临时目录。
+运行目录不含源码和开发工具，不支持重新构建。保留当前 shell 的 `release_dir`，停止服务后可从其他 cwd 使用绝对入口和 `PORT=3001` 再运行；配置仍从运行目录里的 `dist/config/` 读取。默认配置缺失应在监听前失败。本章需先通过进程环境提供 DATABASE_URL 且保持 DB_QUERY_DEBUG=false；可在独立目录用 VS Code 新建本机验证专用 `.env`，按 `.env.example` 填写后改用 `NODE_ENV=production PORT=3001 node --env-file=.env dist/src/server.js`，验证结束移除该秘密文件，正式部署仍由环境注入。按正文再次核对四个接口、错误输入与重启保留数据，结束后只清理自己新建的临时目录。
 
 
 ## 第六章独立实践参考
@@ -311,7 +311,7 @@ node examples/manual-composition.mjs
 
 - `src/captures.service.ts`：原文规则、记录创建与查询；第九章接收 CaptureStore，不再直接持有 Map。
 - `src/capture.ts`、`src/capture-store.ts`、`src/memory-capture.store.ts`：模型、存储契约与内存实现，复制写入与读取对象，保留查询语义。
-- `src/captures.controller.ts`：三个 HTTP 入口；第八章改用 Nest 返回值响应，创建用 passthrough 设置 Location。
+- `src/captures.controller.ts`：四个 HTTP 入口；第八章改用 Nest 返回值响应，创建用 passthrough 设置 Location。
 - `src/http.ts`：沿用流读取、16 KiB 限制与 JSON 输出，转换业务和协议失败。
 - `src/http-boundary.ts`：路由前核对路径与允许方法，保留 404／405、Allow 和原始 ID 行为。
 - `src/captures.module.ts`、`src/app.module.ts` 与 `src/app.ts`：第十章由记录模块拥有组件登记，根模块导入它；创建 Nest Express 应用时关闭默认解析器，由 captureBody 在路由前唯一读取 JSON。
@@ -380,7 +380,7 @@ node --input-type=module -e 'process.stdout.write(JSON.stringify({message:"a".re
 
 ## 第八章 Controller 输入与响应
 
-`src/capture-query.ts` 把单值查询转换为业务参数，`src/capture-body.ts` 负责 POST 的唯一 JSON 读取；第十二章已把原来的 httpResult 替换为 `src/problem.filter.ts` 的统一 Problem 处理。三个 Controller 方法返回业务结果，创建时只设置 Location。成功响应的自动头部可能变化，业务状态、JSON 和 Location／Allow 约定继续保持。
+`src/capture-query.ts` 把单值查询转换为业务参数，`src/capture-body.ts` 负责 POST／PATCH 的唯一 JSON 读取；第十二章已把原来的 httpResult 替换为 `src/problem.filter.ts` 的统一 Problem 处理。四个 Controller 方法返回业务结果，创建时只设置 Location。成功响应的自动头部可能变化，业务状态、JSON 和 Location／Allow 约定继续保持。
 
 ```bash
 curl -i 'http://127.0.0.1:3000/captures?q=coffee&limit=1'
@@ -547,7 +547,7 @@ node scripts/export-openapi.mjs
 npm run dev
 ```
 
-input-contracts 对照额外字段、缺失／null、转换与 Unicode 长度。response-boundary 输出三个公开字段，故意制造的输出失约返回 500，已保存记录仍为 1；httpFailure 只负责转换，不自行打印异常；主线由 Filter 统一记录诊断。export-openapi 写入 dist/openapi.json；重新 build 会清理该文件，需要再次导出。
+input-contracts 对照额外字段、缺失／null、转换与 Unicode 长度。response-boundary 输出四个公开字段（含可空意图），故意制造的输出失约返回 500，已保存记录仍为 1；httpFailure 只负责转换，不自行打印异常；主线由 Filter 统一记录诊断。export-openapi 写入 dist/openapi.json；重新 build 会清理该文件，需要再次导出。
 
 在浏览器打开 `http://127.0.0.1:3000/docs`，通过 Try it out 创建原文、提交非法字段、查询记录。该页面会发出真实请求，重复 POST 会创建多条记录。文档和 Swagger UI 资源由本服务提供，`/openapi.json` 可单独读取；不是自动生成所有业务约束，UTF-16 限额等自定义条件仍需核对描述和运行结果。
 
@@ -622,7 +622,7 @@ LOG_LEVEL=debug npm run dev 2>&1 | tee logs/dev.log
 
 应用 JSON 的 message.event 是事件名，message.requestId 是编号；有编号的请求可关联 http.started、store.completed/failed 与 http.completed/aborted/failed。非法 JSON 或字段错误不应出现 insert 成功。可用 `node examples/filter-logs.mjs <实际编号> < logs/dev.log` 精确筛选；将尖括号占位符整体换掉。日志含编译器的非 JSON 行时脚本会跳过，不把原文作为检索身份。
 
-生产目录继续 `PORT=3001 npm start`；先观察 app.ready，再用产物请求集合核对三个业务接口、失败输入、X-Request-Id 和默认关闭的文档。结束时 SIGINT/SIGTERM 只触发一次关闭；等 app.stopped 后确认子进程退出。默认五秒期限覆盖正在处理的存储操作与资源关闭；超时记录 app.stop_timeout 并失败退出，不保证最后响应或日志送达，不等于回滚。开发 runner 给出35秒兜底，确保不早于应用允许的最大期限。
+生产目录继续 `PORT=3001 npm start`；先观察 app.ready，再用产物请求集合核对四个业务接口、失败输入、X-Request-Id 和默认关闭的文档。结束时 SIGINT/SIGTERM 只触发一次关闭；等 app.stopped 后确认子进程退出。默认五秒期限覆盖正在处理的存储操作与资源关闭；超时记录 app.stop_timeout 并失败退出，不保证最后响应或日志送达，不等于回滚。开发 runner 给出35秒兜底，确保不早于应用允许的最大期限。
 
 资源实验与业务应用隔离。停止其他开发入口，执行：
 

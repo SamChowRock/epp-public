@@ -19,6 +19,14 @@ export class MemoryCaptureStore implements CaptureStore {
     return items;
   }
 
+  async updateIntent(id: string, chineseIntent: string | null): Promise<Capture | undefined> {
+    const capture = this.captures.get(id);
+    if (!capture) return undefined;
+    const updated = { ...capture, chineseIntent };
+    this.captures.set(id, updated);
+    return { ...updated };
+  }
+
   async find(id: string): Promise<Capture | undefined> {
     const capture = this.captures.get(id);
     return capture === undefined ? undefined : { ...capture };

@@ -40,7 +40,7 @@ export class DatabaseService {
       if (!user) throw Object.assign(new Error('Development user is missing'), { code: 'DEV_USER_MISSING' });
       // Exercise the columns needed by the API, even when the table is empty.
       await this.client.capture.findMany({ take: 1,
-        select: { id: true, userId: true, originalText: true, createdAt: true } });
+        select: { id: true, userId: true, originalText: true, chineseIntent: true, createdAt: true } });
       this.logger.write('info', 'database.ready');
     } catch (error) {
       this.logger.write('error', 'database.start_failed', { code: databaseFailure(error).code });

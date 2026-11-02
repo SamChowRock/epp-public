@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { OpenAPIObject, SchemaObject, ResponseObject, ParameterObject } from '@nestjs/swagger';
 import {
-  CreateCaptureSchema, ListQuerySchema, CaptureResponseSchema,
+  CreateCaptureSchema, UpdateCaptureIntentSchema, ListQuerySchema, CaptureResponseSchema,
   CaptureListResponseSchema, ProblemSchema,
 } from './capture-contract.js';
 
@@ -35,7 +35,7 @@ export function createOpenApiDocument(): OpenAPIObject {
   const document: OpenAPIObject = {
     openapi: '3.0.3',
     info: {
-      title: 'EPP Capture API', version: '0.3.0',
+      title: 'EPP Capture API', version: '0.4.0',
       description: 'PostgreSQL records for one fixed development user; no authentication. Errors use Problem Details. Repeated POSTs create separate records.',
     },
     paths: {
@@ -56,7 +56,7 @@ export function createOpenApiDocument(): OpenAPIObject {
         },
         post: {
           operationId: 'createCapture', summary: 'Create a capture',
-          description: 'Only originalText is used. Extra properties, including id and createdAt, are ignored. Body limit: 16 KiB of bytes. Requires valid UTF-8 JSON without a BOM. URL query limit: 1000 ampersand-separated parts.',
+          description: 'originalText and optional chineseIntent are used. Missing or null intent is stored as null. Extra properties, including id and createdAt, are ignored. Body limit: 16 KiB of bytes. Requires valid UTF-8 JSON without a BOM. URL query limit: 1000 ampersand-separated parts.',
           requestBody: { required: true, content: { 'application/json': {
             schema: { $ref: '#/components/schemas/CreateCapture' },
             example: { originalText: 'I want to explain this clearly.' },
@@ -73,6 +73,24 @@ export function createOpenApiDocument(): OpenAPIObject {
         },
       },
       '/captures/{id}': {
+        patch: {
+          operationId: 'updateCaptureIntent', summary: 'Set or clear the intent',
+          description: 'Requires chineseIntent: text sets it, null clears it; missing is invalid. Other properties are ignored. Does not edit originalText or createdAt. Concurrent edits to this field use last-writer-wins; no conditional update or revision history. Body limit 16 KiB, valid UTF-8 JSON without BOM; query limit 1000 parts.',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' },
+            description: 'Literal ID returned by the API.' }],
+          requestBody: { required: true, content: { 'application/json': {
+            schema: { $ref: '#/components/schemas/UpdateCaptureIntent' },
+            example: { chineseIntent: '我想把这件事解释清楚。' },
+          } } },
+          responses: {
+            '200': jsonResponse('Capture', 'Record after this update'),
+            '400': problem('Invalid JSON/input/query; code INVALID_JSON, VALIDATION_ERROR or QUERY_TOO_LARGE'),
+            '404': problem('No such record; code CAPTURE_NOT_FOUND'),
+            '413': problem('Body exceeds 16 KiB; code BODY_TOO_LARGE'),
+            '415': problem('Expected application/json; code UNSUPPORTED_MEDIA_TYPE'),
+            '500': problem('Unexpected failure; code INTERNAL_ERROR'),
+          },
+        },
         get: {
           operationId: 'findCapture', summary: 'Find a capture',
           parameters: [ifNoneMatch, { name: 'id', in: 'path', required: true, schema: { type: 'string' },
@@ -89,15 +107,16 @@ export function createOpenApiDocument(): OpenAPIObject {
     },
     components: { schemas: {
       CreateCapture: schema(CreateCaptureSchema, 'input'),
+      UpdateCaptureIntent: schema(UpdateCaptureIntentSchema, 'input'),
       Capture: schema(CaptureResponseSchema, 'output'),
       CaptureList: schema(CaptureListResponseSchema, 'output'),
       Problem: schema(ProblemSchema, 'output'),
     } },
   };
   for (const path of Object.values(document.paths)) {
-    for (const operation of [path.get, path.post]) {
+    for (const operation of [path.get, path.post, path.patch]) {
       if (!operation?.responses) continue;
-      operation.responses['503'] = problem('Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry POST.');
+      operation.responses['503'] = problem('Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including PATCH that might overwrite an intervening edit.');
       for (const response of Object.values(operation.responses)) {
         if (!response || '$ref' in response) continue;
         response.headers = { ...response.headers, 'X-Request-Id': {

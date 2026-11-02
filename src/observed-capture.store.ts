@@ -32,6 +32,9 @@ export class ObservedCaptureStore implements CaptureStore {
   list(options: CaptureListOptions): Promise<Capture[]> {
     return this.call('list', () => this.inner.list(options));
   }
+  updateIntent(id: string, chineseIntent: string | null): Promise<Capture | undefined> {
+    return this.call('updateIntent', () => this.inner.updateIntent(id, chineseIntent));
+  }
   find(id: string): Promise<Capture | undefined> {
     return this.call('find', () => this.inner.find(id));
   }

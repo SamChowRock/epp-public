@@ -1,6 +1,7 @@
 export type Capture = {
   id: string;
   originalText: string;
+  chineseIntent: string | null;
   createdAt: string;
 };
 

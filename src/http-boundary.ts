@@ -21,7 +21,7 @@ export function httpBoundary(
     }
     const detail = /^\/captures\/([^/]+)$/.exec(url.pathname);
     const allowed = url.pathname === '/captures' ? ['GET', 'POST']
-      : detail ? ['GET'] : undefined;
+      : detail ? ['GET', 'PATCH'] : undefined;
     if (!allowed) throw new HttpError(404, 'Route not found', 'ROUTE_NOT_FOUND');
     if (!allowed.includes(request.method)) {
       response.setHeader('Allow', allowed.join(', '));
