@@ -21,14 +21,19 @@ export function httpBoundary(
     }
     const detail = /^\/captures\/([^/]+)$/.exec(url.pathname);
     const revisions = /^\/captures\/([^/]+)\/revisions$/.exec(url.pathname);
+    const candidates = /^\/revisions\/([^/]+)\/candidates$/.exec(url.pathname);
+    const discard = /^\/candidates\/([^/]+)\/discard$/.exec(url.pathname);
     const allowed = url.pathname === '/captures' ? ['GET', 'POST']
-      : detail ? ['GET', 'PATCH'] : revisions ? ['GET', 'POST'] : undefined;
+      : detail ? ['GET', 'PATCH'] : revisions || candidates ? ['GET', 'POST'] : discard ? ['POST'] : undefined;
     if (!allowed) throw new HttpError(404, 'Route not found', 'ROUTE_NOT_FOUND');
     if (!allowed.includes(request.method)) {
       response.setHeader('Allow', allowed.join(', '));
       throw new HttpError(405, 'Method not allowed', 'METHOD_NOT_ALLOWED');
     }
     // IDs generated here are literal UUIDs. Preserve the former raw-path lookup.
+    if ((candidates?.[1] ?? discard?.[1])?.includes('%')) {
+      throw new HttpError(404, 'Candidate or revision not found', 'CANDIDATE_NOT_FOUND');
+    }
     if ((detail?.[1] ?? revisions?.[1])?.includes('%')) {
       throw new HttpError(404, 'Capture not found', 'CAPTURE_NOT_FOUND');
     }

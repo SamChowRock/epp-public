@@ -43,7 +43,24 @@ model CaptureRevision {
   chunks        Json?    @db.JsonB
   createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   capture       Capture  @relation(fields: [captureId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "capture_revisions_capture_id_fkey")
+  candidates    Candidate[]
 
   @@unique([captureId, revisionNo], map: "capture_revisions_capture_no_key")
   @@map("capture_revisions")
+}
+
+/// Candidate content is immutable through the API; CHECK constraints live in SQL.
+model Candidate {
+  id             String   @id(map: "candidates_pkey") @db.Uuid
+  revisionId     String   @map("revision_id") @db.Uuid
+  candidateNo    Int      @map("candidate_no")
+  englishText    String   @map("english_text") @db.Text
+  chineseMeaning String   @map("chinese_meaning") @db.Text
+  status         String   @default("pending") @db.Text
+  discardedAt    DateTime? @map("discarded_at") @db.Timestamptz(3)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  revision       CaptureRevision @relation(fields: [revisionId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "candidates_revision_id_fkey")
+
+  @@unique([revisionId, candidateNo], map: "candidates_revision_no_key")
+  @@map("candidates")
 }

@@ -10,11 +10,20 @@ import { PrismaCaptureStore } from './prisma-capture.store.js';
 import { ObservedCaptureStore } from './observed-capture.store.js';
 import { AppLogger } from './app-logger.js';
 import { ApplicationState } from './application-state.js';
+import { CandidatesController } from './candidates.controller.js';
+import { CandidatesService } from './candidates.service.js';
+import { PrismaCandidateStore } from './prisma-candidate.store.js';
 
 @Module({
   imports: [DatabaseModule],
-  controllers: [CapturesController],
+  controllers: [CapturesController, CandidatesController],
   providers: [
+    { provide: PrismaCandidateStore,
+      useFactory: (database: DatabaseService) => new PrismaCandidateStore(database),
+      inject: [DatabaseService] },
+    { provide: CandidatesService,
+      useFactory: (store: PrismaCandidateStore, state: ApplicationState) => new CandidatesService(store, state),
+      inject: [PrismaCandidateStore, ApplicationState] },
     CaptureListQueryPipe,
     { provide: PrismaCaptureStore,
       useFactory: (database: DatabaseService) => new PrismaCaptureStore(database),

@@ -13,6 +13,8 @@ export function requestObservation(logger: AppLogger, state: ApplicationState, k
     const path = request.url.split('?')[0] ?? '';
     // Route labels are constants, never raw paths or resource IDs.
     const route = knownPaths.includes(path) ? path : path === '/captures' ? '/captures'
+      : /^\/revisions\/[^/]+\/candidates$/.test(path) ? '/revisions/:revisionId/candidates'
+      : /^\/candidates\/[^/]+\/discard$/.test(path) ? '/candidates/:id/discard'
       : /^\/captures\/[^/]+\/revisions$/.test(path) ? '/captures/:id/revisions'
       : /^\/captures\/[^/]+$/.test(path) ? '/captures/:id'
       : path === '/openapi.json' || path === '/docs' || path.startsWith('/docs/') ? 'docs' : 'unmatched';

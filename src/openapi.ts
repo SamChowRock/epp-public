@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { CreateCandidateSchema, CandidateResponseSchema, CandidateListSchema, EmptyObjectSchema } from './candidate-contract.js';
 import type { OpenAPIObject, SchemaObject, ResponseObject, ParameterObject } from '@nestjs/swagger';
 import {
   AppendRevisionSchema, RevisionResponseSchema, RevisionPageSchema, RevisionQuerySchema,
@@ -36,10 +37,41 @@ export function createOpenApiDocument(): OpenAPIObject {
   const document: OpenAPIObject = {
     openapi: '3.0.3',
     info: {
-      title: 'EPP Capture API', version: '0.6.0',
+      title: 'EPP Capture API', version: '0.7.0',
       description: 'PostgreSQL records for one fixed development user; no authentication. Errors use Problem Details. Repeated POSTs create separate records.',
     },
     paths: {
+      '/revisions/{revisionId}/candidates': {
+        get: {
+          operationId: 'listCandidates', summary: 'Read candidates for one owned revision',
+          description: 'All candidates, including discarded, ordered by candidateNo. At most five slots per revision. An existing empty revision returns items: []; missing or foreign revision returns 404. Historical revisions remain readable. Query parameters are rejected.',
+          parameters: [ifNoneMatch, { name: 'revisionId', in: 'path', required: true, schema: { type: 'string' } }],
+          responses: { '200': { ...jsonResponse('CandidateList', 'Revision candidates'), headers: etagHeaders },
+            '304': notModified, '400': problem('Invalid query'), '404': problem('Revision not found; code CANDIDATE_NOT_FOUND'), '500': problem('Unexpected failure') },
+        },
+        post: {
+          operationId: 'createCandidate', summary: 'Save one manually supplied candidate',
+          description: 'Uses the exact revision ID, including historical revisions. candidateNo is an integer from 1 to 5, never reused, including after discard. Unknown fields and query parameters are rejected. Reusing a slot returns 409 even with identical content; no idempotency replay. No AI call. Body limit 16 KiB; valid UTF-8 JSON without BOM.',
+          parameters: [{ name: 'revisionId', in: 'path', required: true, schema: { type: 'string' } }],
+          requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/CreateCandidate' } } } },
+          responses: { '201': jsonResponse('Candidate', 'Saved pending candidate'),
+            '400': problem('Invalid input or query'), '404': problem('Revision not found; code CANDIDATE_NOT_FOUND'),
+            '409': problem('Slot occupied; code CANDIDATE_CONFLICT'), '413': problem('Body exceeds 16 KiB'),
+            '415': problem('Expected application/json'), '500': problem('Unexpected failure') },
+        },
+      },
+      '/candidates/{id}/discard': {
+        post: {
+          operationId: 'discardCandidate', summary: 'Discard a pending candidate',
+          description: 'Requires JSON {}. Only pending -> discarded is implemented; repeated discard returns 409 and preserves the first discardedAt. Does not delete content, affect siblings, or create a revision. Query parameters are rejected. No accept or reopen endpoint.',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/EmptyObject' } } } },
+          responses: { '200': jsonResponse('Candidate', 'Discarded candidate'),
+            '400': problem('Expected empty JSON object and no query'), '404': problem('Candidate not found; code CANDIDATE_NOT_FOUND'),
+            '409': problem('Candidate is no longer pending; code CANDIDATE_CONFLICT'), '413': problem('Body exceeds 16 KiB'),
+            '415': problem('Expected application/json'), '500': problem('Unexpected failure') },
+        },
+      },
       '/captures': {
         get: {
           operationId: 'listCaptures', summary: 'List captures',
@@ -136,6 +168,10 @@ export function createOpenApiDocument(): OpenAPIObject {
       },
     },
     components: { schemas: {
+      CreateCandidate: schema(CreateCandidateSchema, 'input'),
+      Candidate: schema(CandidateResponseSchema, 'output'),
+      CandidateList: schema(CandidateListSchema, 'output'),
+      EmptyObject: schema(EmptyObjectSchema, 'input'),
       AppendRevision: schema(AppendRevisionSchema, 'input'),
       Revision: schema(RevisionResponseSchema, 'output'),
       RevisionPage: schema(RevisionPageSchema, 'output'),

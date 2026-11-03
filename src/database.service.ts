@@ -42,6 +42,7 @@ export class DatabaseService {
       await this.client.capture.findMany({ take: 1,
         select: { id: true, userId: true, originalText: true, chineseIntent: true, createdAt: true } });
       await this.client.captureRevision.findMany({ take: 1 });
+      await this.client.candidate.findMany({ take: 1 });
       const missing = await this.client.capture.findFirst({ where: { revisions: { none: {} } }, select: { id: true } });
       if (missing) throw new StorageFailureError();
       this.logger.write('info', 'database.ready');

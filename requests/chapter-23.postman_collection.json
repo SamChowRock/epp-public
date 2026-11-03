@@ -1,0 +1,328 @@
+{
+  "info": {
+    "name": "EPP 第23章 候选状态与关系",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000"
+    },
+    {
+      "key": "captureId",
+      "value": ""
+    },
+    {
+      "key": "revisionId",
+      "value": ""
+    },
+    {
+      "key": "candidateId",
+      "value": ""
+    },
+    {
+      "key": "newRevisionId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 新建演示记录",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/captures",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"originalText\": \"I am not much of cook.\",\n  \"chineseIntent\": \"我不太会做饭。\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 201) pm.collectionVariables.set('captureId', pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 读取并保存修订ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/captures/{{captureId}}/revisions"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 200 && pm.response.json().items.length) pm.collectionVariables.set('revisionId', pm.response.json().items[0].id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 修订尚无候选",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/revisions/{{revisionId}}/candidates"
+      }
+    },
+    {
+      "name": "04 保存候选一",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/revisions/{{revisionId}}/candidates",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"candidateNo\": 1,\n  \"englishText\": \"I'm not much of a cook.\",\n  \"chineseMeaning\": \"我不太会做饭。\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 201) pm.collectionVariables.set('candidateId', pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 保存候选二",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/revisions/{{revisionId}}/candidates",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"candidateNo\": 2,\n  \"englishText\": \"Cooking is not my strength.\",\n  \"chineseMeaning\": \"我不太会做饭。\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "06 查看同版全部候选",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/revisions/{{revisionId}}/candidates"
+      }
+    },
+    {
+      "name": "07 放弃候选一",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/candidates/{{candidateId}}/discard",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "08 重复放弃应409",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/candidates/{{candidateId}}/discard",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "09 复用已放弃序号应409",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/revisions/{{revisionId}}/candidates",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"candidateNo\": 1,\n  \"englishText\": \"I'm not much of a cook.\",\n  \"chineseMeaning\": \"我不太会做饭。\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "10 伪造状态应400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/revisions/{{revisionId}}/candidates",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"candidateNo\": 3,\n  \"englishText\": \"I'm not much of a cook.\",\n  \"chineseMeaning\": \"我不太会做饭。\",\n  \"status\": \"accepted\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "11 超出序号范围应400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/revisions/{{revisionId}}/candidates",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"candidateNo\": 6,\n  \"englishText\": \"I'm not much of a cook.\",\n  \"chineseMeaning\": \"我不太会做饭。\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "12 追加修订但保留旧修订变量",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/captures/{{captureId}}/revisions",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"originalText\": \"Cooking is not my strength.\",\n  \"chineseIntent\": \"想自然地说不擅长做饭。\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 201) pm.collectionVariables.set('newRevisionId', pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 新修订仍无候选",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/revisions/{{newRevisionId}}/candidates"
+      }
+    },
+    {
+      "name": "14 旧版候选状态未变",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/revisions/{{revisionId}}/candidates"
+      }
+    },
+    {
+      "name": "15 不存在修订应404",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/revisions/00000000-0000-4000-8000-000000000000/candidates"
+      }
+    },
+    {
+      "name": "16 未支持的查询应400",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/revisions/{{revisionId}}/candidates?status=pending"
+      }
+    }
+  ]
+}
