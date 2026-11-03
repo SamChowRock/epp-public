@@ -1,3 +1,5 @@
+import { AppendRevisionSchema } from './capture-contract.js';
+import type { CaptureRevision, RevisionPage } from './capture-revision.js';
 import { isPostgresText } from './postgres-text.js';
 import { randomUUID } from 'node:crypto';
 import type { Capture, CaptureListOptions } from './capture.js';
@@ -55,6 +57,26 @@ export class CapturesService {
     const capture = await this.store.updateIntent(id, chineseIntent);
     if (!capture) throw new CaptureNotFoundError('Capture not found');
     return { ...capture };
+  }
+
+  async appendRevision(id: string, input: unknown): Promise<CaptureRevision> {
+    const parsed = AppendRevisionSchema.safeParse(input);
+    if (!parsed.success) throw new InvalidCaptureError('Invalid revision content');
+    const content = { ...parsed.data, inputSource: 'manual' as const, chunks: parsed.data.chunks ?? null };
+    const revision = await this.store.appendRevision(id, content);
+    if (!revision) throw new CaptureNotFoundError('Capture not found');
+    return revision;
+  }
+
+  async revisions(id: string, before?: number, limit = 20): Promise<RevisionPage> {
+    if ((before !== undefined && (!Number.isInteger(before) || before < 1 || before > 2147483647)) ||
+        !Number.isInteger(limit) || limit < 1 || limit > 100) {
+      throw new InvalidCaptureError('Invalid revision range');
+    }
+    const rows = await this.store.revisions(id, before, limit + 1);
+    if (!rows) throw new CaptureNotFoundError('Capture not found');
+    const items = rows.slice(0, limit);
+    return { items, nextBefore: rows.length > limit ? items.at(-1)!.revisionNo : null };
   }
 
   async find(id: string): Promise<Capture> {

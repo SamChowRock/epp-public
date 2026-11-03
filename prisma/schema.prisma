@@ -25,8 +25,25 @@ model Capture {
   originalText String   @map("original_text") @db.Text
   chineseIntent String? @map("chinese_intent") @db.Text
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  revisions    CaptureRevision[]
   user         User     @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "captures_user_id_fkey")
 
   @@index([userId], map: "captures_user_id_idx")
   @@map("captures")
+}
+
+/// Content snapshots. CHECK constraints are maintained in migration SQL.
+model CaptureRevision {
+  id            String   @id(map: "capture_revisions_pkey") @db.Uuid
+  captureId     String   @map("capture_id") @db.Uuid
+  revisionNo    Int      @map("revision_no")
+  originalText  String   @map("original_text") @db.Text
+  chineseIntent String?  @map("chinese_intent") @db.Text
+  inputSource   String   @map("input_source") @db.Text
+  chunks        Json?    @db.JsonB
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  capture       Capture  @relation(fields: [captureId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "capture_revisions_capture_id_fkey")
+
+  @@unique([captureId, revisionNo], map: "capture_revisions_capture_no_key")
+  @@map("capture_revisions")
 }

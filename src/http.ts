@@ -1,3 +1,4 @@
+import { RevisionConflictError } from './capture-revision.js';
 import { StorageUnavailableError } from './database-errors.js';
 import { HttpException } from '@nestjs/common';
 import { STATUS_CODES } from 'node:http';
@@ -87,11 +88,13 @@ export function httpFailure(error: unknown): {
     ? nestStatus : undefined;
   const statusCode = error instanceof HttpError ? error.statusCode
     : error instanceof InvalidCaptureError ? 400
+    : error instanceof RevisionConflictError ? 409
     : error instanceof CaptureNotFoundError ? 404
     : error instanceof StorageUnavailableError ? 503 : clientStatus ?? 500;
   const code = statusCode === 500 ? 'INTERNAL_ERROR'
     : error instanceof StorageUnavailableError ? 'STORAGE_UNAVAILABLE'
     : error instanceof InvalidCaptureError ? 'INVALID_CAPTURE'
+    : error instanceof RevisionConflictError ? 'REVISION_CONFLICT'
     : error instanceof CaptureNotFoundError ? 'CAPTURE_NOT_FOUND'
     : error instanceof HttpError ? error.code : `HTTP_${statusCode}`;
   return {

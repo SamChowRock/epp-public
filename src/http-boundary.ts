@@ -20,15 +20,16 @@ export function httpBoundary(
       throw new HttpError(400, 'Query string must contain at most 1000 parameters', 'QUERY_TOO_LARGE');
     }
     const detail = /^\/captures\/([^/]+)$/.exec(url.pathname);
+    const revisions = /^\/captures\/([^/]+)\/revisions$/.exec(url.pathname);
     const allowed = url.pathname === '/captures' ? ['GET', 'POST']
-      : detail ? ['GET', 'PATCH'] : undefined;
+      : detail ? ['GET', 'PATCH'] : revisions ? ['GET', 'POST'] : undefined;
     if (!allowed) throw new HttpError(404, 'Route not found', 'ROUTE_NOT_FOUND');
     if (!allowed.includes(request.method)) {
       response.setHeader('Allow', allowed.join(', '));
       throw new HttpError(405, 'Method not allowed', 'METHOD_NOT_ALLOWED');
     }
     // IDs generated here are literal UUIDs. Preserve the former raw-path lookup.
-    if (detail?.[1]?.includes('%')) {
+    if ((detail?.[1] ?? revisions?.[1])?.includes('%')) {
       throw new HttpError(404, 'Capture not found', 'CAPTURE_NOT_FOUND');
     }
     request.url = url.pathname + url.search;

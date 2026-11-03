@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { OpenAPIObject, SchemaObject, ResponseObject, ParameterObject } from '@nestjs/swagger';
 import {
+  AppendRevisionSchema, RevisionResponseSchema, RevisionPageSchema, RevisionQuerySchema,
   CreateCaptureSchema, UpdateCaptureIntentSchema, ListQuerySchema, CaptureResponseSchema,
   CaptureListResponseSchema, ProblemSchema,
 } from './capture-contract.js';
@@ -35,14 +36,14 @@ export function createOpenApiDocument(): OpenAPIObject {
   const document: OpenAPIObject = {
     openapi: '3.0.3',
     info: {
-      title: 'EPP Capture API', version: '0.5.0',
+      title: 'EPP Capture API', version: '0.6.0',
       description: 'PostgreSQL records for one fixed development user; no authentication. Errors use Problem Details. Repeated POSTs create separate records.',
     },
     paths: {
       '/captures': {
         get: {
           operationId: 'listCaptures', summary: 'List captures',
-          description: 'createdAt ascending, then UUID ascending; filter before limit. No limit means all matching records. At most 1000 ampersand-separated query parts, including unknown keys and empty parts. Unknown query keys within that bound are ignored; repeated q or limit is rejected.',
+          description: 'Latest revision content, createdAt ascending, then UUID ascending; q searches latest originalText only, filter before limit. No limit means all matching records. At most 1000 ampersand-separated query parts, including unknown keys and empty parts. Unknown query keys within that bound are ignored; repeated q or limit is rejected.',
           parameters: [ifNoneMatch, ...['q', 'limit'].map(name => ({
             name, in: 'query', required: false,
             schema: schema(name === 'q' ? ListQuerySchema.shape.q.unwrap() : ListQuerySchema.shape.limit.unwrap(), 'input'),
@@ -72,10 +73,38 @@ export function createOpenApiDocument(): OpenAPIObject {
           },
         },
       },
+      '/captures/{id}/revisions': {
+        get: {
+          operationId: 'listCaptureRevisions', summary: 'Read revision history',
+          description: 'Descending revision number. Default limit 20, maximum 100. Pass nextBefore as before to continue; before is exclusive. New appends do not move older revision numbers. Unknown/repeated query keys are rejected.',
+          parameters: [ifNoneMatch,
+            { name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+            ...['before', 'limit'].map(name => ({ name, in: 'query', required: false,
+              schema: schema(name === 'before' ? RevisionQuerySchema.shape.before.unwrap() : RevisionQuerySchema.shape.limit.unwrap(), 'input'),
+            } as ParameterObject))],
+          responses: {
+            '200': { ...jsonResponse('RevisionPage', 'History page; empty page is allowed'), headers: etagHeaders },
+            '304': notModified,
+            '400': problem('Invalid query'), '404': problem('Capture not found'), '500': problem('Unexpected failure'),
+          },
+        },
+        post: {
+          operationId: 'appendCaptureRevision', summary: 'Append a complete content snapshot',
+          description: 'Requires originalText and chineseIntent (null clears it); inputSource defaults to manual, chunks defaults to null. Unknown properties rejected. Repeating creates a new revision; no idempotency or stale editor detection. Body limit 16 KiB; valid UTF-8 JSON without BOM.',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/AppendRevision' } } } },
+          responses: {
+            '201': jsonResponse('Revision', 'The snapshot committed by this request; later writers may already exist'),
+            '400': problem('Invalid input'), '404': problem('Capture not found'),
+            '409': problem('Revision number taken; code REVISION_CONFLICT. Read latest content before deciding to submit again.'),
+            '413': problem('Body exceeds 16 KiB'), '415': problem('Expected application/json'), '500': problem('Unexpected failure'),
+          },
+        },
+      },
       '/captures/{id}': {
         patch: {
           operationId: 'updateCaptureIntent', summary: 'Set or clear the intent',
-          description: 'Requires chineseIntent: text sets it, null clears it; missing is invalid. Other properties are ignored. Does not edit originalText or createdAt. Concurrent edits to this field use last-writer-wins; no conditional update or revision history. Body limit 16 KiB, valid UTF-8 JSON without BOM; query limit 1000 parts.',
+          description: 'Requires chineseIntent: text sets it, null clears it; missing is invalid. Other properties are ignored. Does not edit originalText or createdAt. Appends a snapshot by copying the latest originalText, inputSource and chunks. Revision number contention returns 409; sequential stale edits are still accepted. Repeated requests create additional revisions. Body limit 16 KiB, valid UTF-8 JSON without BOM; query limit 1000 parts.',
           parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' },
             description: 'Literal ID returned by the API.' }],
           requestBody: { required: true, content: { 'application/json': {
@@ -83,7 +112,8 @@ export function createOpenApiDocument(): OpenAPIObject {
             example: { chineseIntent: '我想把这件事解释清楚。' },
           } } },
           responses: {
-            '200': jsonResponse('Capture', 'Record after this update'),
+            '200': jsonResponse('Capture', 'Snapshot committed by this request; later writers may already exist'),
+            '409': problem('Revision number taken; code REVISION_CONFLICT'),
             '400': problem('Invalid JSON/input/query; code INVALID_JSON, VALIDATION_ERROR or QUERY_TOO_LARGE'),
             '404': problem('No such record; code CAPTURE_NOT_FOUND'),
             '413': problem('Body exceeds 16 KiB; code BODY_TOO_LARGE'),
@@ -106,6 +136,9 @@ export function createOpenApiDocument(): OpenAPIObject {
       },
     },
     components: { schemas: {
+      AppendRevision: schema(AppendRevisionSchema, 'input'),
+      Revision: schema(RevisionResponseSchema, 'output'),
+      RevisionPage: schema(RevisionPageSchema, 'output'),
       CreateCapture: schema(CreateCaptureSchema, 'input'),
       UpdateCaptureIntent: schema(UpdateCaptureIntentSchema, 'input'),
       Capture: schema(CaptureResponseSchema, 'output'),
@@ -116,7 +149,7 @@ export function createOpenApiDocument(): OpenAPIObject {
   for (const path of Object.values(document.paths)) {
     for (const operation of [path.get, path.post, path.patch]) {
       if (!operation?.responses) continue;
-      operation.responses['503'] = problem('Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including PATCH that might overwrite an intervening edit.');
+      operation.responses['503'] = problem('Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots.');
       for (const response of Object.values(operation.responses)) {
         if (!response || '$ref' in response) continue;
         response.headers = { ...response.headers, 'X-Request-Id': {

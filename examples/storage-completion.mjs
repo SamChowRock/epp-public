@@ -14,6 +14,8 @@ const store = {
     console.log('write finished');
   },
   list: (options) => memory.list(options),
+  appendRevision: (id, content) => memory.appendRevision(id, content),
+  revisions: (id, before, take) => memory.revisions(id, before, take),
   updateIntent: (id, intent) => memory.updateIntent(id, intent),
   find: (id) => memory.find(id),
 };

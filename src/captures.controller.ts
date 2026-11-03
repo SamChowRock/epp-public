@@ -5,6 +5,9 @@ import type { CaptureListOptions } from './capture.js';
 import { CaptureListQueryPipe } from './capture-query.js';
 import { CaptureListResponseSchema, CaptureResponseSchema, CreateCaptureSchema, UpdateCaptureIntentSchema } from './capture-contract.js';
 import type { CreateCaptureInput, UpdateCaptureIntentInput } from './capture-contract.js';
+import { AppendRevisionSchema, RevisionResponseSchema, RevisionPageSchema, RevisionQuerySchema } from './capture-contract.js';
+import type { AppendRevisionInput } from './capture-contract.js';
+import type { z } from 'zod';
 import { SchemaPipe } from './schema.pipe.js';
 import { ResponseSchemaInterceptor } from './response-schema.interceptor.js';
 
@@ -36,6 +39,24 @@ export class CapturesController {
     @Body(new SchemaPipe(UpdateCaptureIntentSchema)) input: UpdateCaptureIntentInput,
   ) {
     return this.captures.updateIntent(id, input.chineseIntent);
+  }
+
+  @Post(':id/revisions')
+  @UseInterceptors(new ResponseSchemaInterceptor(RevisionResponseSchema))
+  appendRevision(
+    @Param('id') id: string,
+    @Body(new SchemaPipe(AppendRevisionSchema)) input: AppendRevisionInput,
+  ) { return this.captures.appendRevision(id, input); }
+
+  @Get(':id/revisions')
+  @UseInterceptors(new ResponseSchemaInterceptor(RevisionPageSchema))
+  revisions(
+    @Param('id') id: string,
+    @Query(new SchemaPipe(RevisionQuerySchema)) query: z.infer<typeof RevisionQuerySchema>,
+  ) {
+    return this.captures.revisions(id,
+      query.before === undefined ? undefined : Number(query.before),
+      query.limit === undefined ? 20 : Number(query.limit));
   }
 
   @Get(':id')

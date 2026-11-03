@@ -1,3 +1,4 @@
+import type { CaptureRevision, RevisionContent } from './capture-revision.js';
 import type { CaptureStore } from './capture-store.js';
 import type { Capture, CaptureListOptions } from './capture.js';
 import { AppLogger } from './app-logger.js';
@@ -34,6 +35,12 @@ export class ObservedCaptureStore implements CaptureStore {
   }
   updateIntent(id: string, chineseIntent: string | null): Promise<Capture | undefined> {
     return this.call('updateIntent', () => this.inner.updateIntent(id, chineseIntent));
+  }
+  appendRevision(id: string, content: RevisionContent): Promise<CaptureRevision | undefined> {
+    return this.call('appendRevision', () => this.inner.appendRevision(id, content));
+  }
+  revisions(id: string, before: number | undefined, take: number): Promise<CaptureRevision[] | undefined> {
+    return this.call('revisions', () => this.inner.revisions(id, before, take));
   }
   find(id: string): Promise<Capture | undefined> {
     return this.call('find', () => this.inner.find(id));

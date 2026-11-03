@@ -41,6 +41,9 @@ export class DatabaseService {
       // Exercise the columns needed by the API, even when the table is empty.
       await this.client.capture.findMany({ take: 1,
         select: { id: true, userId: true, originalText: true, chineseIntent: true, createdAt: true } });
+      await this.client.captureRevision.findMany({ take: 1 });
+      const missing = await this.client.capture.findFirst({ where: { revisions: { none: {} } }, select: { id: true } });
+      if (missing) throw new StorageFailureError();
       this.logger.write('info', 'database.ready');
     } catch (error) {
       this.logger.write('error', 'database.start_failed', { code: databaseFailure(error).code });

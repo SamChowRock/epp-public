@@ -1,0 +1,243 @@
+{
+  "info": {
+    "name": "EPP 第22章 修订历史",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000"
+    },
+    {
+      "key": "captureId",
+      "value": ""
+    },
+    {
+      "key": "before",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 新建本章演示记录",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/captures",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"originalText\": \"I am not much of cook.\",\n  \"chineseIntent\": \"我不太会做饭。\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 201) pm.collectionVariables.set('captureId', pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 初始修订",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/captures/{{captureId}}/revisions"
+      }
+    },
+    {
+      "name": "03 追加完整修订",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/captures/{{captureId}}/revisions",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"originalText\": \"Cooking is not my strength.\",\n  \"chineseIntent\": \"想自然地说我不擅长做饭。\",\n  \"inputSource\": \"manual\",\n  \"chunks\": [\n    {\n      \"text\": \"not my strength\"\n    }\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "04 详情读取最新内容",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/captures/{{captureId}}"
+      }
+    },
+    {
+      "name": "05 旧 PATCH 清空意图并追加",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/captures/{{captureId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"chineseIntent\": null\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "06 历史第一页",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/captures/{{captureId}}/revisions?limit=2"
+      }
+    },
+    {
+      "name": "07 继续历史 将 nextBefore 填入 before",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/captures/{{captureId}}/revisions?limit=2&before={{before}}"
+      }
+    },
+    {
+      "name": "08 缺失意图应拒绝",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/captures/{{captureId}}/revisions",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"originalText\": \"Missing intent.\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "09 空白原文应拒绝",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/captures/{{captureId}}/revisions",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"originalText\": \"   \",\n  \"chineseIntent\": null\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "10 非法 chunks 应拒绝",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/captures/{{captureId}}/revisions",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"originalText\": \"Text.\",\n  \"chineseIntent\": null,\n  \"chunks\": {\n    \"text\": \"not an array\"\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "11 原文旧关键词不再匹配",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/captures?q=of%20cook.&limit=100"
+      }
+    },
+    {
+      "name": "12 不存在的记录",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/captures/00000000-0000-0000-0000-000000000000/revisions"
+      }
+    },
+    {
+      "name": "13 非法历史参数",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/captures/{{captureId}}/revisions?before=0"
+      }
+    },
+    {
+      "name": "14 未知字段应拒绝",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/captures/{{captureId}}/revisions",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"originalText\": \"Text.\",\n  \"chineseIntent\": null,\n  \"revisionNo\": 99\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

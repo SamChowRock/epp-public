@@ -12,6 +12,8 @@ const fixedStore: CaptureStore = {
     } : undefined;
   },
   async insert() { throw new Error('This example supports find only'); },
+  async appendRevision() { throw new Error('This example supports find only'); },
+  async revisions() { throw new Error('This example supports find only'); },
   async updateIntent() { throw new Error('This example supports find only'); },
   async list() { throw new Error('This example supports find only'); },
 };

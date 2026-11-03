@@ -31,6 +31,31 @@ export const UpdateCaptureIntentSchema = z.object({
 export type UpdateCaptureIntentInput = z.infer<typeof UpdateCaptureIntentSchema>;
 export type CreateCaptureInput = z.infer<typeof CreateCaptureSchema>;
 
+export const ChunkSchema = z.object({
+  text: z.string().refine(isPostgresText).regex(/\S/).max(200),
+}).strict();
+export const ChunksSchema = z.array(ChunkSchema).max(25).nullable();
+export const AppendRevisionSchema = z.object({
+  originalText: OriginalTextSchema,
+  chineseIntent: ChineseIntentSchema.nullable(),
+  inputSource: z.literal('manual').optional(),
+  chunks: ChunksSchema.optional(),
+}).strict();
+export type AppendRevisionInput = z.infer<typeof AppendRevisionSchema>;
+export const RevisionResponseSchema = z.object({
+  id: z.uuid(), captureId: z.uuid(), revisionNo: z.number().int().positive().max(2147483647),
+  originalText: OriginalTextSchema, chineseIntent: StoredChineseIntentSchema.nullable(),
+  inputSource: z.enum(['manual', 'unknown']), chunks: ChunksSchema,
+  createdAt: z.iso.datetime(),
+});
+export const RevisionPageSchema = z.object({
+  items: z.array(RevisionResponseSchema), nextBefore: z.number().int().positive().nullable(),
+});
+export const RevisionQuerySchema = z.object({
+  before: z.string().regex(/^[1-9]\d{0,9}$/).refine(v => Number(v) <= 2147483647).optional(),
+  limit: z.string().regex(/^(?:[1-9]\d?|100)$/).optional(),
+}).strict();
+
 export const ListQuerySchema = z.object({
   q: z.string().refine(isPostgresText, 'q must be well-formed Unicode without NUL').regex(/\S/, 'q must contain a non-whitespace character')
     .refine(text => text.length <= 200, 'q must be at most 200 code units')
