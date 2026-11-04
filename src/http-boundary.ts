@@ -22,7 +22,7 @@ export function httpBoundary(
     const detail = /^\/captures\/([^/]+)$/.exec(url.pathname);
     const revisions = /^\/captures\/([^/]+)\/revisions$/.exec(url.pathname);
     const candidates = /^\/revisions\/([^/]+)\/candidates$/.exec(url.pathname);
-    const discard = /^\/candidates\/([^/]+)\/discard$/.exec(url.pathname);
+    const discard = /^\/candidates\/([^/]+)\/(?:discard|accept)$/.exec(url.pathname);
     const allowed = url.pathname === '/captures' ? ['GET', 'POST']
       : detail ? ['GET', 'PATCH'] : revisions || candidates ? ['GET', 'POST'] : discard ? ['POST'] : undefined;
     if (!allowed) throw new HttpError(404, 'Route not found', 'ROUTE_NOT_FOUND');

@@ -1,0 +1,432 @@
+{
+  "info": {
+    "name": "EPP 第24章 事务与采纳",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000"
+    },
+    {
+      "key": "captureId",
+      "value": ""
+    },
+    {
+      "key": "revisionId",
+      "value": ""
+    },
+    {
+      "key": "candidateId",
+      "value": ""
+    },
+    {
+      "key": "expressionId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 新建本章原文",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/captures",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "captures"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"originalText\": \"I am not much of cook.\",\n  \"chineseIntent\": \"我不太会做饭。\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 201) pm.collectionVariables.set('captureId', pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 读取修订 ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/captures/{{captureId}}/revisions",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "captures",
+            "{{captureId}}",
+            "revisions"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 200) pm.collectionVariables.set('revisionId', pm.response.json().items[0].id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 保存待采纳候选",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/revisions/{{revisionId}}/candidates",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "revisions",
+            "{{revisionId}}",
+            "candidates"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"candidateNo\": 1,\n  \"englishText\": \"I'm not much of a cook.\",\n  \"chineseMeaning\": \"我不太会做饭。\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 201) pm.collectionVariables.set('candidateId', pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 查看采纳前列表",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/revisions/{{revisionId}}/candidates",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "revisions",
+            "{{revisionId}}",
+            "candidates"
+          ]
+        }
+      }
+    },
+    {
+      "name": "05 采纳候选 201",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/candidates/{{candidateId}}/accept",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "candidates",
+            "{{candidateId}}",
+            "accept"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 201) pm.collectionVariables.set('expressionId', pm.response.json().expression.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 重复采纳 409",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/candidates/{{candidateId}}/accept",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "candidates",
+            "{{candidateId}}",
+            "accept"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "07 采纳后不能放弃 409",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/candidates/{{candidateId}}/discard",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "candidates",
+            "{{candidateId}}",
+            "discard"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "08 读取已采纳状态",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/revisions/{{revisionId}}/candidates",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "revisions",
+            "{{revisionId}}",
+            "candidates"
+          ]
+        }
+      }
+    },
+    {
+      "name": "09 不允许夹带内容 400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/candidates/{{candidateId}}/accept",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "candidates",
+            "{{candidateId}}",
+            "accept"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"englishText\": \"Do not replace confirmed content.\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "10 拒绝查询参数 400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/candidates/{{candidateId}}/accept?force=true",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "candidates",
+            "{{candidateId}}",
+            "accept?force=true"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "11 非法候选 ID 404",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/candidates/not-a-uuid/accept",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "candidates",
+            "not-a-uuid",
+            "accept"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "12 追加输入新版本",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/captures/{{captureId}}/revisions",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "captures",
+            "{{captureId}}",
+            "revisions"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"originalText\": \"Cooking is not my strength.\",\n  \"chineseIntent\": \"另一种表达。\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "13 历史版本保留原采纳",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/revisions/{{revisionId}}/candidates",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "revisions",
+            "{{revisionId}}",
+            "candidates"
+          ]
+        }
+      }
+    }
+  ]
+}

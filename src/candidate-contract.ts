@@ -16,11 +16,20 @@ const candidate = {
   createdAt: z.iso.datetime(),
 };
 export const CandidateResponseSchema = z.discriminatedUnion('status', [
-  z.object({ ...candidate, status: z.literal('pending'), discardedAt: z.null() }),
-  z.object({ ...candidate, status: z.literal('discarded'), discardedAt: z.iso.datetime() }),
+  z.object({ ...candidate, status: z.literal('pending'), discardedAt: z.null(), acceptedAt: z.null() }),
+  z.object({ ...candidate, status: z.literal('discarded'), discardedAt: z.iso.datetime(), acceptedAt: z.null() }),
+  z.object({ ...candidate, status: z.literal('accepted'), discardedAt: z.null(), acceptedAt: z.iso.datetime() }),
 ]);
 export const CandidateListSchema = z.object({
   revisionId: z.uuid(), items: z.array(CandidateResponseSchema).max(5),
 });
 export type CreateCandidateInput = z.infer<typeof CreateCandidateSchema>;
 export type Candidate = z.infer<typeof CandidateResponseSchema>;
+
+export const AcceptanceSchema = z.object({
+  candidate: CandidateResponseSchema,
+  expression: z.object({ id: z.uuid(), meaning: text, createdAt: z.iso.datetime(),
+    forms: z.array(z.object({ id: z.uuid(), text })).length(1) }),
+  learningRecord: z.object({ id: z.uuid(), candidateId: z.uuid(), expressionId: z.uuid(), createdAt: z.iso.datetime() }),
+});
+export type Acceptance = z.infer<typeof AcceptanceSchema>;

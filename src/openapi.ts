@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { CreateCandidateSchema, CandidateResponseSchema, CandidateListSchema, EmptyObjectSchema } from './candidate-contract.js';
+import { AcceptanceSchema, CreateCandidateSchema, CandidateResponseSchema, CandidateListSchema, EmptyObjectSchema } from './candidate-contract.js';
 import type { OpenAPIObject, SchemaObject, ResponseObject, ParameterObject } from '@nestjs/swagger';
 import {
   AppendRevisionSchema, RevisionResponseSchema, RevisionPageSchema, RevisionQuerySchema,
@@ -37,14 +37,14 @@ export function createOpenApiDocument(): OpenAPIObject {
   const document: OpenAPIObject = {
     openapi: '3.0.3',
     info: {
-      title: 'EPP Capture API', version: '0.7.0',
+      title: 'EPP Capture API', version: '0.8.0',
       description: 'PostgreSQL records for one fixed development user; no authentication. Errors use Problem Details. Repeated POSTs create separate records.',
     },
     paths: {
       '/revisions/{revisionId}/candidates': {
         get: {
           operationId: 'listCandidates', summary: 'Read candidates for one owned revision',
-          description: 'All candidates, including discarded, ordered by candidateNo. At most five slots per revision. An existing empty revision returns items: []; missing or foreign revision returns 404. Historical revisions remain readable. Query parameters are rejected.',
+          description: 'All candidates, including discarded and accepted, ordered by candidateNo. At most five slots per revision. An existing empty revision returns items: []; missing or foreign revision returns 404. Historical revisions remain readable. Query parameters are rejected.',
           parameters: [ifNoneMatch, { name: 'revisionId', in: 'path', required: true, schema: { type: 'string' } }],
           responses: { '200': { ...jsonResponse('CandidateList', 'Revision candidates'), headers: etagHeaders },
             '304': notModified, '400': problem('Invalid query'), '404': problem('Revision not found; code CANDIDATE_NOT_FOUND'), '500': problem('Unexpected failure') },
@@ -60,10 +60,22 @@ export function createOpenApiDocument(): OpenAPIObject {
             '415': problem('Expected application/json'), '500': problem('Unexpected failure') },
         },
       },
+      '/candidates/{id}/accept': {
+        post: {
+          operationId: 'acceptCandidate', summary: 'Accept one pending candidate atomically',
+          description: 'Requires JSON {} and no query. Uses the exact candidate and its immutable revision, including historical revisions. Creates one expression, form and learning record in the same transaction as the accepted state. Repeated acceptance returns 409, not replay. No AI call or semantic deduplication. A lost response may follow a committed transaction; read state before deciding what to do.',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/EmptyObject' } } } },
+          responses: { '201': jsonResponse('Acceptance', 'Committed acceptance'),
+            '400': problem('Expected empty JSON object and no query'), '404': problem('Candidate not found; code CANDIDATE_NOT_FOUND'),
+            '409': problem('Candidate is no longer pending; code CANDIDATE_CONFLICT'), '413': problem('Body exceeds 16 KiB'),
+            '415': problem('Expected application/json'), '500': problem('Unexpected failure'), '503': problem('Storage temporarily unavailable; outcome may be unknown') },
+        },
+      },
       '/candidates/{id}/discard': {
         post: {
           operationId: 'discardCandidate', summary: 'Discard a pending candidate',
-          description: 'Requires JSON {}. Only pending -> discarded is implemented; repeated discard returns 409 and preserves the first discardedAt. Does not delete content, affect siblings, or create a revision. Query parameters are rejected. No accept or reopen endpoint.',
+          description: 'Requires JSON {}. Only pending -> discarded is implemented; repeated discard returns 409 and preserves the first discardedAt. Does not delete content, affect siblings, or create a revision. Query parameters are rejected. Accepted candidates cannot be discarded; no reopen endpoint.',
           parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
           requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/EmptyObject' } } } },
           responses: { '200': jsonResponse('Candidate', 'Discarded candidate'),
@@ -169,6 +181,7 @@ export function createOpenApiDocument(): OpenAPIObject {
     },
     components: { schemas: {
       CreateCandidate: schema(CreateCandidateSchema, 'input'),
+      Acceptance: schema(AcceptanceSchema, 'output'),
       Candidate: schema(CandidateResponseSchema, 'output'),
       CandidateList: schema(CandidateListSchema, 'output'),
       EmptyObject: schema(EmptyObjectSchema, 'input'),

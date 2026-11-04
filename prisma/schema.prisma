@@ -14,6 +14,7 @@ model User {
   id        String    @id(map: "users_pkey") @db.Uuid
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
   captures  Capture[]
+  learningRecords LearningRecord[]
 
   @@map("users")
 }
@@ -57,10 +58,42 @@ model Candidate {
   englishText    String   @map("english_text") @db.Text
   chineseMeaning String   @map("chinese_meaning") @db.Text
   status         String   @default("pending") @db.Text
+  acceptedAt     DateTime? @map("accepted_at") @db.Timestamptz(3)
+  learningRecords LearningRecord[]
   discardedAt    DateTime? @map("discarded_at") @db.Timestamptz(3)
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   revision       CaptureRevision @relation(fields: [revisionId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "candidates_revision_id_fkey")
 
   @@unique([revisionId, candidateNo], map: "candidates_revision_no_key")
   @@map("candidates")
+}
+
+/// Each acceptance currently creates its own expression; semantic merging comes later.
+model Expression {
+  id        String @id(map: "expressions_pkey") @db.Uuid
+  meaning   String @db.Text
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  forms     ExpressionForm[]
+  learningRecords LearningRecord[]
+  @@map("expressions")
+}
+
+model ExpressionForm {
+  id           String @id(map: "expression_forms_pkey") @db.Uuid
+  expressionId String @map("expression_id") @db.Uuid
+  text         String @db.Text
+  expression   Expression @relation(fields: [expressionId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "expression_forms_expression_id_fkey")
+  @@map("expression_forms")
+}
+
+model LearningRecord {
+  id           String @id(map: "learning_records_pkey") @db.Uuid
+  userId       String @map("user_id") @db.Uuid
+  candidateId  String @map("candidate_id") @db.Uuid
+  expressionId String @map("expression_id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  user         User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "learning_records_user_id_fkey")
+  candidate    Candidate @relation(fields: [candidateId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "learning_records_candidate_id_fkey")
+  expression   Expression @relation(fields: [expressionId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "learning_records_expression_id_fkey")
+  @@map("learning_records")
 }

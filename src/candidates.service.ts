@@ -22,6 +22,12 @@ export class CandidatesService {
     if (items === undefined) throw new CandidateNotFoundError('Revision not found');
     return { revisionId, items };
   }
+  async accept(id: string) {
+    const result = await this.state.track(() => this.store.accept(id));
+    if (result === undefined) throw new CandidateNotFoundError('Candidate not found');
+    if (result === 'conflict') throw new CandidateConflictError('Candidate is no longer pending');
+    return result;
+  }
   async discard(id: string) {
     const result = await this.state.track(() => this.store.discard(id));
     if (result === undefined) throw new CandidateNotFoundError('Candidate not found');

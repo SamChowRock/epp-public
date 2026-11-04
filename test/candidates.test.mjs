@@ -11,7 +11,7 @@ test('candidate input and terminal state preserve the confirmation contract', ()
   }
   const row = { ...content, id: '10000000-0000-4000-8000-000000000001',
     revisionId: '20000000-0000-4000-8000-000000000002', createdAt: '2026-11-03T00:00:00.000Z',
-    status: 'pending', discardedAt: null };
+    status: 'pending', discardedAt: null, acceptedAt: null };
   assert.equal(CandidateResponseSchema.safeParse(row).success, true);
   assert.equal(CandidateResponseSchema.safeParse({ ...row, status: 'discarded' }).success, false);
   assert.equal(CandidateResponseSchema.safeParse({ ...row, status: 'discarded', discardedAt: row.createdAt }).success, true);
