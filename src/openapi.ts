@@ -37,7 +37,7 @@ export function createOpenApiDocument(): OpenAPIObject {
   const document: OpenAPIObject = {
     openapi: '3.0.3',
     info: {
-      title: 'EPP Capture API', version: '0.8.0',
+      title: 'EPP Capture API', version: '0.9.0',
       description: 'PostgreSQL records for one fixed development user; no authentication. Errors use Problem Details. Repeated POSTs create separate records.',
     },
     paths: {
@@ -63,7 +63,7 @@ export function createOpenApiDocument(): OpenAPIObject {
       '/candidates/{id}/accept': {
         post: {
           operationId: 'acceptCandidate', summary: 'Accept one pending candidate atomically',
-          description: 'Requires JSON {} and no query. Uses the exact candidate and its immutable revision, including historical revisions. Creates one expression, form and learning record in the same transaction as the accepted state. Repeated acceptance returns 409, not replay. No AI call or semantic deduplication. A lost response may follow a committed transaction; read state before deciding what to do.',
+          description: 'Requires JSON {} and no query. Uses the exact candidate and its immutable revision, including historical revisions. Creates one expression, form and learning record in the same transaction as the accepted state. Repeated acceptance returns 409, not replay. One learning record per candidate is also enforced by a database unique constraint. Lock wait is limited to 1 second per acquisition; only P2034 aborted transactions are retried, at most 3 attempts. No AI call or semantic deduplication. A lost response may follow a committed transaction; read state before deciding what to do.',
           parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
           requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/EmptyObject' } } } },
           responses: { '201': jsonResponse('Acceptance', 'Committed acceptance'),

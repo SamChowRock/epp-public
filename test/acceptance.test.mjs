@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { randomUUID } from 'node:crypto';
 import assert from 'node:assert/strict';
 import { createApp } from '../dist/src/app.js';
 import { DatabaseService } from '../dist/src/database.service.js';
@@ -53,5 +54,8 @@ test('acceptance rolls back a late failure, then commits once under contention',
   assert.equal(result.learningRecord.candidateId, candidate.id);
   assert.equal('userId' in result.learningRecord, false);
   assert.deepEqual(await counts(), before.map(n => n + 1));
+  const saved = await db.learningRecord.findUniqueOrThrow({ where: { candidateId: candidate.id } });
+  await assert.rejects(db.learningRecord.create({ data: { ...saved, id: randomUUID() } }),
+    error => error.code === 'P2002');
   assert.equal((await post(`/candidates/${candidate.id}/discard`, {})).status, 409);
 });

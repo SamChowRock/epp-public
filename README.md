@@ -1,10 +1,10 @@
 # EPP 配套实践代码
 
-## 第二十四章 事务与采纳
+## 第二十五章 并发控制
 
-当前分支 `part-04/chapter-24` 从第二十三章继续，增加表达、形式与学习记录，在同一事务中完成具体候选采纳。运行、迁移、SQL实验、调试和产物恢复见[本章说明](database/chapter-24/README.md)，图形请求见[chapter-24.postman_collection.json](requests/chapter-24.postman_collection.json)。先迁移再启动；历史候选允许采纳，重复采纳409，不调用AI、不做语义去重或结果重放。
+当前分支 `part-04/chapter-25` 从第二十四章继续，为同一候选的学习记录增加唯一约束，保留pending条件更新；采纳事务内限制锁等待，只对明确中止的P2034最多执行三次完整事务。运行、旧数据审核、SQL实验和恢复见[本章说明](database/chapter-25/README.md)，图形请求见[chapter-25.postman_collection.json](requests/chapter-25.postman_collection.json)。先迁移再启动；HTTP响应结构不变，锁等待失败返回503，不代表客户端可以盲目重发。
 
-第二十三章的保存、读取和放弃能力继续保留，所有候选响应新增acceptedAt，读取也识别accepted。此前章节说明是对应版本的实践记录，不覆盖本章新增语义。
+第二十四章的采纳、历史候选与严格输入继续保留；两个不同候选仍各自新建表达。当前不做语义去重、幂等结果重放或用户处置。此前章节说明只描述对应版本。
 
 前置章节是第四篇第22章（`part-04/chapter-22`），该章从 `part-03/chapter-21` 最终状态继续。保留旧记录并回填初始修订，新增追加修订和历史查询，旧PATCH改为追加快照，详情／列表读取最新内容。先完成第三篇环境与迁移，再按[第二十二章说明](database/chapter-22/README.md)停写、迁移、核对和切换，旧字段保留初始副本，不再代表当前内容。
 
@@ -20,7 +20,7 @@ nvm use
 node --version
 npm ci
 npm run check
-# 先按第二十四章说明应用迁移，并在 .env 配置运行连接，再启动。
+# 先按第二十五章说明应用迁移，并在 .env 配置运行连接，再启动。
 npm run dev
 ```
 

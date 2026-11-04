@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { setTimeout as delay } from 'node:timers/promises';
 import { Prisma } from './generated/prisma/client.js';
 import { DatabaseService } from './database.service.js';
 import { DEVELOPMENT_USER_ID } from './database-config.js';
@@ -55,30 +56,42 @@ export class PrismaCandidateStore {
 
   async accept(id: string): Promise<Acceptance | 'conflict' | undefined> {
     if (!validId(id)) return undefined;
-    return this.database.run('acceptCandidate', () => this.database.client.$transaction(async tx => {
-      const candidate = await tx.candidate.findFirst({
-        where: { id, revision: { capture: { userId: DEVELOPMENT_USER_ID } } },
-      });
-      if (!candidate) return undefined;
-      if (candidate.status !== 'pending') return 'conflict';
-      const acceptedAt = new Date();
-      const claimed = await tx.candidate.updateMany({ where: { id, status: 'pending' },
-        data: { status: 'accepted', acceptedAt } });
-      if (claimed.count !== 1) return 'conflict';
-      // shortcut: one expression per acceptance; chapter 27 defines semantic identity and reuse.
-      const expression = await tx.expression.create({ data: {
-        id: randomUUID(), meaning: candidate.chineseMeaning,
-        forms: { create: { id: randomUUID(), text: candidate.englishText } },
-      }, include: { forms: true } });
-      const learningRecord = await tx.learningRecord.create({ data: {
-        id: randomUUID(), userId: DEVELOPMENT_USER_ID, candidateId: id, expressionId: expression.id,
-      } });
-      return AcceptanceSchema.parse({
-        candidate: project({ ...candidate, status: 'accepted', acceptedAt }),
-        expression: { ...expression, createdAt: expression.createdAt.toISOString() },
-        learningRecord: { ...learningRecord, createdAt: learningRecord.createdAt.toISOString() },
-      });
-    }, { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted, maxWait: 2000, timeout: 5000 }));
+    return this.database.run('acceptCandidate', async () => {
+      for (let attempt = 0; ; attempt++) {
+        try {
+          return await this.database.client.$transaction(async tx => {
+            await tx.$executeRaw`SET LOCAL lock_timeout = '1s'`;
+            const candidate = await tx.candidate.findFirst({
+              where: { id, revision: { capture: { userId: DEVELOPMENT_USER_ID } } },
+            });
+            if (!candidate) return undefined;
+            if (candidate.status !== 'pending') return 'conflict';
+            const acceptedAt = new Date();
+            const claimed = await tx.candidate.updateMany({ where: { id, status: 'pending' },
+              data: { status: 'accepted', acceptedAt } });
+            if (claimed.count !== 1) return 'conflict';
+            // shortcut: one expression per acceptance; chapter 27 defines semantic identity and reuse.
+            const expression = await tx.expression.create({ data: {
+              id: randomUUID(), meaning: candidate.chineseMeaning,
+              forms: { create: { id: randomUUID(), text: candidate.englishText } },
+            }, include: { forms: true } });
+            const learningRecord = await tx.learningRecord.create({ data: {
+              id: randomUUID(), userId: DEVELOPMENT_USER_ID, candidateId: id, expressionId: expression.id,
+            } });
+            return AcceptanceSchema.parse({
+              candidate: project({ ...candidate, status: 'accepted', acceptedAt }),
+              expression: { ...expression, createdAt: expression.createdAt.toISOString() },
+              learningRecord: { ...learningRecord, createdAt: learningRecord.createdAt.toISOString() },
+            });
+          }, { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted, maxWait: 2000, timeout: 5000 });
+        } catch (error) {
+          // Retry only a known aborted transaction, never an unknown commit outcome.
+          if (!(error instanceof Prisma.PrismaClientKnownRequestError)
+            || error.code !== 'P2034' || attempt >= 2) throw error;
+          await delay(25 * 2 ** attempt + Math.floor(Math.random() * 25));
+        }
+      }
+    });
   }
 
   async discard(id: string): Promise<Candidate | 'conflict' | undefined> {

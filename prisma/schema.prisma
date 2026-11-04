@@ -59,7 +59,7 @@ model Candidate {
   chineseMeaning String   @map("chinese_meaning") @db.Text
   status         String   @default("pending") @db.Text
   acceptedAt     DateTime? @map("accepted_at") @db.Timestamptz(3)
-  learningRecords LearningRecord[]
+  learningRecord LearningRecord?
   discardedAt    DateTime? @map("discarded_at") @db.Timestamptz(3)
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   revision       CaptureRevision @relation(fields: [revisionId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "candidates_revision_id_fkey")
@@ -89,7 +89,7 @@ model ExpressionForm {
 model LearningRecord {
   id           String @id(map: "learning_records_pkey") @db.Uuid
   userId       String @map("user_id") @db.Uuid
-  candidateId  String @map("candidate_id") @db.Uuid
+  candidateId  String @unique(map: "learning_records_candidate_id_key") @map("candidate_id") @db.Uuid
   expressionId String @map("expression_id") @db.Uuid
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   user         User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "learning_records_user_id_fkey")

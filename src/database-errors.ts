@@ -7,7 +7,7 @@ export class StorageFailureError extends Error {
 const object = (value: unknown): Record<string, unknown> =>
   typeof value === 'object' && value !== null ? value as Record<string, unknown> : {};
 const transientCodes = new Set([
-  'P1001', 'P1002', 'P1008', 'P1017', 'P2024', 'P2037',
+  'P1001', 'P1002', 'P1008', 'P1017', 'P2024', 'P2034', 'P2037', '55P03',
   'ECONNREFUSED', 'ECONNRESET', 'ETIMEDOUT', 'ENOTFOUND',
   '53300', '57014', '57P01', '57P02', '57P03', '08000', '08003', '08006',
 ]);
@@ -26,7 +26,9 @@ export function databaseFailure(error: unknown): { code: string; unavailable: bo
   const unavailable = codes.some(code => transientCodes.has(code))
     || [root, directCause].some(value => acquisitionMessages.has(String(value.message)));
   // Do not log messages, metadata, parameter values, stack or connection URL.
-  const code = codes.includes('DEV_USER_MISSING') ? 'DEV_USER_MISSING' : codes.find(value => /^(?:P[0-9]{4}|[0-9A-Z]{5}|ECONNREFUSED|ECONNRESET|ETIMEDOUT|ENOTFOUND)$/.test(value))
+  const code = codes.includes('DEV_USER_MISSING') ? 'DEV_USER_MISSING'
+    : codes.includes('ACCEPTANCE_CONSTRAINT_MISSING') ? 'ACCEPTANCE_CONSTRAINT_MISSING'
+    : codes.includes('55P03') ? '55P03' : codes.find(value => /^(?:P[0-9]{4}|[0-9A-Z]{5}|ECONNREFUSED|ECONNRESET|ETIMEDOUT|ENOTFOUND)$/.test(value))
     ?? (unavailable ? 'POOL_TIMEOUT' : 'DATABASE_FAILURE');
   return { code, unavailable };
 }

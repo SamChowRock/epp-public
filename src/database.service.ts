@@ -46,6 +46,16 @@ export class DatabaseService {
       await this.client.expression.findMany({ take: 1 });
       await this.client.expressionForm.findMany({ take: 1 });
       await this.client.learningRecord.findMany({ take: 1 });
+      const constraints = await this.client.$queryRaw<{ definition: string; condeferrable: boolean }[]>`
+        SELECT pg_get_constraintdef(oid) AS definition, condeferrable
+        FROM pg_constraint WHERE conrelid = 'public.learning_records'::regclass
+          AND conname = 'learning_records_candidate_id_key' AND contype = 'u' AND convalidated
+      `;
+      const constraint = constraints[0];
+      if (constraints.length !== 1 || !constraint || constraint.definition !== 'UNIQUE (candidate_id)'
+        || constraint.condeferrable) throw Object.assign(new Error('Acceptance constraint is missing'), {
+          code: 'ACCEPTANCE_CONSTRAINT_MISSING',
+        });
       const missing = await this.client.capture.findFirst({ where: { revisions: { none: {} } }, select: { id: true } });
       if (missing) throw new StorageFailureError();
       this.logger.write('info', 'database.ready');
