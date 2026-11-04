@@ -83,11 +83,32 @@ export class PrismaCandidateStore {
             const claimed = await tx.candidate.updateMany({ where: { id, status: 'pending' },
               data: { status: 'accepted', acceptedAt } });
             if (claimed.count !== 1) return 'conflict';
-            // shortcut: one expression per acceptance; chapter 27 defines semantic identity and reuse.
-            const expression = await tx.expression.create({ data: {
-              id: randomUUID(), meaning: candidate.chineseMeaning,
-              forms: { create: { id: randomUUID(), text: candidate.englishText } },
-            }, include: { forms: true } });
+            const [identity] = await tx.$queryRaw<{ normalizedText: string; normalizedMeaning: string; key: string }[]>`
+              SELECT public.epp_normalize_v1(${candidate.englishText}) AS "normalizedText",
+                public.epp_normalize_v1(${candidate.chineseMeaning}) AS "normalizedMeaning",
+                public.epp_identity_v1(${candidate.englishText}, ${candidate.chineseMeaning}) AS key
+            `;
+            if (!identity) throw new Error('Expression identity is missing');
+            const expressionLock = JSON.stringify(['expression', DEVELOPMENT_USER_ID, identity.key]);
+            await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${expressionLock}, 0))::text`;
+            // Read after acquiring the lock so a preceding commit is visible at READ COMMITTED.
+            let expression = await tx.expression.findUnique({
+              where: { userId_semanticKey: { userId: DEVELOPMENT_USER_ID, semanticKey: identity.key } },
+              include: { forms: true },
+            });
+            if (expression) {
+              if (expression.normalizedMeaning !== identity.normalizedMeaning || expression.forms.length !== 1
+                || expression.forms[0]?.normalizedText !== identity.normalizedText) {
+                throw new Error('Expression identity does not match');
+              }
+            } else {
+              expression = await tx.expression.create({ data: {
+                id: randomUUID(), userId: DEVELOPMENT_USER_ID, meaning: candidate.chineseMeaning,
+                normalizedMeaning: identity.normalizedMeaning, semanticKey: identity.key,
+                forms: { create: { id: randomUUID(), text: candidate.englishText,
+                  normalizedText: identity.normalizedText } },
+              }, include: { forms: true } });
+            }
             const learningRecord = await tx.learningRecord.create({ data: {
               id: randomUUID(), userId: DEVELOPMENT_USER_ID, candidateId: id, expressionId: expression.id,
             } });

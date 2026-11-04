@@ -14,6 +14,7 @@ model User {
   id        String    @id(map: "users_pkey") @db.Uuid
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
   commandReceipts CommandReceipt[]
+  expressions Expression[]
   captures  Capture[]
   learningRecords LearningRecord[]
 
@@ -70,21 +71,28 @@ model Candidate {
   @@map("candidates")
 }
 
-/// Each acceptance currently creates its own expression; semantic merging comes later.
+/// A nullable key retains historical duplicates without rewriting their references.
 model Expression {
+  userId String @map("user_id") @db.Uuid
+  normalizedMeaning String @map("normalized_meaning") @db.Text
+  semanticKey String? @map("semantic_key") @db.Text
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "expressions_user_id_fkey")
   id        String @id(map: "expressions_pkey") @db.Uuid
   meaning   String @db.Text
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   forms     ExpressionForm[]
   learningRecords LearningRecord[]
+  @@unique([userId, semanticKey], map: "expressions_user_semantic_key")
   @@map("expressions")
 }
 
 model ExpressionForm {
+  normalizedText String @map("normalized_text") @db.Text
   id           String @id(map: "expression_forms_pkey") @db.Uuid
   expressionId String @map("expression_id") @db.Uuid
   text         String @db.Text
   expression   Expression @relation(fields: [expressionId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "expression_forms_expression_id_fkey")
+  @@index([expressionId], map: "expression_forms_expression_id_idx")
   @@map("expression_forms")
 }
 

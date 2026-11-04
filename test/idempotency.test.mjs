@@ -17,9 +17,9 @@ test('one operation replays, rejects changed intent, and rolls back when receipt
         const records = await db.learningRecord.findMany({ where: { candidateId: { in: ids } } });
         await db.commandReceipt.deleteMany({ where: { candidateId: { in: ids } } });
         await db.learningRecord.deleteMany({ where: { candidateId: { in: ids } } });
-        for (const row of records) {
-          await db.expressionForm.deleteMany({ where: { expressionId: row.expressionId } });
-          await db.expression.delete({ where: { id: row.expressionId } });
+        for (const expressionId of new Set(records.map(row => row.expressionId))) {
+          await db.expressionForm.deleteMany({ where: { expressionId } });
+          await db.expression.delete({ where: { id: expressionId } });
         }
         await db.candidate.deleteMany({ where: { revisionId: revision.id } });
         await db.captureRevision.deleteMany({ where: { captureId: capture.id } });

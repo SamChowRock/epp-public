@@ -66,6 +66,16 @@ export class DatabaseService {
         || receiptKeys[0].condeferrable) throw Object.assign(new Error('Command identity constraint is missing'), {
           code: 'COMMAND_CONSTRAINT_MISSING',
         });
+      const expressionKeys = await this.client.$queryRaw<{ definition: string; condeferrable: boolean }[]>`
+        SELECT pg_get_constraintdef(oid) AS definition, condeferrable
+        FROM pg_constraint WHERE conrelid = 'public.expressions'::regclass
+          AND conname = 'expressions_user_semantic_key' AND contype = 'u' AND convalidated
+      `;
+      if (expressionKeys.length !== 1 || expressionKeys[0]?.definition !== 'UNIQUE (user_id, semantic_key)'
+        || expressionKeys[0].condeferrable) throw Object.assign(new Error('Expression identity constraint is missing'), {
+          code: 'EXPRESSION_CONSTRAINT_MISSING',
+        });
+      await this.client.$queryRaw`SELECT public.epp_identity_v1('ready', 'ready')`;
       const missing = await this.client.capture.findFirst({ where: { revisions: { none: {} } }, select: { id: true } });
       if (missing) throw new StorageFailureError();
       this.logger.write('info', 'database.ready');

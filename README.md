@@ -1,10 +1,10 @@
 # EPP 配套实践代码
 
-## 第二十六章 幂等与审计
+## 第二十七章 一致性整合
 
-当前分支 `part-04/chapter-26` 从第二十五章继续，为采纳增加持久化操作身份、请求指纹与响应快照，同一操作可重放原201。旧 `{}` 采纳Body改为必填operationId；其他接口沿用前章。迁移、旧数据、图形请求和恢复见[本章说明](database/chapter-26/README.md)，导入[chapter-26.postman_collection.json](requests/chapter-26.postman_collection.json)。首次发送前保存身份，响应未知时保留同一身份与内容。
+当前分支 `part-04/chapter-27` 从第二十六章继续，按用户、规范化英文和义项复用表达；每次采纳保留自己的学习来源，原操作仍重放原201。迁移回填规范化字段，为旧重复选取复用代表，但不删除旧表达或改写旧回执。操作见[本章说明](database/chapter-27/README.md)，导入[chapter-27.postman_collection.json](requests/chapter-27.postman_collection.json)。
 
-第二十四章的采纳、历史候选与严格输入继续保留；两个不同候选仍各自新建表达。当前不做语义去重或用户处置，结果重放仅覆盖采纳接口。此前章节说明只描述对应版本。
+本章规范化v1为NFC、ASCII空白折叠和ASCII大小写折叠；相近说法不自动合并。采纳、放弃、未选择和旧修订各自保留原语义。当前没有真实登录、账号处置或语义推荐，成功回执不自动过期。此前章节说明只描述对应版本。
 
 前置章节是第四篇第22章（`part-04/chapter-22`），该章从 `part-03/chapter-21` 最终状态继续。保留旧记录并回填初始修订，新增追加修订和历史查询，旧PATCH改为追加快照，详情／列表读取最新内容。先完成第三篇环境与迁移，再按[第二十二章说明](database/chapter-22/README.md)停写、迁移、核对和切换，旧字段保留初始副本，不再代表当前内容。
 
@@ -20,7 +20,7 @@ nvm use
 node --version
 npm ci
 npm run check
-# 先按第二十六章说明应用迁移，并在 .env 配置运行连接，再启动。
+# 先按第二十七章说明应用迁移，并在 .env 配置运行连接，再启动。
 npm run dev
 ```
 

@@ -27,6 +27,7 @@ export function databaseFailure(error: unknown): { code: string; unavailable: bo
     || [root, directCause].some(value => acquisitionMessages.has(String(value.message)));
   // Do not log messages, metadata, parameter values, stack or connection URL.
   const code = codes.includes('DEV_USER_MISSING') ? 'DEV_USER_MISSING'
+    : codes.includes('EXPRESSION_CONSTRAINT_MISSING') ? 'EXPRESSION_CONSTRAINT_MISSING'
     : codes.includes('COMMAND_CONSTRAINT_MISSING') ? 'COMMAND_CONSTRAINT_MISSING'
     : codes.includes('ACCEPTANCE_CONSTRAINT_MISSING') ? 'ACCEPTANCE_CONSTRAINT_MISSING'
     : codes.includes('55P03') ? '55P03' : codes.find(value => /^(?:P[0-9]{4}|[0-9A-Z]{5}|ECONNREFUSED|ECONNRESET|ETIMEDOUT|ENOTFOUND)$/.test(value))
