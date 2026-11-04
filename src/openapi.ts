@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AcceptanceSchema, CreateCandidateSchema, CandidateResponseSchema, CandidateListSchema, EmptyObjectSchema } from './candidate-contract.js';
+import { AcceptCandidateSchema, AcceptanceSchema, CreateCandidateSchema, CandidateResponseSchema, CandidateListSchema, EmptyObjectSchema } from './candidate-contract.js';
 import type { OpenAPIObject, SchemaObject, ResponseObject, ParameterObject } from '@nestjs/swagger';
 import {
   AppendRevisionSchema, RevisionResponseSchema, RevisionPageSchema, RevisionQuerySchema,
@@ -37,8 +37,8 @@ export function createOpenApiDocument(): OpenAPIObject {
   const document: OpenAPIObject = {
     openapi: '3.0.3',
     info: {
-      title: 'EPP Capture API', version: '0.9.0',
-      description: 'PostgreSQL records for one fixed development user; no authentication. Errors use Problem Details. Repeated POSTs create separate records.',
+      title: 'EPP Capture API', version: '0.10.0',
+      description: 'PostgreSQL records for one fixed development user; no authentication. Errors use Problem Details. Capture creation is not idempotent; candidate acceptance supports operation identity.',
     },
     paths: {
       '/revisions/{revisionId}/candidates': {
@@ -63,12 +63,12 @@ export function createOpenApiDocument(): OpenAPIObject {
       '/candidates/{id}/accept': {
         post: {
           operationId: 'acceptCandidate', summary: 'Accept one pending candidate atomically',
-          description: 'Requires JSON {} and no query. Uses the exact candidate and its immutable revision, including historical revisions. Creates one expression, form and learning record in the same transaction as the accepted state. Repeated acceptance returns 409, not replay. One learning record per candidate is also enforced by a database unique constraint. Lock wait is limited to 1 second per acquisition; only P2034 aborted transactions are retried, at most 3 attempts. No AI call or semantic deduplication. A lost response may follow a committed transaction; read state before deciding what to do.',
+          description: 'Requires a lowercase UUID operationId and no query. Save it before the first send and reuse it for every retry of this exact candidate. Successful operations are scoped to the current user and retained without automatic expiry. Same identity and fingerprint replay the original 201 JSON; changed candidate returns OPERATION_CONFLICT. Failed attempts are not retained. Different operation identities on an accepted candidate return CANDIDATE_CONFLICT. Historical successes without receipts are not replayable. Business writes and the response snapshot commit in one transaction. Lock wait is limited to 1 second per acquisition; only P2034 is retried internally, at most 3 attempts. No AI or semantic deduplication. On timeout or an unknown outcome, retry with the same identity and content after bounded backoff',
           parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
-          requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/EmptyObject' } } } },
-          responses: { '201': jsonResponse('Acceptance', 'Committed acceptance'),
-            '400': problem('Expected empty JSON object and no query'), '404': problem('Candidate not found; code CANDIDATE_NOT_FOUND'),
-            '409': problem('Candidate is no longer pending; code CANDIDATE_CONFLICT'), '413': problem('Body exceeds 16 KiB'),
+          requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/AcceptCandidate' } } } },
+          responses: { '201': jsonResponse('Acceptance', 'Committed or replayed acceptance; same semantic JSON, not byte ordering or transport headers'),
+            '400': problem('Expected operationId only and no query'), '404': problem('Candidate not found; code CANDIDATE_NOT_FOUND'),
+            '409': problem('Identity reused for different content: OPERATION_CONFLICT; candidate no longer pending: CANDIDATE_CONFLICT'), '413': problem('Body exceeds 16 KiB'),
             '415': problem('Expected application/json'), '500': problem('Unexpected failure'), '503': problem('Storage temporarily unavailable; outcome may be unknown') },
         },
       },
@@ -181,6 +181,7 @@ export function createOpenApiDocument(): OpenAPIObject {
     },
     components: { schemas: {
       CreateCandidate: schema(CreateCandidateSchema, 'input'),
+      AcceptCandidate: schema(AcceptCandidateSchema, 'input'),
       Acceptance: schema(AcceptanceSchema, 'output'),
       Candidate: schema(CandidateResponseSchema, 'output'),
       CandidateList: schema(CandidateListSchema, 'output'),

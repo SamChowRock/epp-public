@@ -24,6 +24,7 @@ test('acceptance rolls back a late failure, then commits once under contention',
   clean = async () => {
     await db.$executeRawUnsafe('ALTER TABLE public.learning_records DROP CONSTRAINT IF EXISTS acceptance_test_reject');
     const records = await db.learningRecord.findMany({ where: { candidateId: candidate.id } });
+    await db.commandReceipt.deleteMany({ where: { candidateId: candidate.id } });
     await db.learningRecord.deleteMany({ where: { candidateId: candidate.id } });
     for (const row of records) {
       await db.expressionForm.deleteMany({ where: { expressionId: row.expressionId } });
@@ -40,13 +41,13 @@ test('acceptance rolls back a late failure, then commits once under contention',
   const counts = async () => Promise.all([db.expression.count(), db.expressionForm.count(), db.learningRecord.count()]);
   const before = await counts();
   const path = `/candidates/${candidate.id}/accept`;
-  assert.equal((await post(path, {})).status, 500);
+  assert.equal((await post(path, { operationId: randomUUID() })).status, 500);
   assert.deepEqual(await counts(), before);
   const afterFailure = await db.candidate.findUniqueOrThrow({ where: { id: candidate.id } });
   assert.equal(afterFailure.status, 'pending');
   assert.equal(afterFailure.acceptedAt, null);
   await db.$executeRawUnsafe('ALTER TABLE public.learning_records DROP CONSTRAINT acceptance_test_reject');
-  const results = await Promise.all([post(path, {}), post(path, {})]);
+  const results = await Promise.all([post(path, { operationId: randomUUID() }), post(path, { operationId: randomUUID() })]);
   assert.deepEqual(results.map(x => x.status).sort(), [201, 409]);
   const result = results.find(x => x.status === 201).data;
   assert.equal(result.candidate.status, 'accepted');

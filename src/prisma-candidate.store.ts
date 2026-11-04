@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
 import { Prisma } from './generated/prisma/client.js';
 import { DatabaseService } from './database.service.js';
@@ -54,17 +54,30 @@ export class PrismaCandidateStore {
     return rows.flatMap(row => row.id === null ? [] : [project({ ...row, id: row.id })]);
   }
 
-  async accept(id: string): Promise<Acceptance | 'conflict' | undefined> {
+  async accept(id: string, operationId: string): Promise<Acceptance | 'conflict' | 'operation-conflict' | undefined> {
     if (!validId(id)) return undefined;
+    const action = 'accept-candidate/v1';
+    const fingerprint = createHash('sha256').update(JSON.stringify([action, id])).digest('hex');
+    const lockKey = JSON.stringify(['command', DEVELOPMENT_USER_ID, operationId]);
     return this.database.run('acceptCandidate', async () => {
       for (let attempt = 0; ; attempt++) {
         try {
           return await this.database.client.$transaction(async tx => {
             await tx.$executeRaw`SET LOCAL lock_timeout = '1s'`;
+            // Serialize one operation even before its durable result row exists.
+            await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${lockKey}, 0))::text`;
             const candidate = await tx.candidate.findFirst({
               where: { id, revision: { capture: { userId: DEVELOPMENT_USER_ID } } },
             });
             if (!candidate) return undefined;
+            const previous = await tx.commandReceipt.findUnique({
+              where: { userId_operationId: { userId: DEVELOPMENT_USER_ID, operationId } },
+            });
+            if (previous) {
+              if (previous.action !== action || previous.candidateId !== id
+                || previous.fingerprint !== fingerprint) return 'operation-conflict';
+              return AcceptanceSchema.parse(previous.response);
+            }
             if (candidate.status !== 'pending') return 'conflict';
             const acceptedAt = new Date();
             const claimed = await tx.candidate.updateMany({ where: { id, status: 'pending' },
@@ -78,11 +91,16 @@ export class PrismaCandidateStore {
             const learningRecord = await tx.learningRecord.create({ data: {
               id: randomUUID(), userId: DEVELOPMENT_USER_ID, candidateId: id, expressionId: expression.id,
             } });
-            return AcceptanceSchema.parse({
+            const response = AcceptanceSchema.parse({
               candidate: project({ ...candidate, status: 'accepted', acceptedAt }),
               expression: { ...expression, createdAt: expression.createdAt.toISOString() },
               learningRecord: { ...learningRecord, createdAt: learningRecord.createdAt.toISOString() },
             });
+            await tx.commandReceipt.create({ data: {
+              userId: DEVELOPMENT_USER_ID, operationId, action, candidateId: id, fingerprint,
+              statusCode: 201, response,
+            } });
+            return response;
           }, { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted, maxWait: 2000, timeout: 5000 });
         } catch (error) {
           // Retry only a known aborted transaction, never an unknown commit outcome.

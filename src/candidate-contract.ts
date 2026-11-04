@@ -10,6 +10,10 @@ export const CreateCandidateSchema = z.object({
   englishText: text,
   chineseMeaning: text,
 }).strict();
+export const AcceptCandidateSchema = z.object({
+  operationId: z.uuid().regex(/^[0-9a-f-]+$/, 'Expected a lowercase UUID'),
+}).strict();
+export type AcceptCandidateInput = z.infer<typeof AcceptCandidateSchema>;
 export const EmptyObjectSchema = z.object({}).strict();
 const candidate = {
   id: z.uuid(), revisionId: z.uuid(), ...CreateCandidateSchema.shape,

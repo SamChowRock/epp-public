@@ -56,6 +56,16 @@ export class DatabaseService {
         || constraint.condeferrable) throw Object.assign(new Error('Acceptance constraint is missing'), {
           code: 'ACCEPTANCE_CONSTRAINT_MISSING',
         });
+      await this.client.commandReceipt.findMany({ take: 1 });
+      const receiptKeys = await this.client.$queryRaw<{ definition: string; condeferrable: boolean }[]>`
+        SELECT pg_get_constraintdef(oid) AS definition, condeferrable
+        FROM pg_constraint WHERE conrelid = 'public.command_receipts'::regclass
+          AND conname = 'command_receipts_pkey' AND contype = 'p' AND convalidated
+      `;
+      if (receiptKeys.length !== 1 || receiptKeys[0]?.definition !== 'PRIMARY KEY (user_id, operation_id)'
+        || receiptKeys[0].condeferrable) throw Object.assign(new Error('Command identity constraint is missing'), {
+          code: 'COMMAND_CONSTRAINT_MISSING',
+        });
       const missing = await this.client.capture.findFirst({ where: { revisions: { none: {} } }, select: { id: true } });
       if (missing) throw new StorageFailureError();
       this.logger.write('info', 'database.ready');

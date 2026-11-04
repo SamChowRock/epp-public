@@ -13,6 +13,7 @@ datasource db {
 model User {
   id        String    @id(map: "users_pkey") @db.Uuid
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  commandReceipts CommandReceipt[]
   captures  Capture[]
   learningRecords LearningRecord[]
 
@@ -59,6 +60,7 @@ model Candidate {
   chineseMeaning String   @map("chinese_meaning") @db.Text
   status         String   @default("pending") @db.Text
   acceptedAt     DateTime? @map("accepted_at") @db.Timestamptz(3)
+  commandReceipts CommandReceipt[]
   learningRecord LearningRecord?
   discardedAt    DateTime? @map("discarded_at") @db.Timestamptz(3)
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
@@ -96,4 +98,21 @@ model LearningRecord {
   candidate    Candidate @relation(fields: [candidateId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "learning_records_candidate_id_fkey")
   expression   Expression @relation(fields: [expressionId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "learning_records_expression_id_fkey")
   @@map("learning_records")
+}
+
+/// Successful commands only; their response snapshot commits with the business writes.
+model CommandReceipt {
+  userId      String @map("user_id") @db.Uuid
+  operationId String @map("operation_id") @db.Uuid
+  action      String @db.Text
+  candidateId String @map("candidate_id") @db.Uuid
+  fingerprint String @db.Text
+  statusCode  Int @map("status_code")
+  response    Json @db.JsonB
+  recordedAt  DateTime @default(now()) @map("recorded_at") @db.Timestamptz(3)
+  user        User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "command_receipts_user_id_fkey")
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "command_receipts_candidate_id_fkey")
+
+  @@id([userId, operationId], map: "command_receipts_pkey")
+  @@map("command_receipts")
 }

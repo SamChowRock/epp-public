@@ -1,0 +1,431 @@
+{
+  "info": {
+    "name": "EPP 第26章 幂等与审计",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "按01～04准备样本；03成功后仅生成并保存一次operationId，05和06必须保留它。不要为了重试重发03或把动态guid放到采纳Body。无自动重发。响应丢失实验：新样本完成01～04后，把baseUrl改为3010，发送05两次，再改回3000。"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000"
+    },
+    {
+      "key": "captureId",
+      "value": ""
+    },
+    {
+      "key": "revisionId",
+      "value": ""
+    },
+    {
+      "key": "candidateId",
+      "value": ""
+    },
+    {
+      "key": "operationId",
+      "value": ""
+    },
+    {
+      "key": "otherOperationId",
+      "value": ""
+    },
+    {
+      "key": "otherCandidateId",
+      "value": ""
+    },
+    {
+      "key": "expressionId",
+      "value": ""
+    },
+    {
+      "key": "learningRecordId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 新建本章原文",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/captures",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "captures"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"originalText\": \"I am not much of cook.\",\n  \"chineseIntent\": \"我不太会做饭。\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 201) pm.collectionVariables.set('captureId', pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 读取修订 ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/captures/{{captureId}}/revisions",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "captures",
+            "{{captureId}}",
+            "revisions"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 200) pm.collectionVariables.set('revisionId', pm.response.json().items[0].id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 保存待采纳候选",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/revisions/{{revisionId}}/candidates",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "revisions",
+            "{{revisionId}}",
+            "candidates"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"candidateNo\": 1,\n  \"englishText\": \"I'm not much of a cook.\",\n  \"chineseMeaning\": \"我不太会做饭。\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 201) pm.collectionVariables.set('candidateId', pm.response.json().id);",
+              "if (pm.response.code === 201) pm.collectionVariables.set('operationId', pm.variables.replaceIn('{{$guid}}'));",
+              "if (pm.response.code === 201) pm.collectionVariables.set('otherOperationId', pm.variables.replaceIn('{{$guid}}'));",
+              "if (pm.response.code === 201) { pm.collectionVariables.unset('expressionId'); pm.collectionVariables.unset('learningRecordId'); pm.collectionVariables.unset('otherCandidateId'); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 查看采纳前列表",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/revisions/{{revisionId}}/candidates",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "revisions",
+            "{{revisionId}}",
+            "candidates"
+          ]
+        }
+      }
+    },
+    {
+      "name": "05 采纳并保存结果",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/candidates/{{candidateId}}/accept",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"operationId\": \"{{operationId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 201) { const r=pm.response.json(); pm.collectionVariables.set('expressionId',r.expression.id); pm.collectionVariables.set('learningRecordId',r.learningRecord.id); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 同一操作重放201",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/candidates/{{candidateId}}/accept",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"operationId\": \"{{operationId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "07 换操作身份仍冲突409",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/candidates/{{candidateId}}/accept",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"operationId\": \"{{otherOperationId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "08 保存另一个候选",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/revisions/{{revisionId}}/candidates",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"candidateNo\": 2,\n  \"englishText\": \"I rarely cook.\",\n  \"chineseMeaning\": \"我很少做饭。\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 201) pm.collectionVariables.set('otherCandidateId',pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 同一身份换候选409",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/candidates/{{otherCandidateId}}/accept",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"operationId\": \"{{operationId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "10 缺少操作身份400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/candidates/{{otherCandidateId}}/accept",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "11 多余字段400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/candidates/{{otherCandidateId}}/accept",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"operationId\": \"{{otherOperationId}}\",\n  \"force\": true\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "12 查询参数400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/candidates/{{otherCandidateId}}/accept?force=true",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"operationId\": \"{{otherOperationId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "13 读取两候选状态",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/revisions/{{revisionId}}/candidates"
+      }
+    },
+    {
+      "name": "14 新操作采纳第二个候选",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/candidates/{{otherCandidateId}}/accept",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"operationId\": \"{{otherOperationId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "15 放弃已采纳候选409",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/candidates/{{candidateId}}/discard",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

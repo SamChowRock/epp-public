@@ -1,7 +1,7 @@
 import { Body, Controller, Get, HttpCode, Param, Post, Query, UseInterceptors } from '@nestjs/common';
 import { CandidatesService } from './candidates.service.js';
-import { AcceptanceSchema, CandidateListSchema, CandidateResponseSchema, CreateCandidateSchema, EmptyObjectSchema } from './candidate-contract.js';
-import type { CreateCandidateInput } from './candidate-contract.js';
+import { AcceptCandidateSchema, AcceptanceSchema, CandidateListSchema, CandidateResponseSchema, CreateCandidateSchema, EmptyObjectSchema } from './candidate-contract.js';
+import type { AcceptCandidateInput, CreateCandidateInput } from './candidate-contract.js';
 import { SchemaPipe } from './schema.pipe.js';
 import { ResponseSchemaInterceptor } from './response-schema.interceptor.js';
 
@@ -25,9 +25,9 @@ export class CandidatesController {
   @Post('candidates/:id/accept')
   @UseInterceptors(new ResponseSchemaInterceptor(AcceptanceSchema))
   accept(@Param('id') id: string,
-    @Body(new SchemaPipe(EmptyObjectSchema)) _input: object,
+    @Body(new SchemaPipe(AcceptCandidateSchema)) input: AcceptCandidateInput,
     @Query(new SchemaPipe(EmptyObjectSchema)) _query: object) {
-    return this.candidates.accept(id);
+    return this.candidates.accept(id, input);
   }
   @Post('candidates/:id/discard')
   @HttpCode(200)
