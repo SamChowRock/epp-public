@@ -8,23 +8,29 @@
 
 成品已含 `20261102100000_capture_revisions`。审查其建表、锁、回填与逐字段核对：旧 ID 保持，初始修订内容逐字复制，input_source=unknown、chunks=SQL NULL，修订时间为迁移时间；旧 captures 字段不变。新建 Capture 与第一个修订使用嵌套写入，后续只追加修订。
 
+在项目根目录运行 `nvm use` 和 `npm ci`。在 DBeaver 的 VERIFY 编辑器先单独执行[准备两条虚构旧数据](00-verify-samples.sql)的连接查询。确认库名、尚在第二十一章结构后，运行余下事务，保存返回的两行。固定 ID 的样本只准备一次。已升级的库可对照迁移前导出；重做实验用第二十一章备份另建验证库。
+
 ```bash
-nvm use
-npm ci
 unset DATABASE_URL SHADOW_DATABASE_URL
 npm run db:verify -- migrate deploy
-npm run db -- migrate deploy
 npm run db:verify -- migrate status
+npm run db:verify -- migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
+```
+
+在 VERIFY 运行 [01-inspect.sql](01-inspect.sql)。对照样本 ID、归属、原文两端空格、NULL／非空意图与原创建时间；各有一个第 1 版，来源为 unknown、chunks 为 SQL NULL。确认 missing_initial=0、字段差异为空、结构核对通过，再升级停写的 DEV：
+
+```bash
+unset DATABASE_URL SHADOW_DATABASE_URL
+npm run db -- migrate deploy
 npm run db -- migrate status
 npm run db -- migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
-npm run db:verify -- migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
 npm run prisma:generate
 npm run check
 ```
 
 从前章自行修改时，在 Schema 增加 CaptureRevision 与 Capture.revisions 后用 `npm run db -- migrate dev --name capture_revisions --create-only` 生成草稿；首次应用前补上正文的 SQL，再执行上述部署路径。不要与成品迁移重复生成，不改已应用历史。
 
-在 DBeaver DEV 与 VERIFY 分别执行 [01-inspect.sql](01-inspect.sql)。第 1 版覆盖所有父记录，missing_initial=0，字段差异查询为空。VERIFY 无业务行时得到 0 正常。另对照迁移前导出，确认 Capture 归属、时间、原文和意图全保持；检查约束、关系图及索引，diff 不能代替 CHECK 核对。
+在 DBeaver DEV 再执行 [01-inspect.sql](01-inspect.sql)。第 1 版覆盖所有父记录，missing_initial=0，字段差异查询为空。另对照迁移前导出，确认 Capture 归属、时间、原文和意图全保持；检查约束、关系图及索引，diff 不能代替 CHECK 核对。
 
 失败时维持停写，找首因。事务未提交时应回滚，但仍查实际表和迁移历史；确认整次失败动作已回滚后，按实际迁移名 `migrate resolve --rolled-back`，处理根因再 deploy。已成功历史不改写。迁移锁提交即释放，不能替代停旧写入者。
 
