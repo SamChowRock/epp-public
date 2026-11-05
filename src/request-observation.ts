@@ -13,6 +13,8 @@ export function requestObservation(logger: AppLogger, state: ApplicationState, k
     const path = request.url.split('?')[0] ?? '';
     // Route labels are constants, never raw paths or resource IDs.
     const route = knownPaths.includes(path) ? path : path === '/captures' ? '/captures'
+      : ['/learning-records', '/star-map'].includes(path) ? path
+      : /^\/learning-records\/[^/]+$/.test(path) ? '/learning-records/:id'
       : /^\/revisions\/[^/]+\/candidates$/.test(path) ? '/revisions/:revisionId/candidates'
       : /^\/candidates\/[^/]+\/accept$/.test(path) ? '/candidates/:id/accept'
       : /^\/candidates\/[^/]+\/discard$/.test(path) ? '/candidates/:id/discard'

@@ -1,3 +1,4 @@
+import { LearningQuerySchema, StarMapQuerySchema, LearningListSchema, LearningDetailSchema, StarMapSchema } from './learning-contract.js';
 import { z } from 'zod';
 import { AcceptCandidateSchema, AcceptanceSchema, CreateCandidateSchema, CandidateResponseSchema, CandidateListSchema, EmptyObjectSchema } from './candidate-contract.js';
 import type { OpenAPIObject, SchemaObject, ResponseObject, ParameterObject } from '@nestjs/swagger';
@@ -37,10 +38,40 @@ export function createOpenApiDocument(): OpenAPIObject {
   const document: OpenAPIObject = {
     openapi: '3.0.3',
     info: {
-      title: 'EPP Capture API', version: '0.10.0',
+      title: 'EPP Capture API', version: '0.11.0',
       description: 'PostgreSQL records for one fixed development user; no authentication. Errors use Problem Details. Capture creation is not idempotent; candidate acceptance supports operation identity.',
     },
     paths: {
+      '/learning-records': {
+        get: {
+          operationId: 'listLearningRecords', summary: 'Read bounded acceptance sources',
+          description: 'One item per learning record. Default limit 20, maximum 100; order by createdAt descending then UUID descending. Optional expressionId filters before limiting. Unknown or foreign expression filters return an empty list. hasMore indicates an additional matching row at read time; no continuation token yet. Unknown and repeated query keys are rejected. No userId parameter; fixed development user only.',
+          parameters: [ifNoneMatch, ...['limit', 'expressionId'].map(name => ({ name, in: 'query', required: false,
+            schema: schema(LearningQuerySchema.shape[name as 'limit' | 'expressionId'].unwrap(), 'input'),
+          } as ParameterObject))],
+          responses: { '200': { ...jsonResponse('LearningList', 'Bounded sources'), headers: etagHeaders },
+            '304': notModified, '400': problem('Invalid query'), '500': problem('Unexpected failure') },
+        },
+      },
+      '/learning-records/{id}': {
+        get: {
+          operationId: 'findLearningRecord', summary: 'Read one source with its original revision',
+          description: 'Returns saved source revision and candidate content, not the latest capture. Missing, malformed, percent-encoded or foreign IDs return 404. Query keys rejected. Internal owner, normalized keys and receipts are excluded.',
+          parameters: [ifNoneMatch, { name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          responses: { '200': { ...jsonResponse('LearningDetail', 'Saved source detail'), headers: etagHeaders },
+            '304': notModified, '400': problem('Invalid query'), '404': problem('Learning record not found; code LEARNING_RECORD_NOT_FOUND'), '500': problem('Unexpected failure') },
+        },
+      },
+      '/star-map': {
+        get: {
+          operationId: 'readStarMap', summary: 'Read bounded expression nodes',
+          description: 'One node per stored expression with an owned learning source, including retained historical duplicates. recordCount counts visible learning records for that node, not practice or mastery. Default limit 20, maximum 100; expression createdAt descending then UUID descending. hasMore is a bounded-read hint, not a total. No semantic edges, ranking, coordinates or full-graph claim.',
+          parameters: [ifNoneMatch, { name: 'limit', in: 'query', required: false,
+            schema: schema(StarMapQuerySchema.shape.limit.unwrap(), 'input') }],
+          responses: { '200': { ...jsonResponse('StarMap', 'Expression nodes'), headers: etagHeaders },
+            '304': notModified, '400': problem('Invalid query'), '500': problem('Unexpected failure') },
+        },
+      },
       '/revisions/{revisionId}/candidates': {
         get: {
           operationId: 'listCandidates', summary: 'Read candidates for one owned revision',
@@ -180,6 +211,9 @@ export function createOpenApiDocument(): OpenAPIObject {
       },
     },
     components: { schemas: {
+      LearningList: schema(LearningListSchema, 'output'),
+      LearningDetail: schema(LearningDetailSchema, 'output'),
+      StarMap: schema(StarMapSchema, 'output'),
       CreateCandidate: schema(CreateCandidateSchema, 'input'),
       AcceptCandidate: schema(AcceptCandidateSchema, 'input'),
       Acceptance: schema(AcceptanceSchema, 'output'),

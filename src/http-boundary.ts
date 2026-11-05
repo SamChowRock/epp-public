@@ -23,8 +23,10 @@ export function httpBoundary(
     const revisions = /^\/captures\/([^/]+)\/revisions$/.exec(url.pathname);
     const candidates = /^\/revisions\/([^/]+)\/candidates$/.exec(url.pathname);
     const discard = /^\/candidates\/([^/]+)\/(?:discard|accept)$/.exec(url.pathname);
+    const learningDetail = /^\/learning-records\/([^/]+)$/.exec(url.pathname);
     const allowed = url.pathname === '/captures' ? ['GET', 'POST']
-      : detail ? ['GET', 'PATCH'] : revisions || candidates ? ['GET', 'POST'] : discard ? ['POST'] : undefined;
+      : detail ? ['GET', 'PATCH'] : revisions || candidates ? ['GET', 'POST'] : discard ? ['POST']
+      : learningDetail || ['/learning-records', '/star-map'].includes(url.pathname) ? ['GET'] : undefined;
     if (!allowed) throw new HttpError(404, 'Route not found', 'ROUTE_NOT_FOUND');
     if (!allowed.includes(request.method)) {
       response.setHeader('Allow', allowed.join(', '));
@@ -36,6 +38,9 @@ export function httpBoundary(
     }
     if ((detail?.[1] ?? revisions?.[1])?.includes('%')) {
       throw new HttpError(404, 'Capture not found', 'CAPTURE_NOT_FOUND');
+    }
+    if (learningDetail?.[1]?.includes('%')) {
+      throw new HttpError(404, 'Learning record not found', 'LEARNING_RECORD_NOT_FOUND');
     }
     request.url = url.pathname + url.search;
     next();

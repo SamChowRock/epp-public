@@ -1,3 +1,5 @@
+import { LearningController } from './learning.controller.js';
+import { LearningQueries } from './learning.queries.js';
 import { Module } from '@nestjs/common';
 import { CapturesController } from './captures.controller.js';
 import { CapturesService } from './captures.service.js';
@@ -16,8 +18,11 @@ import { PrismaCandidateStore } from './prisma-candidate.store.js';
 
 @Module({
   imports: [DatabaseModule],
-  controllers: [CapturesController, CandidatesController],
+  controllers: [CapturesController, CandidatesController, LearningController],
   providers: [
+    { provide: LearningQueries,
+      useFactory: (database: DatabaseService, state: ApplicationState) => new LearningQueries(database, state),
+      inject: [DatabaseService, ApplicationState] },
     { provide: PrismaCandidateStore,
       useFactory: (database: DatabaseService) => new PrismaCandidateStore(database),
       inject: [DatabaseService] },
