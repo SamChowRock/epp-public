@@ -1,3 +1,4 @@
+import './database-env.mjs';
 import test from 'node:test';
 import { randomUUID } from 'node:crypto';
 import assert from 'node:assert/strict';

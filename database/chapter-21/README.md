@@ -93,4 +93,4 @@ NODE_ENV=production PORT=3001 node --env-file=.env.production --enable-source-ma
 
 DDL等锁失败沿用第二十章：找首因、结束阻塞事务、核对CHECK仍为1000且无部分改动，再按真实迁移名标记失败尝试rolled-back并重新deploy。已成功迁移不改文件。出现长数据后，应用回退目标是B，不能默认A安全。B会暂时拒绝新长输入，要同步告知接口调用方当前写策略；不要重试相同的400。
 
-已有 `npm test` 保留最小回归。交付用 `npm run build` 的独立产物和固定生产依赖；运行配置由环境提供，`npm start`不开放Inspector，默认docs关闭。迁移步骤持有固定CLI与历史，先于放开写入执行；应用启动不自动迁移。重启同一库后GET应保留长值。多实例发布要确认所有读取者已兼容，再启用长写入，不能只验证一台。
+已有 `npm test` 保留最小回归。交付用 `npm run build` 的独立产物和固定生产依赖；运行配置由环境提供，`npm start`不开放Inspector，默认docs关闭。迁移步骤持有固定CLI与历史，先于放开写入执行；应用启动不自动迁移。重启同一库后GET应保留长值。多实例发布要确认所有读取者已兼容，再启用长写入，不能只验证一台。测试连接在根目录 `.env.test` 用 `TEST_DATABASE_URL` 单独提供；缺失时在打开应用前退出，不回退到开发 `.env` 或继承的 `DATABASE_URL`。配置与运行方式见[项目测试说明](../../README.md)。
