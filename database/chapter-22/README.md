@@ -46,6 +46,6 @@ GET `/captures/:id/revisions?limit=2` 返回倒序历史和 nextBefore；将 nex
 
 暂停前记下 captureId、最近序号和迁移阶段，结束数据库事务，停止开发进程。下次连接原库先查历史，不再回填。不删除旧版本，不用旧列代表当前内容。旧字段只是初始副本，已经产生新修订后不能直接回到第二十一章写入协议。
 
-`npm run build` 输出独立产物；运行依赖沿用锁文件，目标环境提供 DATABASE_URL，`npm start` 显式生产模式，不开启 Inspector、不监听源码、默认关闭 docs。迁移由持有固定 CLI 和历史的独立步骤执行，先于开放写入；应用启动不自动迁移。停 dev 后用生产产物 GET 相同记录，核对内容和历史仍在。已有 `npm test` 是最小 HTTP 回归，需要可连接的当前数据库，不能代替版本和迁移核对。
+`npm run build` 输出独立产物；运行依赖沿用锁文件，目标环境提供 DATABASE_URL，`npm start` 显式生产模式，不开启 Inspector、不监听源码、默认关闭 docs。迁移由持有固定 CLI 和历史的独立步骤执行，先于开放写入；应用启动不自动迁移。停 dev 后用生产产物 GET 相同记录，核对内容和历史仍在。已有 `npm test` 是最小 HTTP 回归，需要可连接的当前数据库，不能代替版本和迁移核对。测试连接在根目录 `.env.test` 用 `TEST_DATABASE_URL` 单独提供；缺失时在打开应用前退出，不回退到开发 `.env` 或继承的 `DATABASE_URL`。配置与运行方式见[项目测试说明](../../README.md)。
 
 早期 `examples/chapter-14-review.patch` 与 `database/chapter-21/reader-only.patch` 仅用于各自章节起点，回看时使用对应章节分支，不能直接套到修订实现上。没有认证的固定用户实践仍只用于本机；来源字段不构成权限证据。
