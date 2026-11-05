@@ -1,8 +1,10 @@
+import { randomBytes } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { z } from 'zod';
 
 export const APP_CONFIG = Symbol('APP_CONFIG');
 export type AppConfig = Readonly<{
+  cursorKey: string;
   port: number;
   mode: 'development' | 'test' | 'production';
   docsEnabled: boolean;
@@ -16,6 +18,7 @@ const DefaultsSchema = z.object({ port: z.number().int().min(1).max(65535) });
 const decimal = (max: number) => z.string().regex(/^[0-9]+$/)
   .transform(Number).pipe(z.number().int().min(1).max(max));
 const EnvironmentSchema = z.object({
+  CURSOR_HMAC_KEY: z.string().regex(/^[0-9a-f]{64}$/).optional(),
   PORT: decimal(65535).optional(),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   DOCS_ENABLED: z.enum(['true', 'false']).optional(),
@@ -32,7 +35,9 @@ export function parseConfig(defaults: unknown, env: NodeJS.ProcessEnv): AppConfi
     throw new ConfigError(String(parsed.error.issues[0]?.path[0] ?? 'environment'));
   }
   const value = parsed.data;
+  if (value.NODE_ENV === 'production' && !value.CURSOR_HMAC_KEY) throw new ConfigError('CURSOR_HMAC_KEY');
   return Object.freeze({
+    cursorKey: value.CURSOR_HMAC_KEY ?? randomBytes(32).toString('hex'),
     port: value.PORT ?? file.data.port,
     mode: value.NODE_ENV,
     docsEnabled: value.DOCS_ENABLED === undefined

@@ -38,16 +38,16 @@ export function createOpenApiDocument(): OpenAPIObject {
   const document: OpenAPIObject = {
     openapi: '3.0.3',
     info: {
-      title: 'EPP Capture API', version: '0.11.0',
+      title: 'EPP Capture API', version: '0.12.0',
       description: 'PostgreSQL records for one fixed development user; no authentication. Errors use Problem Details. Capture creation is not idempotent; candidate acceptance supports operation identity.',
     },
     paths: {
       '/learning-records': {
         get: {
           operationId: 'listLearningRecords', summary: 'Read bounded acceptance sources',
-          description: 'One item per learning record. Default limit 20, maximum 100; order by createdAt descending then UUID descending. Optional expressionId filters before limiting. Unknown or foreign expression filters return an empty list. hasMore indicates an additional matching row at read time; no continuation token yet. Unknown and repeated query keys are rejected. No userId parameter; fixed development user only.',
-          parameters: [ifNoneMatch, ...['limit', 'expressionId'].map(name => ({ name, in: 'query', required: false,
-            schema: schema(LearningQuerySchema.shape[name as 'limit' | 'expressionId'].unwrap(), 'input'),
+          description: 'One item per learning record. Default limit 20, maximum 100; order by createdAt descending then UUID descending. Optional expressionId filters before limiting. Unknown or foreign expression filters return an empty list. No mode preserves the original response. mode=offset accepts offset 0..10000 and adds nextOffset (null at end or cap); mode=cursor adds nextCursor (null at end). Continuations bind resource, user, limit, expressionId, from and to. Invalid, changed-scope or expired cursors return 400 INVALID_CURSOR; traversal expires after 30 minutes. from inclusive / to exclusive require UTC ISO milliseconds in years 0001..9999, with from strictly before to, and filter learning creation time. Both modes read live data, not a snapshot. Unknown and repeated query keys are rejected. No userId parameter; fixed development user only.',
+          parameters: [ifNoneMatch, ...['limit', 'expressionId', 'mode', 'offset', 'cursor', 'from', 'to'].map(name => ({ name, in: 'query', required: false,
+            schema: schema(LearningQuerySchema.shape[name as keyof typeof LearningQuerySchema.shape].unwrap(), 'input'),
           } as ParameterObject))],
           responses: { '200': { ...jsonResponse('LearningList', 'Bounded sources'), headers: etagHeaders },
             '304': notModified, '400': problem('Invalid query'), '500': problem('Unexpected failure') },
@@ -65,9 +65,8 @@ export function createOpenApiDocument(): OpenAPIObject {
       '/star-map': {
         get: {
           operationId: 'readStarMap', summary: 'Read bounded expression nodes',
-          description: 'One node per stored expression with an owned learning source, including retained historical duplicates. recordCount counts visible learning records for that node, not practice or mastery. Default limit 20, maximum 100; expression createdAt descending then UUID descending. hasMore is a bounded-read hint, not a total. No semantic edges, ranking, coordinates or full-graph claim.',
-          parameters: [ifNoneMatch, { name: 'limit', in: 'query', required: false,
-            schema: schema(StarMapQuerySchema.shape.limit.unwrap(), 'input') }],
+          description: 'One node per stored expression with an owned learning source, including retained historical duplicates. recordCount counts visible learning records for that node, not practice or mastery. Default limit 20, maximum 100; expression createdAt descending then UUID descending. hasMore is a bounded-read hint, not a total. Same mode/offset/cursor/time rules as learning-records; time filters expression creation, not source time. recordCount remains all visible sources. Cursor cannot cross resources. No semantic edges, ranking, coordinates or full-graph claim.',
+          parameters: [ifNoneMatch, ...Object.entries(StarMapQuerySchema.shape).map(([name, value]) => ({ name, in: 'query', required: false, schema: schema(value.unwrap(), 'input') } as ParameterObject))],
           responses: { '200': { ...jsonResponse('StarMap', 'Expression nodes'), headers: etagHeaders },
             '304': notModified, '400': problem('Invalid query'), '500': problem('Unexpected failure') },
         },

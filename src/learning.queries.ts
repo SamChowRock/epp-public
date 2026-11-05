@@ -1,3 +1,4 @@
+import { pageRequest, pageResult } from './pagination.js';
 import type { Prisma } from './generated/prisma/client.js';
 import { DatabaseService } from './database.service.js';
 import { DEVELOPMENT_USER_ID } from './database-config.js';
@@ -33,16 +34,17 @@ function recordView(row: RecordRow) {
 }
 
 export class LearningQueries {
-  constructor(private readonly database: DatabaseService, private readonly state: ApplicationState) {}
+  constructor(private readonly database: DatabaseService, private readonly state: ApplicationState, private readonly cursorKey: string) {}
 
   list(query: LearningQuery) {
-    const limit = Number(query.limit ?? '20');
+    const page = pageRequest(query, 'learning-records', DEVELOPMENT_USER_ID, this.cursorKey);
+    const { limit } = page;
     return this.state.track(() => this.database.run('listLearningRecords', async () => {
       const rows = await this.database.client.learningRecord.findMany({
-        where: { ...ownedRecord, ...(query.expressionId ? { expressionId: query.expressionId } : {}) },
-        select: recordSelect, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], take: limit + 1,
+        where: { ...ownedRecord, ...page.where, ...(query.expressionId ? { expressionId: query.expressionId } : {}) },
+        select: recordSelect, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], take: limit + 1, skip: page.offset,
       });
-      return { items: rows.slice(0, limit).map(recordView), limit, hasMore: rows.length > limit };
+      return { items: rows.slice(0, limit).map(recordView), limit, hasMore: rows.length > limit, ...pageResult(page, rows, this.cursorKey) };
     }));
   }
 
@@ -67,16 +69,17 @@ export class LearningQueries {
     return result;
   }
 
-  starMap(query: Pick<LearningQuery, 'limit'>) {
-    const limit = Number(query.limit ?? '20');
+  starMap(query: Omit<LearningQuery, 'expressionId'>) {
+    const page = pageRequest(query, 'star-map', DEVELOPMENT_USER_ID, this.cursorKey);
+    const { limit } = page;
     return this.state.track(() => this.database.run('readStarMap', async () => {
       const rows = await this.database.client.expression.findMany({
-        where: { userId: DEVELOPMENT_USER_ID, learningRecords: { some: ownedRecord } },
+        where: { ...page.where, userId: DEVELOPMENT_USER_ID, learningRecords: { some: ownedRecord } },
         select: { ...expressionSelect, _count: { select: { learningRecords: { where: ownedRecord } } } },
-        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], take: limit + 1,
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], take: limit + 1, skip: page.offset,
       });
       return { nodes: rows.slice(0, limit).map(row => ({ ...expressionView(row), recordCount: row._count.learningRecords })),
-        limit, hasMore: rows.length > limit };
+        limit, hasMore: rows.length > limit, ...pageResult(page, rows, this.cursorKey) };
     }));
   }
 }

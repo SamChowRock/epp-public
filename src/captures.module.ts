@@ -1,3 +1,5 @@
+import { APP_CONFIG } from './config.js';
+import type { AppConfig } from './config.js';
 import { LearningController } from './learning.controller.js';
 import { LearningQueries } from './learning.queries.js';
 import { Module } from '@nestjs/common';
@@ -21,8 +23,8 @@ import { PrismaCandidateStore } from './prisma-candidate.store.js';
   controllers: [CapturesController, CandidatesController, LearningController],
   providers: [
     { provide: LearningQueries,
-      useFactory: (database: DatabaseService, state: ApplicationState) => new LearningQueries(database, state),
-      inject: [DatabaseService, ApplicationState] },
+      useFactory: (database: DatabaseService, state: ApplicationState, config: AppConfig) => new LearningQueries(database, state, config.cursorKey),
+      inject: [DatabaseService, ApplicationState, APP_CONFIG] },
     { provide: PrismaCandidateStore,
       useFactory: (database: DatabaseService) => new PrismaCandidateStore(database),
       inject: [DatabaseService] },

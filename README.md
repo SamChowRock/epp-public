@@ -1,10 +1,10 @@
 # EPP 配套实践代码
 
-## 第二十八章 查询接口
+## 第二十九章 分页与时间
 
-当前分支 `part-04/chapter-28` 从第二十七章继续，增加基础星图、学习记录列表与详情；默认20、最多100，按表达筛选来源，公开字段与用户范围明确。详情读取采纳时的修订，保留旧表达副本；本章不改变模型或迁移、不增加依赖。操作见[本章说明](database/chapter-28/README.md)，导入[请求集合](requests/chapter-28.postman_collection.json)。
+当前分支 `part-04/chapter-29` 从第二十八章继续，为学习记录和星图提供显式Offset／Cursor分页与UTC半开时间区间。旧请求不传mode时保持原结构；模型、迁移与依赖不变。操作与密钥配置见[本章说明](database/chapter-29/README.md)，导入[请求集合](requests/chapter-29.postman_collection.json)。
 
-表达复用与回执仍沿用第二十七章。新接口的hasMore只是截取提示，分页在下一章扩展；当前无真实登录、语义关系、坐标或掌握等级。此前章节说明只描述对应版本。
+游标绑定资源、用户、排序、limit和筛选，整轮有效期30分钟；分页读取实时数据，不承诺固定快照。生产启动新增必填CURSOR_HMAC_KEY；开发／测试未设置时使用进程内随机值，重建应用后旧游标失效。此前章节说明只描述对应版本。
 
 前置章节是第四篇第22章（`part-04/chapter-22`），该章从 `part-03/chapter-21` 最终状态继续。保留旧记录并回填初始修订，新增追加修订和历史查询，旧PATCH改为追加快照，详情／列表读取最新内容。先完成第三篇环境与迁移，再按[第二十二章说明](database/chapter-22/README.md)停写、迁移、核对和切换，旧字段保留初始副本，不再代表当前内容。
 
@@ -20,7 +20,7 @@ nvm use
 node --version
 npm ci
 npm run check
-# 先按第二十八章说明核对已有迁移，并在 .env 配置运行连接，再启动。
+# 先按第二十九章说明核对已有迁移，并在 .env 配置运行连接，再启动。
 npm run dev
 ```
 
@@ -32,7 +32,7 @@ Prisma CLI、Client 与 adapter-pg 固定 7.10.1，pg 为 8.16.3；本章连接�
 
 沿用第十一章的 Zod `4.6.6` 与 @nestjs/swagger `11.4.7`，后者提供 Swagger UI 及其静态资源。其他运行依赖为 Nest `11.2.5`（common、core、platform-express）、reflect-metadata `0.2.2` 与 rxjs `7.8.2`；沿用的独立支线示例显式依赖 Express `5.2.1`，适配器也使用 Express 5，overrides 固定其间接依赖 Multer `2.5.0`。开发依赖保留 TypeScript `5.9.3`、tsx `4.23.15`、`@types/node` `24.13.3`，以及 `@types/express` `5.0.6`。`npm ci` 按锁文件安装完整依赖；`npm run build` 先清理 `dist/`，编译业务源码，再复制默认配置；`npm start` 只运行产物。服务默认监听 `http://127.0.0.1:3000`。默认端口来自 `config/service.json`，启动时由 `src/config.ts`（产物为 `dist/src/config.js`）相对于模块读取，不依赖调用者的工作目录。
 
-可以为一次启动覆盖端口：
+以下生产命令都要求先按第二十九章说明配置 CURSOR_HMAC_KEY 和 DATABASE_URL；可以为一次启动覆盖端口：
 
 ```bash
 NODE_ENV=production PORT=3001 node --enable-source-maps dist/src/server.js
@@ -70,7 +70,7 @@ curl -i http://127.0.0.1:3000/captures \
 
 保持 `npm run dev` 运行，在 Chrome 的 `chrome://inspect` 中打开 Node 调试目标，连接后，在 `src/captures.service.ts` 的 `await this.store.insert(capture)` 和 `src/prisma-capture.store.ts` 的数据库写入处设置断点并再次发送创建请求。调试器仅监听本机 `9229` 端口。停止时，在运行服务的终端按 `Ctrl+C`。
 
-当前主服务已接入数据库，尚不包含登录、AI、分页、CORS 配置和生产部署。第十三章统一协调 `SIGINT`／`SIGTERM`：停止接收、等待传输和已追踪工作、释放资源；达到关闭期限时以失败状态退出。完整原理与操作步骤见 [EPP 后端开发实践](https://github.com/SamChowRock/EPP-Book)。
+当前主服务已接入数据库，尚不包含登录、AI、CORS 配置和生产部署。第十三章统一协调 `SIGINT`／`SIGTERM`：停止接收、等待传输和已追踪工作、释放资源；达到关闭期限时以失败状态退出。完整原理与操作步骤见 [EPP 后端开发实践](https://github.com/SamChowRock/EPP-Book)。
 
 第二章支线“从字节到 JSON”另有独立示例。在项目根目录执行：
 
@@ -610,7 +610,7 @@ npm test
 
 ## 本机配置与交付核对
 
-第三章起可将 `.env.example` 复制为 `.env`，填写开发 PORT。dev/debug 通过 Node 的 --env-file-if-exists 加载它，已存在的进程环境变量优先；NODE_ENV 由对应脚本明确指定。`.env` 不进入版本控制或交付目录，生产进程由启动环境提供 PORT 等配置，npm start 不自动读取开发文件。修改 .env 后手动重新启动 dev；复制示例不会自动改变已经运行的进程。
+第三章起可将 `.env.example` 复制为 `.env`，填写开发 PORT。dev/debug 通过 Node 的 --env-file-if-exists 加载它，已存在的进程环境变量优先；NODE_ENV 由对应脚本明确指定。`.env` 不进入版本控制或交付目录，生产进程由启动环境提供 CURSOR_HMAC_KEY、PORT 等配置，npm start 不自动读取开发文件。修改 .env 后手动重新启动 dev；复制示例不会自动改变已经运行的进程。
 
 `npm run check` 是本章的静态检查入口。检查代码后，仍需用已保存的 Postman 请求核对合法创建、错误拒绝、列表与详情；静态检查不能证明 HTTP 可用。生产模式核对请使用另外的端口和请求集合副本，避免把请求发到开发进程。采用第五章构建布局后，在独立运行目录执行 npm ci --omit=dev，再用 PORT=3001 npm start 启动产物，Postman 中将该集合副本的 baseUrl 设为 http://127.0.0.1:3001；核对依赖、配置、正常与失败响应，最后停止该进程。
 

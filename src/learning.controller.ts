@@ -22,7 +22,7 @@ export class LearningController {
   }
   @Get('star-map')
   @UseInterceptors(new ResponseSchemaInterceptor(StarMapSchema))
-  starMap(@Query(new SchemaPipe(StarMapQuerySchema)) query: Pick<LearningQuery, 'limit'>) {
+  starMap(@Query(new SchemaPipe(StarMapQuerySchema)) query: Omit<LearningQuery, 'expressionId'>) {
     return this.queries.starMap(query);
   }
 }
