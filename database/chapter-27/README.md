@@ -12,16 +12,17 @@
 nvm use
 npm ci
 npm run check
-npm run prisma:verify -- migrate deploy
-npm run prisma:verify -- migrate status
-npm run prisma:verify -- migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
+unset DATABASE_URL SHADOW_DATABASE_URL
+npm run db:verify -- migrate deploy
+npm run db:verify -- migrate status
+npm run db:verify -- migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
 ```
 
-`prisma:verify` 读取 `.env.database-verify`；确认其中 DATABASE_URL 指向 VERIFY。迁移显式事务、单次等锁2秒、语句30秒。遇到孤立表达、多个形式或多个归属用户会主动中止，先核对真实来源，不能用任取一条来掩盖异常。
+`db:verify` 读取 `.env.database-verify`；确认其中 DATABASE_URL 指向 VERIFY。迁移显式事务、单次等锁2秒、语句30秒。遇到孤立表达、多个形式或多个归属用户会主动中止，先核对真实来源，不能用任取一条来掩盖异常。
 
 4. 在同一 VERIFY 连接执行 [结构与数据核对](01-inspect.sql) 和历史审核第二条查询。所有旧 ID、显示文本、创建时间、学习来源与回执JSON保持；每组按 created_at/id 选择最早表达持有复用键，其余旧表达键为NULL。NULL表示保留历史副本，不能据此排除读取。
-5. 校验通过后，以同样停写顺序对 DEV 执行 `npm run prisma -- migrate deploy` 和 `npm run prisma -- migrate status`。API 的 `.env` DATABASE_URL 也需核对；CLI成功不证明API连到同一库。
-6. 若迁移失败，先读 `_prisma_migrations.logs` 和实际列／函数状态。确认事务已回滚、解除阻塞或完成事实修复后，再执行 `npm run prisma:verify -- migrate resolve --rolled-back 20261104160000_expression_identity`，随后 deploy。resolve只登记历史，不修复数据。不要清库、改旧迁移或在部分升级状态恢复旧写入者。
+5. 校验通过后，确认 `.env.database` 指向 DEV，以同样停写顺序对 DEV 执行 `npm run db -- migrate deploy` 和 `npm run db -- migrate status`。API 的 `.env` DATABASE_URL 也需核对；CLI成功不证明API连到同一库。
+6. 若迁移失败，先读 `_prisma_migrations.logs` 并查实际列和函数。如果 CLI 只显示事务已中止，重跑历史审核的第一条查询，检查表达归属和形式。确认事务已回滚、解除阻塞或完成事实修复后，在失败的目标库登记回滚。若失败的是 VERIFY，执行 `npm run db:verify -- migrate resolve --rolled-back 20261104160000_expression_identity`，随后用同一脚本 deploy。若失败的是 DEV，两步均使用 `npm run db`。resolve只登记历史，不修复数据。不要清库、改旧迁移或在部分升级状态恢复旧写入者。
 
 ## 开发联调
 
