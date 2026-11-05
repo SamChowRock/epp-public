@@ -414,9 +414,20 @@
             "exec": [
               "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
               "const value=pm.response.json();",
-              "const node=value.nodes.find(x=>x.id===pm.collectionVariables.get('expressionId'));",
-              "pm.test('共享表达至少两条来源',()=>pm.expect(node.recordCount).to.be.at.least(2));",
-              "pm.test('没有比较键',()=>pm.expect(node).not.to.have.property('semanticKey'));"
+              "pm.test('星图首页最多 100 个节点', () => {",
+              "  pm.expect(value.limit).to.eql(100);",
+              "  pm.expect(value.nodes).to.be.an('array');",
+              "  pm.expect(value.nodes.length).to.be.at.most(value.limit);",
+              "  pm.expect(value.hasMore).to.be.a('boolean');",
+              "  if (value.hasMore) pm.expect(value.nodes.length).to.eql(value.limit);",
+              "});",
+              "pm.test('可见节点有来源且不公开比较键', () => {",
+              "  for (const node of value.nodes) {",
+              "    pm.expect(Number.isInteger(node.recordCount)).to.eql(true);",
+              "    pm.expect(node.recordCount).to.be.at.least(1);",
+              "    pm.expect(node).not.to.have.property('semanticKey');",
+              "  }",
+              "});"
             ]
           }
         }
@@ -459,7 +470,14 @@
               "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
               "const value=pm.response.json();",
               "pm.test('筛选保持表达身份',()=>pm.expect(value.items.every(x=>x.expression.id===pm.collectionVariables.get('expressionId'))).to.eql(true));",
-              "pm.test('保留A与B',()=>{const ids=value.items.map(x=>x.source.candidateId);pm.expect(ids).to.include(pm.collectionVariables.get('candidateA'));pm.expect(ids).to.include(pm.collectionVariables.get('candidateB'));});"
+              "pm.test('A 与 B 各有自己的学习记录', () => {",
+              "  const findSource = key => value.items.find(item => item.source.candidateId === pm.collectionVariables.get(key));",
+              "  const a = findSource('candidateA');",
+              "  const b = findSource('candidateB');",
+              "  pm.expect(a).to.be.an('object');",
+              "  pm.expect(b).to.be.an('object');",
+              "  pm.expect(a.id).not.to.eql(b.id);",
+              "});"
             ]
           }
         }
