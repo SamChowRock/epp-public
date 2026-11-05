@@ -105,6 +105,7 @@ model LearningRecord {
   user         User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "learning_records_user_id_fkey")
   candidate    Candidate @relation(fields: [candidateId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "learning_records_candidate_id_fkey")
   expression   Expression @relation(fields: [expressionId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "learning_records_expression_id_fkey")
+  @@index([userId, createdAt(sort: Desc), id(sort: Desc)], map: "learning_records_user_feed_idx")
   @@map("learning_records")
 }
 

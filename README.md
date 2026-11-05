@@ -1,8 +1,12 @@
 # EPP 配套实践代码
 
+## 第三十章 索引与执行计划
+
+本章分支 `part-04/chapter-30` 从第二十九章继续。给学习记录追加一份有序索引，保留接口和旧数据。先按[本章操作说明](database/chapter-30/README.md)在已有数据的校验库保存计划，然后迁移、重读并比较。
+
 ## 第二十九章 分页与时间
 
-当前分支 `part-04/chapter-29` 从第二十八章继续，为学习记录和星图提供显式Offset／Cursor分页与UTC半开时间区间。旧请求不传mode时保持原结构；模型、迁移与依赖不变。操作与密钥配置见[本章说明](database/chapter-29/README.md)，导入[请求集合](requests/chapter-29.postman_collection.json)。
+前置分支 `part-04/chapter-29` 从第二十八章继续，为学习记录和星图提供显式Offset／Cursor分页与UTC半开时间区间。旧请求不传mode时保持原结构；模型、迁移与依赖不变。操作与密钥配置见[本章说明](database/chapter-29/README.md)，导入[请求集合](requests/chapter-29.postman_collection.json)。
 
 游标绑定资源、用户、排序、limit和筛选，整轮有效期30分钟；分页读取实时数据，不承诺固定快照。生产启动新增必填CURSOR_HMAC_KEY；开发／测试未设置时使用进程内随机值，重建应用后旧游标失效。此前章节说明只描述对应版本。
 
@@ -20,7 +24,7 @@ nvm use
 node --version
 npm ci
 npm run check
-# 先按第二十九章说明核对已有迁移，并在 .env 配置运行连接，再启动。
+# 先按第三十章说明核对索引迁移，并在 .env 配置运行连接，再启动。
 npm run dev
 ```
 
