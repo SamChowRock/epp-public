@@ -1,3 +1,5 @@
+import { removeTestCaptures } from './cleanup.mjs';
+import './database-env.mjs';
 import test from 'node:test';
 import { randomUUID } from 'node:crypto';
 import assert from 'node:assert/strict';
@@ -7,24 +9,12 @@ import { DatabaseService } from '../dist/src/database.service.js';
 test('one operation replays, rejects changed intent, and rolls back when receipt storage fails', async t => {
   const app = await createApp();
   const db = app.get(DatabaseService).client;
+  const preservedExpressions = new Set((await db.expression.findMany({ select: { id: true } })).map(row => row.id));
   let capture, revision;
   t.after(async () => {
     try {
       await db.$executeRawUnsafe('ALTER TABLE command_receipts DROP CONSTRAINT IF EXISTS receipt_test_reject');
-      if (revision) {
-        const candidates = await db.candidate.findMany({ where: { revisionId: revision.id } });
-        const ids = candidates.map(x => x.id);
-        const records = await db.learningRecord.findMany({ where: { candidateId: { in: ids } } });
-        await db.commandReceipt.deleteMany({ where: { candidateId: { in: ids } } });
-        await db.learningRecord.deleteMany({ where: { candidateId: { in: ids } } });
-        for (const expressionId of new Set(records.map(row => row.expressionId))) {
-          await db.expressionForm.deleteMany({ where: { expressionId } });
-          await db.expression.delete({ where: { id: expressionId } });
-        }
-        await db.candidate.deleteMany({ where: { revisionId: revision.id } });
-        await db.captureRevision.deleteMany({ where: { captureId: capture.id } });
-      }
-      if (capture) await db.capture.delete({ where: { id: capture.id } });
+      if (capture) await removeTestCaptures(db, [capture.id], preservedExpressions);
     } finally { await app.close(); }
   });
   await app.listen(0, '127.0.0.1');
@@ -36,9 +26,9 @@ test('one operation replays, rejects changed intent, and rolls back when receipt
   }
   capture = (await post('/captures', { originalText: 'Saved operation identity.' })).body;
   revision = await db.captureRevision.findFirstOrThrow({ where: { captureId: capture.id } });
-  const candidates = [];
+  const candidates = [], englishText = 'Keep the same identity. ' + randomUUID();
   for (let candidateNo = 1; candidateNo <= 3; candidateNo++) candidates.push((await post(`/revisions/${revision.id}/candidates`, {
-    candidateNo, englishText: 'Keep the same identity.', chineseMeaning: '保留相同身份。',
+    candidateNo, englishText, chineseMeaning: '保留相同身份。',
   })).body);
   const path = `/candidates/${candidates[0].id}/accept`, operationId = randomUUID();
   for (const body of [{}, { operationId: 'bad' }, { operationId, force: true }, { operationId: operationId.toUpperCase() }]) {

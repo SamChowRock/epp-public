@@ -42,6 +42,6 @@ DBeaver执行01-inspect.sql逐条查询，替换全零UUID为此次集合变量�
 
 npm run dev沿用9229与源码保存后自动编译重启。VS Code先在CandidatesService.accept的结果判断行暂停，此处store的事务Promise已结束，适合查看返回对象；再用同一操作在PrismaCandidateStore.accept的previous分支观察命中回执。事务内断点停留超过5秒可能使本次请求失败，及时继续，随后用同一身份确认结果；此前已经提交的回执不会随这次读取事务回滚。
 
-`npm test`只对独立测试库运行；会添加只针对当次虚构fixture的CHECK，验证末步回滚、同身份并发重放、不同身份竞争、请求冲突、旧记录及归属。使用单独的DATABASE_URL，不能把日常库当测试库。
+`npm test`只对独立测试库运行；会添加只针对当次虚构fixture的CHECK，验证末步回滚、同身份并发重放、不同身份竞争、请求冲突、旧记录及归属。在根目录 `.env.test` 显式设置独立测试库的 `TEST_DATABASE_URL`，不能把日常库当测试库。
 
 交付仍为dist、package.json、package-lock.json和.npmrc；独立目录执行npm ci --omit=dev，运行环境提供DATABASE_URL，再npm start。docs默认404，无Inspector或watch。保留一次成功操作的candidateId与operationId，重启后重放并比较原结果；不能为了验证重启另建操作。主线只保证当前用户范围、单数据库内的采纳业务与回执原子性；不提供回执清理、后台重试队列或外部发送的原子性。
