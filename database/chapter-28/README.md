@@ -14,6 +14,6 @@
 
 两个列表默认20、最大100，按各自资源createdAt降序，再按UUID降序。limit只接受1～100的十进制字符串；重复／未知参数400。hasMore来自多取一行，没有total或下一页游标；下一章继续分页。未知或无权读取的详情404；未知或无权读取的expressionId筛选得到200空列表。不要把空列表用于证明全库为空。
 
-在DBeaver执行[关系观察SQL](01-read-model.sql)，比较学习来源行数与表达节点数。查询不得以semantic_key非空为条件排除旧副本。需要验证多个用户时只在隔离库使用虚构样本；不能把请求中的userId当作当前身份。自动检查 `npm test` 也仅连接隔离校验库。
+在DBeaver执行[关系观察SQL](01-read-model.sql)，比较学习来源行数与表达节点数。查询不得以semantic_key非空为条件排除旧副本。需要验证多个用户时只在隔离库使用虚构样本；不能把请求中的userId当作当前身份。自动检查 `npm test` 也仅连接隔离校验库。测试连接在根目录 `.env.test` 用 `TEST_DATABASE_URL` 单独提供；缺失时在打开应用前退出，不回退到开发 `.env` 或继承的 `DATABASE_URL`。配置与运行方式见[项目测试说明](../../README.md)。
 
 最后使用独立目录的dist、package.json、package-lock.json、.npmrc执行 `npm ci --omit=dev`，通过进程环境提供DATABASE_URL，以 `NODE_ENV=production PORT=3001 node dist/src/server.js` 启动；生产默认docs404，无Inspector／watch。核对旧学习ID详情、原采纳回执和新查询，重启后结果保持。新读接口失败时通过X-Request-Id和安全错误码定位，不返回假空列表掩盖数据库故障。

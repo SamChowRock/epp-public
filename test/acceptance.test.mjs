@@ -1,3 +1,5 @@
+import { removeTestCaptures } from './cleanup.mjs';
+import './database-env.mjs';
 import test from 'node:test';
 import { randomUUID } from 'node:crypto';
 import assert from 'node:assert/strict';
@@ -7,6 +9,7 @@ import { DatabaseService } from '../dist/src/database.service.js';
 test('acceptance rolls back a late failure, then commits once under contention', async t => {
   const app = await createApp();
   const database = app.get(DatabaseService), db = database.client;
+  const preservedExpressions = new Set((await db.expression.findMany({ select: { id: true } })).map(row => row.id));
   let clean = async () => {};
   t.after(async () => { try { await clean(); } finally { await app.close(); } });
   await app.listen(0, '127.0.0.1');
@@ -19,20 +22,11 @@ test('acceptance rolls back a late failure, then commits once under contention',
   const capture = (await post('/captures', { originalText: 'Acceptance regression example.' })).data;
   const revision = (await db.captureRevision.findFirstOrThrow({ where: { captureId: capture.id } }));
   const candidate = (await post(`/revisions/${revision.id}/candidates`, {
-    candidateNo: 1, englishText: 'I can explain it.', chineseMeaning: '我能解释。',
+    candidateNo: 1, englishText: 'I can explain it. ' + randomUUID(), chineseMeaning: '我能解释。',
   })).data;
   clean = async () => {
     await db.$executeRawUnsafe('ALTER TABLE public.learning_records DROP CONSTRAINT IF EXISTS acceptance_test_reject');
-    const records = await db.learningRecord.findMany({ where: { candidateId: candidate.id } });
-    await db.commandReceipt.deleteMany({ where: { candidateId: candidate.id } });
-    await db.learningRecord.deleteMany({ where: { candidateId: candidate.id } });
-    for (const row of records) {
-      await db.expressionForm.deleteMany({ where: { expressionId: row.expressionId } });
-      await db.expression.delete({ where: { id: row.expressionId } });
-    }
-    await db.candidate.deleteMany({ where: { revisionId: revision.id } });
-    await db.captureRevision.deleteMany({ where: { captureId: capture.id } });
-    await db.capture.delete({ where: { id: capture.id } });
+    await removeTestCaptures(db, [capture.id], preservedExpressions);
   };
   // Run against an isolated test database; the temporary constraint targets only this fixture.
   assert.match(candidate.id, /^[0-9a-f-]{36}$/);

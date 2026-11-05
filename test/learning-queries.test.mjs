@@ -1,3 +1,5 @@
+import { removeTestCaptures } from './cleanup.mjs';
+import './database-env.mjs';
 import test from 'node:test';
 import http from 'node:http';
 import assert from 'node:assert/strict';
@@ -8,18 +10,11 @@ import { DEVELOPMENT_USER_ID } from '../dist/src/database-config.js';
 
 test('bounded reads preserve sources, exclude foreign relations and retain historical identities', async t => {
   const app = await createApp(), db = app.get(DatabaseService).client;
-  const captures = [], expressions = new Set(), foreign = randomUUID();
+  const preservedExpressions = new Set((await db.expression.findMany({ select: { id: true } })).map(row => row.id));
+  const captures = [], foreign = randomUUID();
   t.after(async () => {
     try {
-      const candidates = await db.candidate.findMany({ where: { revision: { captureId: { in: captures } } } });
-      const ids = candidates.map(x => x.id);
-      await db.commandReceipt.deleteMany({ where: { candidateId: { in: ids } } });
-      await db.learningRecord.deleteMany({ where: { candidateId: { in: ids } } });
-      await db.expressionForm.deleteMany({ where: { expressionId: { in: [...expressions] } } });
-      await db.expression.deleteMany({ where: { id: { in: [...expressions] } } });
-      await db.candidate.deleteMany({ where: { id: { in: ids } } });
-      await db.captureRevision.deleteMany({ where: { captureId: { in: captures } } });
-      await db.capture.deleteMany({ where: { id: { in: captures } } });
+      await removeTestCaptures(db, captures, preservedExpressions);
       await db.user.deleteMany({ where: { id: foreign } });
     } finally { await app.close(); }
   });
@@ -40,7 +35,7 @@ test('bounded reads preserve sources, exclude foreign relations and retain histo
       candidateNo: i % 5 + 1, englishText: i < 2 ? text : text + i, chineseMeaning: '查询样本',
     })).body;
     const accepted = await request('/candidates/' + candidate.id + '/accept', { operationId: randomUUID() });
-    assert.equal(accepted.status, 201);saved.push(accepted.body);expressions.add(accepted.body.expression.id);
+    assert.equal(accepted.status, 201);saved.push(accepted.body);
   }
   await request('/captures/' + captures[0] + '/revisions', { originalText: 'New source is not historical evidence.', chineseIntent: null });
   const list = await request('/learning-records');assert.equal(list.status, 200);

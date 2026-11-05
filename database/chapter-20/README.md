@@ -93,6 +93,6 @@ node --env-file=.env.database-recovery node_modules/prisma/build/index.js \
 
 ## 交付与恢复
 
-`npm run check` 和已有 `npm test` 沿用；test需要已迁移的开发数据库。生产构建 `npm run build` 后，由目标环境提供运行配置再 `npm start`，不开放Inspector，默认不开放docs；迁移应由有固定Prisma CLI和迁移文件的独立步骤先执行。`--omit=dev`的应用目录通常没有CLI，不能把迁移塞进每次应用启动。
+`npm run check` 和已有 `npm test` 沿用；test需要已迁移的独立校验库。生产构建 `npm run build` 后，由目标环境提供运行配置再 `npm start`，不开放Inspector，默认不开放docs；迁移应由有固定Prisma CLI和迁移文件的独立步骤先执行。`--omit=dev`的应用目录通常没有CLI，不能把迁移塞进每次应用启动。测试连接在根目录 `.env.test` 用 `TEST_DATABASE_URL` 单独提供；缺失时在打开应用前退出，不回退到开发 `.env` 或继承的 `DATABASE_URL`。配置与运行方式见[项目测试说明](../../README.md)。
 
 本次可空扩展兼容第十九章旧程序读写；新程序连旧结构应在启动探测失败。回退旧程序保留新列和值，意图功能暂不可用；不执行DROP来“配合代码回退”。生产并行发布及备份恢复的完整安排在部署篇展开。

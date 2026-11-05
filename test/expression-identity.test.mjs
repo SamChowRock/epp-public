@@ -1,3 +1,5 @@
+import { removeTestCaptures } from './cleanup.mjs';
+import './database-env.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
@@ -6,23 +8,11 @@ import { DatabaseService } from '../dist/src/database.service.js';
 
 test('identity reuse preserves sources, separates senses, and rolls back mismatched identity', async t => {
   const app = await createApp(), db = app.get(DatabaseService).client;
+  const preservedExpressions = new Set((await db.expression.findMany({ select: { id: true } })).map(row => row.id));
   let capture;
   t.after(async () => {
     try {
-      if (capture) {
-        const candidates = await db.candidate.findMany({ where: { revision: { captureId: capture.id } } });
-        const ids = candidates.map(c => c.id);
-        const records = await db.learningRecord.findMany({ where: { candidateId: { in: ids } } });
-        await db.commandReceipt.deleteMany({ where: { candidateId: { in: ids } } });
-        await db.learningRecord.deleteMany({ where: { candidateId: { in: ids } } });
-        for (const id of new Set(records.map(r => r.expressionId))) {
-          await db.expressionForm.deleteMany({ where: { expressionId: id } });
-          await db.expression.delete({ where: { id } });
-        }
-        await db.candidate.deleteMany({ where: { id: { in: ids } } });
-        await db.captureRevision.deleteMany({ where: { captureId: capture.id } });
-        await db.capture.delete({ where: { id: capture.id } });
-      }
+      if (capture) await removeTestCaptures(db, [capture.id], preservedExpressions);
     } finally { await app.close(); }
   });
   await app.listen(0, '127.0.0.1');const base = await app.getUrl();
@@ -36,8 +26,9 @@ test('identity reuse preserves sources, separates senses, and rolls back mismatc
   assert.deepEqual(norm, { folded: 'take a break', nfc: true, conservative: true });
   capture = (await post('/captures', { originalText: 'Identity integration fixture.' })).body;
   const revision = await db.captureRevision.findFirstOrThrow({ where: { captureId: capture.id } });
-  const entries = [['  TAKE   A BREAK  ', '休息一下'], ['take a break', '休息一下'],
-    ['take a break', '暂停某项活动'], ['Leave this pending.', '保留候选'], ['Discard this.', '放弃候选']];
+  const phrase = 'take a break ' + randomUUID();
+  const entries = [['  ' + phrase.toUpperCase().replaceAll(' ', '   ') + '  ', '休息一下'], [phrase, '休息一下'],
+    [phrase, '暂停某项活动'], ['Leave this pending.', '保留候选'], ['Discard this.', '放弃候选']];
   const candidates = [];
   for (const [i, [englishText, chineseMeaning]] of entries.entries()) candidates.push((await post(`/revisions/${revision.id}/candidates`, {
     candidateNo: i + 1, englishText, chineseMeaning,
@@ -56,7 +47,7 @@ test('identity reuse preserves sources, separates senses, and rolls back mismatc
   assert.deepEqual(await accept(0), first[0]);
   const expression = await db.expression.findUniqueOrThrow({ where: { id: first[0].body.expression.id } });
   // Inject a wrong digest association without changing the original normalized content.
-  const [target] = await db.$queryRaw`SELECT public.epp_identity_v1('take a break', '暂停某项活动') AS key`;
+  const [target] = await db.$queryRaw`SELECT public.epp_identity_v1(${phrase}, '暂停某项活动') AS key`;
   await db.expression.update({ where: { id: expression.id }, data: { semanticKey: target.key } });
   try {
     assert.equal((await accept(2)).status, 500);

@@ -31,7 +31,7 @@ Postman导入 [本章集合](../../requests/chapter-27.postman_collection.json)�
 
 01～17完成后E仍pending。复制13为独立请求，改URL为candidateE，保存一个新operationId；此额外实验成功后14的初始pending断言不再适用。用 [表达锁实验](03-expression-lock.sql) 的 BEGIN和SELECT，在DBeaver会话A持锁；不要把结尾ROLLBACK一起执行。Postman发送匹配的pending候选，得到503；会话B核对没有采纳、学习记录或回执。A单独ROLLBACK，再用原operationId发送，应201。脚本使用与应用相同的无空格JSON锁键，JSON的语义相同并不代表字符串哈希相同。
 
-`npm test` 只能连接独立校验库：已有回滚用例会临时加CHECK。正常日常操作不需要反复运行整套检查。测试与SQL脚本不进入生产路由。
+`npm test` 只能连接独立校验库：已有回滚用例会临时加CHECK。正常日常操作不需要反复运行整套检查。测试与SQL脚本不进入生产路由。测试连接在根目录 `.env.test` 用 `TEST_DATABASE_URL` 单独提供；缺失时在打开应用前退出，不回退到开发 `.env` 或继承的 `DATABASE_URL`。配置与运行方式见[项目测试说明](../../README.md)。
 
 ## 产物与恢复
 

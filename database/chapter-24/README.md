@@ -38,7 +38,7 @@ VS Code连接npm run dev的本机Inspector，在PrismaCandidateStore.accept的le
 - 03-isolation.sql：仅隔离练习库；A/B库名相同但PID不同，交替执行标号块。READ COMMITTED读到10→20，REPEATABLE READ读到10→10，旧快照更新报40001后ROLLBACK。所有事务结束后删除专用chapter24_lab对象。
 - 04-savepoint.sql：一个连接，错误后ROLLBACK TO恢复；RELEASE不提交，外层ROLLBACK后count为0。只操作会话临时表。
 
-`npm test`需要独立的、已迁移并含固定开发用户的测试数据库。测试会临时ALTER learning_records加入只拒绝本次样本的约束，验证最后写入失败回滚，再删除约束并验证双请求只有一次成功；结束清理样本。不要对日常或共享数据库运行。已有HTTP读取回归与这项写入回归串行执行，避免互相改变列表。若进程被强制终止，先检查本次测试约束acceptance_test_reject与样本残留，再决定清理；不要删除业务数据或整库reset。
+`npm test`需要独立的、已迁移并含固定开发用户的测试数据库。测试会临时ALTER learning_records加入只拒绝本次样本的约束，验证最后写入失败回滚，再删除约束并验证双请求只有一次成功；结束清理样本。不要对日常或共享数据库运行。已有HTTP读取回归与这项写入回归串行执行，避免互相改变列表。若进程被强制终止，先检查本次测试约束acceptance_test_reject与样本残留，再决定清理；不要删除业务数据或整库reset。测试连接在根目录 `.env.test` 用 `TEST_DATABASE_URL` 单独提供；缺失时在打开应用前退出，不回退到开发 `.env` 或继承的 `DATABASE_URL`。配置与运行方式见[项目测试说明](../../README.md)。
 
 ## 独立产物
 
