@@ -1,3 +1,4 @@
+import './database-env.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../dist/src/app.js';
