@@ -6,7 +6,7 @@
 
 `npm run dev` 自动编译与重启，Inspector仅监听本机9229。VS Code附加已有 `EPP: attach to npm run dev` 配置，在 `learning.queries.ts` 的list查询返回后观察rows.length、limit和公开投影；运行日志只保留固定路由标签，不打印ID、查询值或原文。
 
-导入[本章Postman集合](../../requests/chapter-28.postman_collection.json)。01～11沿已有写入入口准备样本，并在旧修订采纳A/B/C；12～21核对星图节点、记录上限、按表达筛选、历史详情、空结果、重复／未知参数与非法ID。01重新执行会创建新样本并更新集合变量；重试查询无需重跑准备请求。只查看原有数据可直接使用12、13；详情ID必须来自learningRecord，不是candidate或expression。
+导入[本章Postman集合](../../requests/chapter-28.postman_collection.json)。01～11沿已有写入入口准备样本，并在旧修订采纳A/B/C；12～21核对星图节点、记录上限、按表达筛选、历史详情、空结果、重复／未知参数与非法ID。01重新执行会创建新样本并更新集合变量；重试查询无需重跑准备请求。12 只检查星图首页的上限和可见节点。复用的旧表达可能在首页之外；14 按表达 ID 查本轮 A、B 的两条来源。只查看原有星图可直接使用 12；详情ID必须来自learningRecord，不是candidate或expression。
 
 - `GET /star-map?limit=20`：每个表达身份一个节点，recordCount为可见采纳来源数；无语义边、坐标或掌握等级。
 - `GET /learning-records?limit=20&expressionId=...`：每次采纳一个items元素，expressionId可省略，过滤先于截取。
