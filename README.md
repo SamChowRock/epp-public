@@ -594,13 +594,16 @@ node examples/observable-boundaries.mjs
 
 它展示重复订阅执行两次、错误恢复成普通值、等待超时后底层工作继续完成。程序不依赖 dist，也不要求启动服务。
 
-保留一条 Node 自带测试入口的 HTTP 回归，需要已配置数据库且 DB_QUERY_DEBUG=false；比较前后基线时暂停其他写入，在另一终端执行：
+数据库测试使用单独的连接配置。首次将 [test/database.env.example](test/database.env.example) 复制为根目录 `.env.test`，填写隔离校验库的 `TEST_DATABASE_URL`，保持 `DB_QUERY_DEBUG=false`；已有文件只补所需字段，不覆盖。这个库须已应用本章迁移并含固定开发用户，可以使用第十八章建立的独立 VERIFY，不能使用 DEV 或需要保留业务数据的共享库。测试不会自动建库、迁移或清库。
+
+`npm test` 只加载 `.env.test`，不读取开发 `.env`。测试入口要求显式的 `TEST_DATABASE_URL`，并用它替换测试进程中的 `DATABASE_URL`；仅设置 `NODE_ENV=test` 不会隔离数据库。进程已有的同名变量仍优先于文件，使用文件前先清除本终端旧的 `TEST_DATABASE_URL`、`DB_QUERY_DEBUG` 和 `DOCS_ENABLED`，再核对目标库。连接凭据不提交、不打印。
 
 ```bash
+unset TEST_DATABASE_URL DB_QUERY_DEBUG DOCS_ENABLED
 npm test
 ```
 
-命令先构建，再以 NODE_ENV=test 运行 test/captures.test.mjs，默认关闭文档。测试启动独立应用与随机本机端口，读取现有基线后，检查非法 JSON 的 400／Problem／INVALID_JSON 和数据未变，最后关闭应用；需要允许本机监听。构建后源码没有变化时，可以直接 `NODE_ENV=test node --env-file-if-exists=.env --test test/captures.test.mjs`。没有引入额外测试框架，日常排错继续使用 Postman 和调试器。结束实验后运行 `npm run dev` 回到主线；生产运行保持构建产物加 `npm start`。
+命令先构建，再以 NODE_ENV=test 运行本章全部 `test/*.test.mjs`，默认关闭文档。本章还包含候选契约检查。运行时暂停该校验库的其他写入；测试的随机 HTTP 端口只隔离应用监听，不隔离数据库。构建后源码未变时，可用 `NODE_ENV=test node --env-file-if-exists=.env.test --test test/captures.test.mjs` 单独运行非法 JSON 回归，仍须显式配置测试连接。正常学习继续使用 Postman 和调试器，日常开发仍使用 `.env` 与 `npm run dev`。
 
 
 ## 本机配置与交付核对
