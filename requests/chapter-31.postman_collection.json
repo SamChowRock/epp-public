@@ -1,0 +1,497 @@
+{
+  "info": {
+    "name": "EPP 第31章 两次相反的决定",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "仅在独立校验库逐项发送；07 预期为网络错误。不要使用 Runner 从头重放。"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000"
+    },
+    {
+      "key": "proxyUrl",
+      "value": "http://127.0.0.1:3010"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 新建独立样本",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/captures",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"originalText\": \"Can you save a seat?\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "['captureId','revisionId','candidateA','candidateB','candidateC','expressionId','learningId','nextCursor'].forEach(k => pm.collectionVariables.unset(k));",
+              "['operationA','operationB','operationC'].forEach(k => pm.collectionVariables.set(k, pm.variables.replaceIn('{{$guid}}')));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+              "if (pm.response.code === 201) pm.collectionVariables.set('captureId', pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 记下第一版",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/captures/{{captureId}}/revisions"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "if (pm.response.code === 200) pm.collectionVariables.set('revisionId', pm.response.json().items[0].id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 保存候选 A",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/revisions/{{revisionId}}/candidates",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"candidateNo\": 1,\n  \"englishText\": \"Save me a seat.\",\n  \"chineseMeaning\": \"帮我留个位子\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+              "if (pm.response.code === 201) pm.collectionVariables.set('candidateA', pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 保存候选 B",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/revisions/{{revisionId}}/candidates",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"candidateNo\": 2,\n  \"englishText\": \"SAVE ME A SEAT.\",\n  \"chineseMeaning\": \"帮我留个位子\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+              "if (pm.response.code === 201) pm.collectionVariables.set('candidateB', pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 保存候选 C",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/revisions/{{revisionId}}/candidates",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"candidateNo\": 3,\n  \"englishText\": \"Leave a seat open.\",\n  \"chineseMeaning\": \"留一个空位\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+              "if (pm.response.code === 201) pm.collectionVariables.set('candidateC', pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 追加第二版",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/captures/{{captureId}}/revisions",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"originalText\": \"Can you save two seats?\",\n  \"chineseIntent\": null\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => pm.response.to.have.status(201));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 让代理丢掉 A 的首次成功响应",
+      "request": {
+        "method": "POST",
+        "url": "{{proxyUrl}}/candidates/{{candidateA}}/accept",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"operationId\": \"{{operationA}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "08 放弃 A 已经太晚",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/candidates/{{candidateA}}/discard",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 409', () => pm.response.to.have.status(409));",
+              "pm.test('CANDIDATE_CONFLICT', () => pm.expect(pm.response.json().code).to.eql('CANDIDATE_CONFLICT'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 用原身份找回 A 的结果",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/candidates/{{candidateA}}/accept",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"operationId\": \"{{operationA}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+              "if (pm.response.code === 201) pm.collectionVariables.set('expressionId', pm.response.json().expression.id);",
+              "if (pm.response.code === 201) pm.collectionVariables.set('learningId', pm.response.json().learningRecord.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 先放弃 C",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/candidates/{{candidateC}}/discard",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 再采纳 C",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/candidates/{{candidateC}}/accept",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"operationId\": \"{{operationC}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 409', () => pm.response.to.have.status(409));",
+              "pm.test('CANDIDATE_CONFLICT', () => pm.expect(pm.response.json().code).to.eql('CANDIDATE_CONFLICT'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 拿 A 的身份改采 B",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/candidates/{{candidateB}}/accept",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"operationId\": \"{{operationA}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 409', () => pm.response.to.have.status(409));",
+              "pm.test('OPERATION_CONFLICT', () => pm.expect(pm.response.json().code).to.eql('OPERATION_CONFLICT'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 用 B 自己的身份采纳 B",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/candidates/{{candidateB}}/accept",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"operationId\": \"{{operationB}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => pm.response.to.have.status(201));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "14 按表达读来源首页",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/learning-records?expressionId={{expressionId}}&mode=cursor&limit=1"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "if (pm.response.code === 200) pm.collectionVariables.set('nextCursor', pm.response.json().nextCursor);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "15 沿同一边界读第二页",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/learning-records?expressionId={{expressionId}}&mode=cursor&limit=1&cursor={{nextCursor}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "16 用 A 的学习记录回看原文",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/learning-records/{{learningId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
