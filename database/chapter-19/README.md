@@ -34,4 +34,4 @@ Prisma Client、CLI、adapter-pg 固定 7.10.1；pg 为 8.16.3，@types/pg 为 8
 
 开发监听、生产构建仍分离。`npm run build` 后 `npm start` 不生成、不迁移、不读 `.env`；由目标环境注入 DATABASE_URL、端口等。生产代码依赖 adapter-pg、pg 和 @prisma/client，保留 dist 下生成的 JS；独立产物目录需带 package.json、lock、.npmrc 与 dist，安装生产依赖。本机检查产物可用 `NODE_ENV=production PORT=3001 node --env-file=.env --enable-source-maps dist/src/server.js`，仅本机核对使用开发秘密，DB_QUERY_DEBUG 必须为 false。正式部署应使用独立数据库与最小权限角色，不能把本机 epp_owner 连接直接发布。
 
-`npm test` 只保留原来的非法 JSON 最小回归；现在先读既有列表，再验证请求被拒绝后结果不变，需要 `.env` 或进程提供开发数据库，运行时停止其他写入。不清空数据库、不建立全套测试工程。旧章节独立 Map 示例仍用其自身内存对象；第十四章数组练习应在第十四章快照中做，不把旧练习补丁套在当前持久化分支。
+本章数据库回归先读既有列表，再验证非法 JSON 被拒绝后结果不变，运行时暂停独立校验库的其他写入。不清空数据库、不建立全套测试工程。旧章节独立 Map 示例仍用其自身内存对象；第十四章数组练习应在第十四章快照中做，不把旧练习补丁套在当前持久化分支。测试连接在根目录 `.env.test` 用 `TEST_DATABASE_URL` 单独提供；缺失时在打开应用前退出，不回退到开发 `.env` 或继承的 `DATABASE_URL`。配置与运行方式见[项目测试说明](../../README.md)。
