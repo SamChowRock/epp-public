@@ -3,6 +3,7 @@ import type { AppConfig } from './config.js';
 import type { AuthenticatedRequest } from './auth-context.js';
 import { SessionService, SESSION_SECONDS } from './session.service.js';
 import { HttpError } from './http.js';
+import { requireWebAccess } from './account-access.js';
 
 export const sessionCookieName = (config: AppConfig) => config.appOrigin.startsWith('https:') ? '__Host-epp_session' : 'epp_session';
 const cookieOptions = (config: AppConfig) => ({ path: '/', httpOnly: true, sameSite: 'strict' as const,
@@ -61,7 +62,10 @@ export function sessionBoundary(service: SessionService, config: AppConfig): Req
       if (path === '/auth/login') return;
       const token = readCookie(request.headers.cookie, sessionCookieName(config));
       const identity = token === undefined ? undefined : await service.authenticate(token);
-      if (identity) request.auth = Object.freeze(identity);
+      if (identity) {
+        if (path !== '/auth/logout') requireWebAccess(identity);
+        request.auth = Object.freeze({ userId: identity.userId, sessionId: identity.sessionId });
+      }
       else if (path !== '/auth/logout') throw new HttpError(401, 'Authentication required', 'AUTH_REQUIRED');
     })().then(() => next(), (error: unknown) => { response.setHeader('Connection', 'close'); next(error); });
   };

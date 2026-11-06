@@ -13,6 +13,8 @@ datasource db {
 model User {
   id        String    @id(map: "users_pkey") @db.Uuid
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  status    String    @default("active") @db.Text
+  webEnabled Boolean @default(false) @map("web_enabled")
   commandReceipts CommandReceipt[]
   expressions Expression[]
   captures  Capture[]

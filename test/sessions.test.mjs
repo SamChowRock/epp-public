@@ -13,7 +13,7 @@ async function fixture(t) {
   const app = await createApp(), db = app.get(DatabaseService).client;
   const users = [randomUUID(), randomUUID()];
   const hash = await hashPassword(password);
-  for (const id of users) await db.user.create({ data: { id, passwordCredential: { create: { passwordHash: hash } } } });
+  for (const id of users) await db.user.create({ data: { id, webEnabled: true, passwordCredential: { create: { passwordHash: hash } } } });
   t.after(async () => {
     try {
       const captures = await db.capture.findMany({ where: { userId: { in: users } }, select: { id: true } });

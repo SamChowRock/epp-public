@@ -39,7 +39,7 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
   const document: OpenAPIObject = {
     openapi: '3.0.3',
     info: {
-      title: 'EPP Capture API', version: '0.13.0',
+      title: 'EPP Capture API', version: '0.14.0',
       description: 'PostgreSQL records belonging to the authenticated session user. Errors use Problem Details. Capture creation is not idempotent; candidate acceptance supports operation identity.',
     },
     security: [{ sessionCookie: [] }],
@@ -67,7 +67,7 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
         responses: { '204': { description: 'Signed out; no response body' }, '400': problem('Invalid body or cookie') },
       } },
       '/auth/password': { post: { operationId: 'changePassword', summary: 'Verify the old password, change it and revoke all sessions',
-        description: 'Requires a live session and the current password. Password update and all-session deletion commit together; login serializes on the same credential row. Success clears the cookie and requires a fresh login. No body/query identity override.',
+        description: 'Requires a live session and the current password. Password update and all-session deletion commit together; Login and password change lock the account before the credential row and recheck current Web eligibility. Success clears the cookie and requires a fresh login. No body/query identity override.',
         requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/ChangePassword' } } } },
         responses: { '204': { description: 'Password changed and every session revoked; no response body' },
           '400': problem('Invalid password input'), '429': problem('Attempt or concurrency limit') },
@@ -262,11 +262,13 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
       Problem: schema(ProblemSchema, 'output'),
     } },
   };
-  for (const path of Object.values(document.paths)) {
+  for (const [pathname, path] of Object.entries(document.paths)) {
     for (const operation of [path.get, path.post, path.patch, path.delete]) {
       if (!operation?.responses) continue;
       operation.responses['401'] ??= problem('Missing, expired or revoked session; code AUTH_REQUIRED');
-      if (operation === path.post || operation === path.patch || operation === path.delete) {
+      if (pathname !== '/auth/logout') {
+        operation.responses['403'] = problem('Account disabled or Web access denied; code ACCOUNT_DISABLED or WEB_ACCESS_DENIED. Write requests may also reject the Origin.');
+      } else {
         operation.responses['403'] = problem('Request origin is not allowed; code ORIGIN_REJECTED');
       }
       operation.responses['503'] = problem('Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots.');

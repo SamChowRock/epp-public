@@ -1,5 +1,9 @@
 # EPP 配套实践代码
 
+## 第三十四章 鉴权与授权
+
+从第33章继续，分支 `part-05/chapter-34` 增加账号状态与 Web 使用资格，保留所有业务归属。按[本章说明](database/chapter-34/README.md)升级独立 VERIFY；旧账号保留资格，新账号默认未开通。用[请求集合](requests/chapter-34.postman_collection.json)和 DBeaver 核对第二账号、资源隔离、现有会话403/恢复200及受限退出。当前所有 Cookie API 都受该资格约束，Postman也不例外。
+
 ## 第三十三章 Session 与 Cookie
 
 从第32章继续，分支 `part-05/chapter-33` 新增会话表和登录、当前身份、列表、撤销、退出、改密接口；已有业务改为使用当前请求身份。按[本章说明](database/chapter-33/README.md)先升级非空 VERIFY，再导入[请求集合](requests/chapter-33.postman_collection.json)登录。此前各章说明描述各自版本；当前服务无 Cookie 返回401，不能直接照旧集合匿名读取。
@@ -36,7 +40,7 @@ nvm use
 node --version
 npm ci
 npm run check
-# 先按第三十三章说明核对会话表迁移，在 .env 配置 DATABASE_URL 和 APP_ORIGIN。
+# 先按第三十四章说明核对账号资格迁移，在 .env 配置 DATABASE_URL 和 APP_ORIGIN。
 npm run dev
 ```
 
@@ -73,7 +77,7 @@ NODE_ENV=production APP_ORIGIN=http://127.0.0.1:3001 PORT=3001 node --enable-sou
 
 调试时保持同一个请求，在源码中设置断点后点击 Send。暂停期间客户端会等待；继续执行后才会收到响应。第五章起可用 VS Code 的 `EPP: attach to npm run dev` 自动重连，前面章节通过 Chrome 的 `chrome://inspect` 连接；重启后若连接断开，重新选择目标。生产运行方式见文末，日常学习保持 dev 模式。
 
-下面的 curl 是旧章匿名请求表示；在当前第33章应返回401。需要终端复现时使用权限受控的 Cookie jar 文件并给请求加 `-b`，不要把 Cookie 写在命令、历史或截图中；日常使用已登录的 Postman 集合。
+下面的 curl 是旧章匿名请求表示；在当前版本应返回401。需要终端复现时使用权限受控的 Cookie jar 文件并给请求加 `-b`，不要把 Cookie 写在命令、历史或截图中；日常使用已登录的 Postman 集合。
 
 ```bash
 curl -i http://127.0.0.1:3000/captures

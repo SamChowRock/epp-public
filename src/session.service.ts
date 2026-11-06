@@ -6,6 +6,7 @@ import { issueToken, tokenDigest } from './token.js';
 import { HttpError } from './http.js';
 import type { SessionIdentity } from './auth-context.js';
 import type { ChangePasswordInput, LoginInput } from './auth-contract.js';
+import { webAccessFailure, type AccountAccess } from './account-access.js';
 
 export const SESSION_SECONDS = 8 * 60 * 60;
 type Credential = { passwordHash: string };
@@ -33,6 +34,12 @@ export class SessionService {
       const token = issueToken(), id = randomUUID();
       const result = await this.database.run('createSession', () => this.database.client.$transaction(async tx => {
         await tx.$executeRaw`SET LOCAL lock_timeout = '1s'`;
+        const [account] = await tx.$queryRaw<AccountAccess[]>`
+          SELECT status, web_enabled AS "webEnabled" FROM public.users WHERE id = ${input.userId}::uuid FOR UPDATE
+        `;
+        if (!account) return 'changed' as const;
+        const denied = webAccessFailure(account);
+        if (denied) return denied;
         const [current] = await tx.$queryRaw<Credential[]>`
           SELECT password_hash AS "passwordHash" FROM public.password_credentials
           WHERE user_id = ${input.userId}::uuid FOR UPDATE
@@ -49,16 +56,18 @@ export class SessionService {
       }, { maxWait: 2000, timeout: 5000 }));
       if (result === 'changed') throw unauthorized();
       if (result === 'limit') throw new HttpError(429, 'Revoke an existing session before logging in again', 'SESSION_LIMIT');
+      if (result !== 'created') throw new HttpError(403, 'Account is not permitted to use this service', result);
       return { token, identity: { userId: input.userId, sessionId: id } };
     });
   }
 
-  async authenticate(token: string): Promise<SessionIdentity | undefined> {
+  async authenticate(token: string): Promise<(SessionIdentity & AccountAccess) | undefined> {
     let digest: string;
     try { digest = tokenDigest(token); } catch { return undefined; }
-    const rows = await this.state.track(() => this.database.run('authenticateSession', () => this.database.client.$queryRaw<SessionIdentity[]>`
-      SELECT id AS "sessionId", user_id AS "userId" FROM public.sessions
-      WHERE token_digest = ${digest} AND expires_at > clock_timestamp()
+    const rows = await this.state.track(() => this.database.run('authenticateSession', () => this.database.client.$queryRaw<(SessionIdentity & AccountAccess)[]>`
+      SELECT s.id AS "sessionId", s.user_id AS "userId", u.status, u.web_enabled AS "webEnabled"
+      FROM public.sessions s JOIN public.users u ON u.id = s.user_id
+      WHERE s.token_digest = ${digest} AND s.expires_at > clock_timestamp()
     `));
     return rows[0];
   }
@@ -95,26 +104,33 @@ export class SessionService {
       }
       const changed = await this.database.run('changePassword', () => this.database.client.$transaction(async tx => {
         await tx.$executeRaw`SET LOCAL lock_timeout = '1s'`;
+        const [account] = await tx.$queryRaw<AccountAccess[]>`
+          SELECT status, web_enabled AS "webEnabled" FROM public.users WHERE id = ${identity.userId}::uuid FOR UPDATE
+        `;
+        if (!account) return 'invalid' as const;
+        const denied = webAccessFailure(account);
+        if (denied) return denied;
         const [current] = await tx.$queryRaw<Credential[]>`
           SELECT password_hash AS "passwordHash" FROM public.password_credentials
           WHERE user_id = ${identity.userId}::uuid FOR UPDATE
         `;
-        if (current?.passwordHash !== credential.passwordHash) return false;
+        if (current?.passwordHash !== credential.passwordHash) return 'invalid' as const;
         const locked = await tx.$queryRaw<{ id: string }[]>`
           SELECT id FROM public.sessions WHERE id = ${identity.sessionId}::uuid
             AND user_id = ${identity.userId}::uuid FOR UPDATE
         `;
-        if (locked.length !== 1) return false;
+        if (locked.length !== 1) return 'invalid' as const;
         // A time predicate can run before FOR UPDATE waits; check again after owning the lock.
         const [active] = await tx.$queryRaw<{ valid: boolean }[]>`
           SELECT expires_at > clock_timestamp() AS valid FROM public.sessions WHERE id = ${identity.sessionId}::uuid
         `;
-        if (!active?.valid) return false;
+        if (!active?.valid) return 'invalid' as const;
         await tx.passwordCredential.update({ where: { userId: identity.userId }, data: { passwordHash } });
         await tx.session.deleteMany({ where: { userId: identity.userId } });
-        return true;
+        return 'changed' as const;
       }, { maxWait: 2000, timeout: 5000 }));
-      if (!changed) throw unauthorized();
+      if (changed === 'invalid') throw unauthorized();
+      if (changed !== 'changed') throw new HttpError(403, 'Account is not permitted to use this service', changed);
     });
   }
 }

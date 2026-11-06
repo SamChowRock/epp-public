@@ -1,12 +1,15 @@
 import { DatabaseService } from '../dist/src/database.service.js';
 import { parseDatabaseConfig } from '../dist/src/database-config.js';
+import { UserIdSchema } from '../dist/src/auth-contract.js';
+import { DEVELOPMENT_USER_ID } from '../dist/src/database-config.js';
 import { AppLogger } from '../dist/src/app-logger.js';
-import { initializeDevelopmentPassword, verifyDevelopmentPassword } from '../dist/src/password-credential.js';
+import { initializePassword, verifyPasswordCredential } from '../dist/src/password-credential.js';
 
 let db;
 try {
   const mode = process.argv[2];
-  if (process.argv.length !== 3 || !['init', 'verify'].includes(mode) || process.stdin.isTTY) {
+  const userId = process.argv[3] ?? DEVELOPMENT_USER_ID;
+  if (![3, 4].includes(process.argv.length) || !UserIdSchema.safeParse(userId).success || !['init', 'verify'].includes(mode) || process.stdin.isTTY) {
     throw new Error('PASSWORD_COMMAND_INVALID');
   }
   const chunks = [];
@@ -22,10 +25,10 @@ try {
   db = new DatabaseService(config, new AppLogger('error'));
   await db.onModuleInit();
   if (mode === 'init') {
-    await initializeDevelopmentPassword(db.client, password);
+    await initializePassword(db.client, password, userId);
     console.log('PASSWORD_CREATED');
   } else {
-    const valid = await verifyDevelopmentPassword(db.client, password);
+    const valid = await verifyPasswordCredential(db.client, password, userId);
     console.log(valid ? 'PASSWORD_MATCH' : 'PASSWORD_NO_MATCH');
     if (!valid) process.exitCode = 1;
   }

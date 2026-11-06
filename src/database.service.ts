@@ -34,6 +34,7 @@ export class DatabaseService {
     try {
       await this.client.$connect();
       // Exercise the columns needed by the API, even when the table is empty.
+      await this.client.user.findMany({ take: 1, select: { id: true, status: true, webEnabled: true } });
       await this.client.capture.findMany({ take: 1,
         select: { id: true, userId: true, originalText: true, chineseIntent: true, createdAt: true } });
       await this.client.passwordCredential.findMany({ take: 1, select: { userId: true, passwordHash: true } });
