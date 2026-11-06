@@ -600,6 +600,8 @@ npm test
 
 ## 第十三章配置、日志与关闭
 
+从第十二章跟做时，按[三个可运行阶段](examples/chapter-13-stages/README.md)推进：配置解析 → 请求日志 → 关闭协调。每段均先 check 再观察行为，可以暂停恢复；补丁用于独立第十二章目录，不覆盖自己的实现。
+
 本机 .env 可新增 LOG_LEVEL=debug、SHUTDOWN_TIMEOUT_MS=5000；已有 .env 不要直接覆盖。NODE_ENV 与文档开关由 src/config.ts 集中解析，src/http-options.ts 不再使用。PORT 和关闭期限先校验十进制表示；关闭期限为1～30000毫秒。配置无效时在创建应用前记录 CONFIG_INVALID 和字段名，返回非零退出码，不打印原值。APP_CONFIG 注入不可变配置快照；启动后改环境需重启。
 
 Postman 发送已有请求后，在响应 Headers 复制 X-Request-Id，在本机日志中搜索同一编号。开发时保存输出：
