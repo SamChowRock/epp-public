@@ -50,20 +50,14 @@ C接受1001/2000，拒绝2001，1000个emoji等于2000单元可接受，1001个e
 
 C写入长值后，停C，再次应用补丁启动B。B的详情和列表都应200；同一长值重新提交给B仍400，这是阶段写入策略。B没有截短旧值。
 
-要对照A，可提前保存第二十章dist；也可在当前项目根目录独立准备，目录名已占用则改用新名字，不覆盖。先用 `git branch --list part-03/chapter-20` 查看本地分支；有该分支时执行：
+要对照A，可提前保存第二十章运行产物；没有保存时，保留当前项目，在其根目录独立克隆旧章节。这个路径同样适用于从空目录跟写、普通克隆和单分支克隆，不要求原项目拥有Git仓库、章节分支或配套origin。源码目录 `../epp-ch20-reader` 和产物目录 `../epp-ch20-runtime` 必须尚不存在；已占用时换一组新名字并同步后续命令，不覆盖原目录。
 
 ```bash
-git worktree add --detach ../epp-ch20-reader part-03/chapter-20
+git clone --single-branch --branch part-03/chapter-20 \
+  https://github.com/SamChowRock/epp-book-code.git ../epp-ch20-reader
 ```
 
-本地没有该分支时，例如新克隆后直接进入第二十一章，改用以下路径；不要执行两次worktree add：
-
-```bash
-git fetch origin refs/heads/part-03/chapter-20:refs/remotes/origin/part-03/chapter-20
-git worktree add --detach ../epp-ch20-reader origin/part-03/chapter-20
-```
-
-显式fetch会取得第二十章的远程跟踪引用，也适用于只克隆了当前章节的情况。远程名称不是origin时同步替换；fetch失败先排查，不继续构建未知版本。成功检出后再执行共同的构建步骤：
+确认克隆成功后再执行下面的构建；失败先处理地址、分支名或连接问题，不进入已有同名目录构建未知版本。当前第二十一章的文件和改动仍保留在原项目。
 
 ```bash
 cd ../epp-ch20-reader
