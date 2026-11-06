@@ -39,7 +39,7 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "['captureId','revisionId','newRevisionId','expressionId','replayB',...['A','B','C','D','E'].map(x=>'candidate'+x)].forEach(x=>pm.collectionVariables.unset(x));",
+              "['captureId','revisionId','newRevisionId','expressionId','expressionText','candidateBText','replayB',...['A','B','C','D','E'].map(x=>'candidate'+x)].forEach(x=>pm.collectionVariables.unset(x));",
               "['A','B','C','D'].forEach(x=>pm.collectionVariables.set('operation'+x, pm.variables.replaceIn('{{$guid}}')));",
               "pm.collectionVariables.unset('learningId');"
             ]
@@ -143,7 +143,8 @@
             "exec": [
               "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
               "const value = pm.response.json();",
-              "pm.collectionVariables.set('candidateB', value.id);"
+              "pm.collectionVariables.set('candidateB', value.id);",
+              "pm.collectionVariables.set('candidateBText', value.englishText);"
             ]
           }
         }
@@ -319,7 +320,8 @@
               "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
               "const value = pm.response.json();",
               "pm.test('来源仍是候选A',()=>pm.expect(value.learningRecord.candidateId).to.eql(pm.collectionVariables.get('candidateA')));",
-              "pm.collectionVariables.set('expressionId',value.expression.id);"
+              "pm.collectionVariables.set('expressionId',value.expression.id);",
+              "pm.collectionVariables.set('expressionText',value.expression.forms[0].text);"
             ]
           }
         }
@@ -499,7 +501,7 @@
               "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
               "const value=pm.response.json();",
               "pm.test('详情是旧修订',()=>{pm.expect(value.source.revisionId).to.eql(pm.collectionVariables.get('revisionId'));pm.expect(value.source.originalText).to.eql('I need a break.');});",
-              "pm.test('候选与正式形式各自保留',()=>{pm.expect(value.source.englishText).not.to.eql(value.expression.text);pm.expect(value.source.candidateId).to.eql(pm.collectionVariables.get('candidateB'));});"
+              "pm.test('候选与正式形式各自保留',()=>{pm.expect(value.source.englishText).to.eql(pm.collectionVariables.get('candidateBText'));pm.expect(value.expression.text).to.eql(pm.collectionVariables.get('expressionText'));pm.expect(value.source.candidateId).to.eql(pm.collectionVariables.get('candidateB'));});"
             ]
           }
         }
