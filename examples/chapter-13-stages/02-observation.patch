@@ -1,0 +1,537 @@
+diff --git a/examples/filter-logs.mjs b/examples/filter-logs.mjs
+new file mode 100644
+index 0000000..d7f6503
+--- /dev/null
++++ b/examples/filter-logs.mjs
+@@ -0,0 +1,13 @@
++import { createInterface } from 'node:readline';
++
++const requestId = process.argv[2];
++if (!requestId || !/^[0-9a-f-]{36}$/i.test(requestId)) {
++  console.error('Usage: node examples/filter-logs.mjs <request-id> < logs/dev.log');
++  process.exitCode = 1;
++} else {
++  for await (const line of createInterface({ input: process.stdin, crlfDelay: Infinity })) {
++    let entry;
++    try { entry = JSON.parse(line); } catch { continue; }
++    if (entry?.message?.requestId === requestId) console.log(JSON.stringify(entry));
++  }
++}
+diff --git a/examples/module-consumer/main.ts b/examples/module-consumer/main.ts
+index dc60670..fa32a3a 100644
+--- a/examples/module-consumer/main.ts
++++ b/examples/module-consumer/main.ts
+@@ -2,6 +2,9 @@ import 'reflect-metadata';
+ import { Module } from '@nestjs/common';
+ import { NestFactory } from '@nestjs/core';
+ import { CapturesModule } from '../../src/captures.module.js';
++import { RuntimeModule } from '../../src/runtime.module.js';
++import { parseConfig } from '../../src/config.js';
++import { AppLogger } from '../../src/app-logger.js';
+ import { CapturesService } from '../../src/captures.service.js';
+ 
+ class CaptureSummary {
+@@ -14,7 +17,7 @@ class CaptureSummary {
+ }
+ 
+ @Module({
+-  imports: [CapturesModule],
++  imports: [RuntimeModule.register(parseConfig({ port: 3000 }, { NODE_ENV: 'test' }), new AppLogger('error')), CapturesModule],
+   providers: [{
+     provide: CaptureSummary,
+     useFactory: (captures: CapturesService) => new CaptureSummary(captures),
+diff --git a/examples/module-workflow/cycle.ts b/examples/module-workflow/cycle.ts
+index 97a1347..ba8716a 100644
+--- a/examples/module-workflow/cycle.ts
++++ b/examples/module-workflow/cycle.ts
+@@ -2,6 +2,9 @@ import 'reflect-metadata';
+ import { Module } from '@nestjs/common';
+ import { NestFactory } from '@nestjs/core';
+ import { CapturesModule } from '../../src/captures.module.js';
++import { RuntimeModule } from '../../src/runtime.module.js';
++import { parseConfig } from '../../src/config.js';
++import { AppLogger } from '../../src/app-logger.js';
+ import { CapturesService } from '../../src/captures.service.js';
+ 
+ class CaptureActions {
+@@ -28,7 +31,7 @@ class Preview {
+ }
+ 
+ @Module({
+-  imports: [CapturesModule],
++  imports: [RuntimeModule.register(parseConfig({ port: 3000 }, { NODE_ENV: 'test' }), new AppLogger('error')), CapturesModule],
+   providers: [
+     {
+       provide: CaptureActions,
+diff --git a/examples/module-workflow/main.ts b/examples/module-workflow/main.ts
+index c73a314..e2e230e 100644
+--- a/examples/module-workflow/main.ts
++++ b/examples/module-workflow/main.ts
+@@ -2,6 +2,9 @@ import 'reflect-metadata';
+ import { Module } from '@nestjs/common';
+ import { NestFactory } from '@nestjs/core';
+ import { CapturesModule } from '../../src/captures.module.js';
++import { RuntimeModule } from '../../src/runtime.module.js';
++import { parseConfig } from '../../src/config.js';
++import { AppLogger } from '../../src/app-logger.js';
+ import { CapturesService } from '../../src/captures.service.js';
+ import type { Capture } from '../../src/capture.js';
+ 
+@@ -23,7 +26,7 @@ class CreatePreview {
+ }
+ 
+ @Module({
+-  imports: [CapturesModule],
++  imports: [RuntimeModule.register(parseConfig({ port: 3000 }, { NODE_ENV: 'test' }), new AppLogger('error')), CapturesModule],
+   providers: [{
+     provide: CreatePreview,
+     useFactory: (captures: CapturesService) => new CreatePreview(captures),
+diff --git a/examples/request-context.mjs b/examples/request-context.mjs
+new file mode 100644
+index 0000000..3b1c971
+--- /dev/null
++++ b/examples/request-context.mjs
+@@ -0,0 +1,25 @@
++import { AsyncLocalStorage } from 'node:async_hooks';
++import { EventEmitter } from 'node:events';
++import { setTimeout as delay } from 'node:timers/promises';
++
++const context = new AsyncLocalStorage();
++let currentId;
++async function work(id, milliseconds) {
++  currentId = id;
++  return context.run({ requestId: id }, async () => {
++    await delay(milliseconds);
++    console.log({ expected: id, global: currentId, scoped: context.getStore()?.requestId });
++  });
++}
++await Promise.all([work('A', 25), work('B', 5)]);
++console.log('outside:', context.getStore());
++
++const bus = new EventEmitter();
++context.run({ requestId: 'C' }, () => {
++  bus.on('plain', () => console.log('plain:', context.getStore()?.requestId));
++  bus.on('bound', AsyncLocalStorage.bind(() => console.log('bound:', context.getStore()?.requestId)));
++});
++bus.emit('plain');
++bus.emit('bound');
++bus.removeAllListeners();
++context.disable();
+diff --git a/src/app-logger.ts b/src/app-logger.ts
+new file mode 100644
+index 0000000..dfe8da2
+--- /dev/null
++++ b/src/app-logger.ts
+@@ -0,0 +1,36 @@
++import { AsyncLocalStorage } from 'node:async_hooks';
++import { ConsoleLogger } from '@nestjs/common';
++import type { AppConfig } from './config.js';
++
++type Level = AppConfig['logLevel'];
++type Event = 'http.started' | 'http.completed' | 'http.aborted' | 'http.failed'
++  | 'store.completed' | 'store.failed' | 'app.ready' | 'app.start_failed'
++  | 'app.draining' | 'app.stopped' | 'app.stop_failed' | 'app.stop_timeout'
++  | 'resource.opened' | 'resource.closed' | 'resource.used';
++type Fields = {
++  method?: string; route?: string; status?: number; code?: string;
++  operation?: string; durationMs?: number; signal?: string;
++  port?: number; active?: number; field?: string;
++};
++const priority: Record<Level, number> = { debug: 10, info: 20, warn: 30, error: 40 };
++
++export class AppLogger {
++  private readonly context = new AsyncLocalStorage<{ requestId: string }>();
++  private readonly output = new ConsoleLogger('EPP', { json: true, colors: false });
++  constructor(private readonly level: Level) {}
++
++  withRequest<T>(requestId: string, action: () => T): T {
++    return this.context.run({ requestId }, action);
++  }
++  write(level: Level, event: Event, fields: Fields = {}): void {
++    if (priority[level] < priority[this.level]) return;
++    const { method, route, status, code, operation, durationMs, signal, port, active, field } = fields;
++    const message = {
++      event, requestId: this.context.getStore()?.requestId,
++      method, route, status, code, operation, durationMs, signal, port, active, field,
++    };
++    if (level === 'info') this.output.log(message);
++    else this.output[level](message);
++  }
++  onApplicationShutdown(): void { this.context.disable(); }
++}
+diff --git a/src/app.module.ts b/src/app.module.ts
+index 0994bd2..8096303 100644
+--- a/src/app.module.ts
++++ b/src/app.module.ts
+@@ -1,10 +1,19 @@
+ import { Module } from '@nestjs/common';
++import type { DynamicModule } from '@nestjs/common';
+ import { APP_FILTER } from '@nestjs/core';
+ import { ProblemFilter } from './problem.filter.js';
+ import { CapturesModule } from './captures.module.js';
++import { RuntimeModule } from './runtime.module.js';
++import type { AppConfig } from './config.js';
++import { AppLogger } from './app-logger.js';
+ 
+-@Module({
+-  imports: [CapturesModule],
+-  providers: [{ provide: APP_FILTER, useClass: ProblemFilter }],
+-})
+-export class AppModule {}
++@Module({})
++export class AppModule {
++  static register(config: AppConfig, logger: AppLogger): DynamicModule {
++    return {
++      module: AppModule,
++      imports: [RuntimeModule.register(config, logger), CapturesModule],
++      providers: [{ provide: APP_FILTER, useClass: ProblemFilter }],
++    };
++  }
++}
+diff --git a/src/app.ts b/src/app.ts
+index a33b4fa..3e606ac 100644
+--- a/src/app.ts
++++ b/src/app.ts
+@@ -6,16 +6,26 @@ import { captureBody } from './capture-body.js';
+ import { httpBoundary } from './http-boundary.js';
+ import { SwaggerModule } from '@nestjs/swagger';
+ import { createOpenApiDocument } from './openapi.js';
+-import { readHttpOptions } from './http-options.js';
++import { loadConfig } from './config.js';
++import type { AppConfig } from './config.js';
++import { AppLogger } from './app-logger.js';
++import { ApplicationState } from './application-state.js';
++import { requestObservation } from './request-observation.js';
+ 
+-export async function createApp(): Promise<NestExpressApplication> {
+-  const { docsEnabled } = readHttpOptions();
+-  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
++export async function createApp(
++  config?: AppConfig,
++  logger?: AppLogger,
++): Promise<NestExpressApplication> {
++  config ??= await loadConfig();
++  logger ??= new AppLogger(config.logLevel);
++  const app = await NestFactory.create<NestExpressApplication>(AppModule.register(config, logger), {
++    logger: false,
+     bodyParser: false,
+     abortOnError: false,
+   });
+   app.set('query parser', 'simple');
+-  if (docsEnabled) {
++  app.use(requestObservation(logger, app.get(ApplicationState)));
++  if (config.docsEnabled) {
+     SwaggerModule.setup('docs', app, createOpenApiDocument(), {
+       jsonDocumentUrl: 'openapi.json', raw: ['json'],
+       swaggerOptions: { validatorUrl: null },
+diff --git a/src/application-state.ts b/src/application-state.ts
+new file mode 100644
+index 0000000..fdea3a1
+--- /dev/null
++++ b/src/application-state.ts
+@@ -0,0 +1,22 @@
++export class ApplicationState {
++  draining = false;
++  private pending = 0;
++  private readonly waiters = new Set<() => void>();
++  get active(): number { return this.pending; }
++
++  async track<T>(work: () => Promise<T>): Promise<T> {
++    this.pending++;
++    try { return await work(); }
++    finally {
++      this.pending--;
++      if (this.pending === 0) {
++        for (const resolve of this.waiters) resolve();
++        this.waiters.clear();
++      }
++    }
++  }
++  whenIdle(): Promise<void> {
++    if (this.pending === 0) return Promise.resolve();
++    return new Promise(resolve => this.waiters.add(resolve));
++  }
++}
+diff --git a/src/captures.module.ts b/src/captures.module.ts
+index 97d4c70..5a0b878 100644
+--- a/src/captures.module.ts
++++ b/src/captures.module.ts
+@@ -5,12 +5,21 @@ import { CAPTURE_STORE } from './capture-store.js';
+ import type { CaptureStore } from './capture-store.js';
+ import { CaptureListQueryPipe } from './capture-query.js';
+ import { MemoryCaptureStore } from './memory-capture.store.js';
++import { ObservedCaptureStore } from './observed-capture.store.js';
++import { AppLogger } from './app-logger.js';
++import { ApplicationState } from './application-state.js';
+ 
+ @Module({
+   controllers: [CapturesController],
+   providers: [
+     CaptureListQueryPipe,
+-    { provide: CAPTURE_STORE, useClass: MemoryCaptureStore },
++    MemoryCaptureStore,
++    {
++      provide: CAPTURE_STORE,
++      useFactory: (store: MemoryCaptureStore, logger: AppLogger, state: ApplicationState) =>
++        new ObservedCaptureStore(store, logger, state),
++      inject: [MemoryCaptureStore, AppLogger, ApplicationState],
++    },
+     {
+       provide: CapturesService,
+       useFactory: (store: CaptureStore) => new CapturesService(store),
+diff --git a/src/http-boundary.ts b/src/http-boundary.ts
+index b1aba2b..669d3d3 100644
+--- a/src/http-boundary.ts
++++ b/src/http-boundary.ts
+@@ -7,7 +7,6 @@ export function httpBoundary(
+   response: Response,
+   next: NextFunction,
+ ): void {
+-  console.log(JSON.stringify({ event: 'http.request', method: request.method }));
+   try {
+     let url: URL;
+     try {
+diff --git a/src/http-options.ts b/src/http-options.ts
+deleted file mode 100644
+index 730320c..0000000
+--- a/src/http-options.ts
++++ /dev/null
+@@ -1,11 +0,0 @@
+-export function readHttpOptions(env: NodeJS.ProcessEnv = process.env) {
+-  const mode = env.NODE_ENV ?? 'development';
+-  if (!['development', 'test', 'production'].includes(mode)) {
+-    throw new Error('NODE_ENV must be development, test or production');
+-  }
+-  const rawDocs = env.DOCS_ENABLED;
+-  if (rawDocs !== undefined && rawDocs !== 'true' && rawDocs !== 'false') {
+-    throw new Error('DOCS_ENABLED must be true or false');
+-  }
+-  return { docsEnabled: rawDocs === undefined ? mode === 'development' : rawDocs === 'true' };
+-}
+diff --git a/src/http.ts b/src/http.ts
+index d5e5d30..5186e69 100644
+--- a/src/http.ts
++++ b/src/http.ts
+@@ -87,7 +87,6 @@ export function httpFailure(error: unknown): {
+   const statusCode = error instanceof HttpError ? error.statusCode
+     : error instanceof InvalidCaptureError ? 400
+     : error instanceof CaptureNotFoundError ? 404 : clientStatus ?? 500;
+-  if (statusCode === 500) console.error('Unhandled request failure:', error instanceof Error ? error.name : 'UnknownError');
+   const code = statusCode === 500 ? 'INTERNAL_ERROR'
+     : error instanceof InvalidCaptureError ? 'INVALID_CAPTURE'
+     : error instanceof CaptureNotFoundError ? 'CAPTURE_NOT_FOUND'
+diff --git a/src/labs/request-pipeline.ts b/src/labs/request-pipeline.ts
+index 4ff8450..a9788e1 100644
+--- a/src/labs/request-pipeline.ts
++++ b/src/labs/request-pipeline.ts
+@@ -8,6 +8,7 @@ import { catchError, finalize, map, of, tap, throwError } from 'rxjs';
+ import { z } from 'zod';
+ import { HttpError } from '../http.js';
+ import { ProblemFilter } from '../problem.filter.js';
++import { AppLogger } from '../app-logger.js';
+ 
+ const ValueSchema = z.object({ value: z.string().min(1) });
+ type Value = z.infer<typeof ValueSchema>;
+@@ -63,7 +64,7 @@ export async function createPipelineApp(record: RecordStep = console.log) {
+ 
+   @Catch()
+   class TraceFilter extends ProblemFilter {
+-    constructor(private readonly name: string) { super(); }
++    constructor(private readonly name: string) { super(new AppLogger('info')); }
+ 
+     override catch(error: unknown, host: ArgumentsHost): void {
+       record(`filter:${this.name}`);
+diff --git a/src/observed-capture.store.ts b/src/observed-capture.store.ts
+new file mode 100644
+index 0000000..28e022f
+--- /dev/null
++++ b/src/observed-capture.store.ts
+@@ -0,0 +1,38 @@
++import type { CaptureStore } from './capture-store.js';
++import type { Capture, CaptureListOptions } from './capture.js';
++import { AppLogger } from './app-logger.js';
++import { ApplicationState } from './application-state.js';
++
++export class ObservedCaptureStore implements CaptureStore {
++  constructor(
++    private readonly inner: CaptureStore,
++    private readonly logger: AppLogger,
++    private readonly state: ApplicationState,
++  ) {}
++  private async call<T>(operation: string, work: () => Promise<T>): Promise<T> {
++    const started = performance.now();
++    return this.state.track(async () => {
++      try {
++        const value = await work();
++        this.logger.write('debug', 'store.completed', {
++          operation, durationMs: Math.round(performance.now() - started),
++        });
++        return value;
++      } catch (error) {
++        this.logger.write('error', 'store.failed', {
++          operation, code: 'STORE_FAILURE', durationMs: Math.round(performance.now() - started),
++        });
++        throw error;
++      }
++    });
++  }
++  insert(capture: Capture): Promise<void> {
++    return this.call('insert', () => this.inner.insert(capture));
++  }
++  list(options: CaptureListOptions): Promise<Capture[]> {
++    return this.call('list', () => this.inner.list(options));
++  }
++  find(id: string): Promise<Capture | undefined> {
++    return this.call('find', () => this.inner.find(id));
++  }
++}
+diff --git a/src/openapi.ts b/src/openapi.ts
+index 0e55ae6..8b69847 100644
+--- a/src/openapi.ts
++++ b/src/openapi.ts
+@@ -32,7 +32,7 @@ const notModified: ResponseObject = {
+ };
+ 
+ export function createOpenApiDocument(): OpenAPIObject {
+-  return {
++  const document: OpenAPIObject = {
+     openapi: '3.0.3',
+     info: {
+       title: 'EPP Capture API', version: '0.2.0',
+@@ -94,4 +94,18 @@ export function createOpenApiDocument(): OpenAPIObject {
+       Problem: schema(ProblemSchema, 'output'),
+     } },
+   };
++  for (const path of Object.values(document.paths)) {
++    for (const operation of [path.get, path.post]) {
++      if (!operation?.responses) continue;
++      operation.responses['503'] = problem('Shutdown in progress; code SERVICE_DRAINING');
++      for (const response of Object.values(operation.responses)) {
++        if (!response || '$ref' in response) continue;
++        response.headers = { ...response.headers, 'X-Request-Id': {
++          description: 'Server-generated correlation ID; not an idempotency key.',
++          schema: { type: 'string', format: 'uuid' },
++        } };
++      }
++    }
++  }
++  return document;
+ }
+diff --git a/src/problem.filter.ts b/src/problem.filter.ts
+index fe40627..24c09c3 100644
+--- a/src/problem.filter.ts
++++ b/src/problem.filter.ts
+@@ -1,21 +1,26 @@
+-import { Catch } from '@nestjs/common';
++import { Catch, Inject } from '@nestjs/common';
+ import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
+ import type { Response } from 'express';
+ import { httpFailure, sendJson } from './http.js';
++import { AppLogger } from './app-logger.js';
+ 
+ @Catch()
+ export class ProblemFilter implements ExceptionFilter {
++  constructor(@Inject(AppLogger) private readonly logger: AppLogger) {}
+   catch(error: unknown, host: ArgumentsHost): void {
+     const response = host.switchToHttp().getResponse<Response>();
+     if (response.destroyed || response.writableEnded) return;
+     if (response.headersSent) {
+-      console.error('Late request failure:', error instanceof Error ? error.name : 'UnknownError');
++      this.logger.write('error', 'http.failed', { code: 'RESPONSE_ALREADY_STARTED' });
+       response.destroy();
+       return;
+     }
+     // A failed response must not advertise the success-only resource location.
+     response.removeHeader('Location');
+     const failure = httpFailure(error);
++    this.logger.write(failure.statusCode >= 500 ? 'error' : 'warn', 'http.failed', {
++      status: failure.statusCode, code: failure.body.code,
++    });
+     sendJson(response, failure.statusCode, failure.body, {
+       'Content-Type': 'application/problem+json; charset=utf-8',
+     });
+diff --git a/src/request-observation.ts b/src/request-observation.ts
+new file mode 100644
+index 0000000..dc67bd7
+--- /dev/null
++++ b/src/request-observation.ts
+@@ -0,0 +1,39 @@
++import { randomUUID } from 'node:crypto';
++import type { RequestHandler } from 'express';
++import { AppLogger } from './app-logger.js';
++import { ApplicationState } from './application-state.js';
++import { HttpError } from './http.js';
++
++export function requestObservation(logger: AppLogger, state: ApplicationState, knownPaths: readonly string[] = []): RequestHandler {
++  return (request, response, next) => {
++    const requestId = randomUUID();
++    const started = performance.now();
++    const method = ['GET', 'POST', 'HEAD', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'].includes(request.method)
++      ? request.method : 'OTHER';
++    const path = request.url.split('?')[0] ?? '';
++    // Route labels are constants, never raw paths or resource IDs.
++    const route = knownPaths.includes(path) ? path : path === '/captures' ? '/captures'
++      : /^\/captures\/[^/]+$/.test(path) ? '/captures/:id'
++      : path === '/openapi.json' || path === '/docs' || path.startsWith('/docs/') ? 'docs' : 'unmatched';
++    response.setHeader('X-Request-Id', requestId);
++    logger.withRequest(requestId, () => {
++      logger.write('info', 'http.started', { method, route });
++      let reported = false;
++      const complete = (aborted: boolean) => {
++        if (reported) return;
++        reported = true;
++        logger.withRequest(requestId, () => logger.write(aborted ? 'warn' : 'info',
++          aborted ? 'http.aborted' : 'http.completed', {
++            method, route, status: aborted ? undefined : response.statusCode,
++            durationMs: Math.round(performance.now() - started),
++          }));
++      };
++      response.once('finish', () => complete(false));
++      response.once('close', () => complete(!response.writableFinished));
++      if (state.draining) {
++        response.setHeader('Connection', 'close');
++        next(new HttpError(503, 'Service is shutting down', 'SERVICE_DRAINING'));
++      } else next();
++    });
++  };
++}
+diff --git a/src/runtime.module.ts b/src/runtime.module.ts
+new file mode 100644
+index 0000000..59afe08
+--- /dev/null
++++ b/src/runtime.module.ts
+@@ -0,0 +1,22 @@
++import { Module } from '@nestjs/common';
++import type { DynamicModule } from '@nestjs/common';
++import { APP_CONFIG } from './config.js';
++import type { AppConfig } from './config.js';
++import { AppLogger } from './app-logger.js';
++import { ApplicationState } from './application-state.js';
++
++@Module({})
++export class RuntimeModule {
++  static register(config: AppConfig, logger: AppLogger): DynamicModule {
++    return {
++      module: RuntimeModule,
++      global: true,
++      providers: [
++        { provide: APP_CONFIG, useValue: config },
++        { provide: AppLogger, useValue: logger },
++        ApplicationState,
++      ],
++      exports: [APP_CONFIG, AppLogger, ApplicationState],
++    };
++  }
++}
+diff --git a/test/captures.test.mjs b/test/captures.test.mjs
+index acf2d38..393c640 100644
+--- a/test/captures.test.mjs
++++ b/test/captures.test.mjs
+@@ -14,6 +14,7 @@ test('invalid JSON returns a Problem and does not create a capture', async t =>
+     signal: AbortSignal.timeout(3000),
+   });
+   assert.equal(failure.status, 400);
++  assert.match(failure.headers.get('x-request-id'), /^[0-9a-f-]{36}$/);
+   assert.match(failure.headers.get('content-type'), /^application\/problem\+json/);
+   assert.equal((await failure.json()).code, 'INVALID_JSON');
+   const list = await fetch(`${baseUrl}/captures`, { signal: AbortSignal.timeout(3000) });
