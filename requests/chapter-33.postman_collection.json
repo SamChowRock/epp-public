@@ -2,7 +2,7 @@
   "info": {
     "name": "EPP 第33章 会话与旧数据",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "仅对已升级的独立 VERIFY 操作。使用客户端 Cookie jar，不复制令牌到集合。密码变量只存本机；不要导出其值，不运行整个集合。改密后全部会话失效。"
+    "description": "仅对已升级的独立 VERIFY 操作。使用客户端 Cookie jar，不复制令牌到集合。密码变量只存本机；不要导出其值，不运行整个集合。改密后全部会话失效。\n第35章入口：写请求带 X-EPP-Request: 1；先登录，再从本章集合 GET /auth/csrf 保存当前 Cookie 对应的 csrfToken 环境变量。旧版本集合语义见对应章节分支。切换账号后重新取 Token。"
   },
   "variable": [
     {
@@ -47,6 +47,11 @@
           {
             "key": "Content-Type",
             "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1",
+            "type": "text"
           }
         ],
         "url": "{{baseUrl}}/auth/login",
@@ -167,7 +172,18 @@
       "name": "06 撤销指定会话：先填写 targetSessionId",
       "request": {
         "method": "DELETE",
-        "header": [],
+        "header": [
+          {
+            "key": "X-EPP-Request",
+            "value": "1",
+            "type": "text"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}",
+            "type": "text"
+          }
+        ],
         "url": "{{baseUrl}}/auth/sessions/{{targetSessionId}}"
       },
       "event": [
@@ -190,6 +206,16 @@
           {
             "key": "Content-Type",
             "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1",
+            "type": "text"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}",
+            "type": "text"
           }
         ],
         "url": "{{baseUrl}}/auth/logout",
@@ -242,6 +268,16 @@
           {
             "key": "Content-Type",
             "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1",
+            "type": "text"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}",
+            "type": "text"
           }
         ],
         "url": "{{baseUrl}}/auth/password",

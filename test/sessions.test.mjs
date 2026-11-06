@@ -25,8 +25,9 @@ async function fixture(t) {
   });
   await app.listen(0, '127.0.0.1'); const base = await app.getUrl();
   async function request(path, { method = 'GET', body, cookie, headers = {} } = {}) {
+    const csrf = cookie ? await fetch(base + '/auth/csrf', { headers: { Cookie: cookie } }).then(r => r.json()) : {};
     const response = await fetch(base + path, { method,
-      headers: { ...(body === undefined ? {} : { 'content-type': 'application/json' }), ...(cookie ? { Cookie: cookie } : {}), ...headers },
+      headers: { 'X-EPP-Request': '1', ...(csrf.csrfToken ? { 'X-CSRF-Token': csrf.csrfToken } : {}), ...(body === undefined ? {} : { 'content-type': 'application/json' }), ...(cookie ? { Cookie: cookie } : {}), ...headers },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }), signal: AbortSignal.timeout(8000) });
     const text = await response.text();
     return { status: response.status, body: text ? JSON.parse(text) : undefined, headers: response.headers,
@@ -174,7 +175,7 @@ test('Postman auth scripts preserve quoted and escaped passwords through real HT
     const body = values.get('authBody');
     assert(!body.includes('{{'), 'serialized secrets must not expose nested Postman templates');
     return fetch((await app.getUrl()) + item.request.url.replace('{{baseUrl}}', ''), {
-      method: 'POST', headers: { 'content-type': 'application/json', ...(cookie ? { cookie } : {}) }, body,
+      method: 'POST', headers: { 'X-EPP-Request': '1', ...(cookie ? { 'X-CSRF-Token': (await (await fetch((await app.getUrl()) + '/auth/csrf', { headers: { cookie } })).json()).csrfToken } : {}), 'content-type': 'application/json', ...(cookie ? { cookie } : {}) }, body,
     });
   }
   const login = await send(collection.item[0]); assert.equal(login.status, 200);

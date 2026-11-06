@@ -1,3 +1,4 @@
+import { requireCsrf } from './browser-security.js';
 import type { RequestHandler, Response } from 'express';
 import type { AppConfig } from './config.js';
 import type { AuthenticatedRequest } from './auth-context.js';
@@ -30,8 +31,6 @@ export const privateResponses: RequestHandler = (_request, response, next) => {
 };
 
 export function sessionBoundary(service: SessionService, config: AppConfig): RequestHandler {
-  // shortcut: per-process limits for the loopback chapter; shared/proxy-aware controls belong to chapter 35.
-  const attempts = new Map<string, { until: number; count: number }>();
   return (request: AuthenticatedRequest, response, next) => {
     void (async () => {
       const path = request.url.split('?')[0];
@@ -39,31 +38,14 @@ export function sessionBoundary(service: SessionService, config: AppConfig): Req
         || (request.headers['content-length'] !== undefined && request.headers['content-length'] !== '0'))) {
         throw new HttpError(400, 'DELETE does not accept a body', 'BODY_NOT_ALLOWED');
       }
-      if (!['GET', 'HEAD'].includes(request.method)) {
-        if ((request.headers.origin !== undefined && request.headers.origin !== config.appOrigin)
-          || request.headers['sec-fetch-site'] === 'cross-site') {
-          throw new HttpError(403, 'Request origin is not allowed', 'ORIGIN_REJECTED');
-        }
-      }
-      if (path === '/auth/login' || path === '/auth/password') {
-        const now = Date.now();
-        for (const [key, value] of attempts) if (value.until <= now) attempts.delete(key);
-        const key = request.socket.remoteAddress ?? 'unknown';
-        let entry = attempts.get(key);
-        if (!entry) {
-          if (attempts.size >= 1000) throw new HttpError(429, 'Try again later', 'AUTH_RATE_LIMIT');
-          entry = { until: now + 60000, count: 0 }; attempts.set(key, entry);
-        }
-        if (++entry.count > 10) {
-          response.setHeader('Retry-After', String(Math.max(1, Math.ceil((entry.until - now) / 1000))));
-          throw new HttpError(429, 'Try again later', 'AUTH_RATE_LIMIT');
-        }
-      }
       if (path === '/auth/login') return;
       const token = readCookie(request.headers.cookie, sessionCookieName(config));
       const identity = token === undefined ? undefined : await service.authenticate(token);
       if (identity) {
-        if (path !== '/auth/logout') requireWebAccess(identity);
+        if (!['/auth/logout', '/auth/csrf'].includes(path ?? '')) requireWebAccess(identity);
+        if (!['GET', 'HEAD'].includes(request.method)) {
+          requireCsrf(request.headers['x-csrf-token'], config.cursorKey, identity.sessionId);
+        }
         request.auth = Object.freeze({ userId: identity.userId, sessionId: identity.sessionId });
       }
       else if (path !== '/auth/logout') throw new HttpError(401, 'Authentication required', 'AUTH_REQUIRED');

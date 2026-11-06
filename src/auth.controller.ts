@@ -1,10 +1,11 @@
+import { csrfToken } from './browser-security.js';
 import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Query, Req, Res, UseInterceptors } from '@nestjs/common';
 import type { Response } from 'express';
 import { APP_CONFIG } from './config.js';
 import type { AppConfig } from './config.js';
 import { requireSession } from './auth-context.js';
 import type { AuthenticatedRequest } from './auth-context.js';
-import { LoginSchema, ChangePasswordSchema, SessionIdentitySchema, SessionListSchema, UserIdSchema } from './auth-contract.js';
+import { CsrfSchema, LoginSchema, ChangePasswordSchema, SessionIdentitySchema, SessionListSchema, UserIdSchema } from './auth-contract.js';
 import type { LoginInput, ChangePasswordInput } from './auth-contract.js';
 import { EmptyObjectSchema } from './candidate-contract.js';
 import { SchemaPipe } from './schema.pipe.js';
@@ -24,6 +25,11 @@ export class AuthController {
     const result = await this.sessions.login(input);
     setSessionCookie(response, this.config, result.token);
     return result.identity;
+  }
+  @Get('csrf')
+  @UseInterceptors(new ResponseSchemaInterceptor(CsrfSchema))
+  csrf(@Req() request: AuthenticatedRequest, @Query(new SchemaPipe(EmptyObjectSchema)) _query: object) {
+    return { csrfToken: csrfToken(this.config.cursorKey, requireSession(request).sessionId) };
   }
   @Get('me')
   @UseInterceptors(new ResponseSchemaInterceptor(SessionIdentitySchema))

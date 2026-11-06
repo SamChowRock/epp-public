@@ -1,5 +1,9 @@
 # EPP 配套实践代码
 
+## 第三十五章 保护浏览器入口
+
+分支 `part-05/chapter-35` 从第34章继续，无新增迁移或依赖。按[本章实验](examples/browser-boundary/README.md)使用独立VERIFY与真实浏览器，观察同源CSRF拒绝、同站跨源Cookie、预检和响应不可读。所有写请求新增固定头，已有会话写请求还需Token；[本章集合](requests/chapter-35.postman_collection.json)先登录再取Token。代理默认不可信，限流仍为有界单进程实现，生产交付不包含实验页面。
+
 ## 第三十四章 鉴权与授权
 
 从第33章继续，分支 `part-05/chapter-34` 增加账号状态与 Web 使用资格，保留所有业务归属。按[本章说明](database/chapter-34/README.md)升级独立 VERIFY；旧账号保留资格，新账号默认未开通。用[请求集合](requests/chapter-34.postman_collection.json)和 DBeaver 核对第二账号、资源隔离、现有会话403/恢复200及受限退出。当前所有 Cookie API 都受该资格约束，Postman也不例外。

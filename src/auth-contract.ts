@@ -14,3 +14,5 @@ export const SessionListSchema = z.object({ items: z.array(z.object({
 })) });
 export type LoginInput = z.infer<typeof LoginSchema>;
 export type ChangePasswordInput = z.infer<typeof ChangePasswordSchema>;
+
+export const CsrfSchema = z.object({ csrfToken: z.string().regex(/^[0-9a-f]{64}$/) });

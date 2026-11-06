@@ -12,7 +12,7 @@ export function requestObservation(logger: AppLogger, state: ApplicationState, k
       ? request.method : 'OTHER';
     const path = request.url.split('?')[0] ?? '';
     // Route labels are constants, never raw paths or resource IDs.
-    const route = ['/auth/login', '/auth/logout', '/auth/password', '/auth/me', '/auth/sessions'].includes(path) ? path
+    const route = ['/auth/login', '/auth/logout', '/auth/password', '/auth/csrf', '/auth/me', '/auth/sessions'].includes(path) ? path
       : /^\/auth\/sessions\/[^/]+$/.test(path) ? '/auth/sessions/:id'
       : knownPaths.includes(path) ? path : path === '/captures' ? '/captures'
       : ['/learning-records', '/star-map'].includes(path) ? path

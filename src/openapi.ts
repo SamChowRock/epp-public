@@ -1,4 +1,4 @@
-import { LoginSchema, ChangePasswordSchema, SessionIdentitySchema, SessionListSchema } from './auth-contract.js';
+import { CsrfSchema, LoginSchema, ChangePasswordSchema, SessionIdentitySchema, SessionListSchema } from './auth-contract.js';
 import { LearningQuerySchema, StarMapQuerySchema, LearningListSchema, LearningDetailSchema, StarMapSchema } from './learning-contract.js';
 import { z } from 'zod';
 import { AcceptCandidateSchema, AcceptanceSchema, CreateCandidateSchema, CandidateResponseSchema, CandidateListSchema, EmptyObjectSchema } from './candidate-contract.js';
@@ -39,7 +39,7 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
   const document: OpenAPIObject = {
     openapi: '3.0.3',
     info: {
-      title: 'EPP Capture API', version: '0.14.0',
+      title: 'EPP Capture API', version: '0.15.0',
       description: 'PostgreSQL records belonging to the authenticated session user. Errors use Problem Details. Capture creation is not idempotent; candidate acceptance supports operation identity.',
     },
     security: [{ sessionCookie: [] }],
@@ -51,6 +51,9 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
         responses: { '200': jsonResponse('SessionIdentity', 'Session created; browser stores Set-Cookie'),
           '400': problem('Invalid input'), '401': problem('Credentials are invalid'), '429': problem('Attempt, concurrency or session limit') },
       } },
+      '/auth/csrf': { get: { operationId: 'csrfToken', summary: 'Get a session-bound CSRF token',
+        description: 'Requires a live session, including restricted accounts so they can sign out. Keep in memory, never URL or logs. Refetch after login or key rotation.',
+        responses: { '200': jsonResponse('Csrf', 'CSRF token; private, no-store') } } },
       '/auth/me': { get: { operationId: 'currentSession', summary: 'Read authenticated user and public session IDs',
         responses: { '200': jsonResponse('SessionIdentity', 'Current identity') } } },
       '/auth/sessions': { get: { operationId: 'listSessions', summary: 'List up to 20 unexpired sessions owned by this user',
@@ -241,6 +244,7 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
     },
     components: { securitySchemes: { sessionCookie: { type: 'apiKey', in: 'cookie', name: cookieName,
       description: 'Set by login; never paste a token into Swagger. Same-origin browser requests carry the HttpOnly cookie.' } }, schemas: {
+      Csrf: schema(CsrfSchema, 'output'),
       Login: schema(LoginSchema, 'input'), ChangePassword: schema(ChangePasswordSchema, 'input'),
       SessionIdentity: schema(SessionIdentitySchema, 'output'), SessionList: schema(SessionListSchema, 'output'),
       LearningList: schema(LearningListSchema, 'output'),
@@ -266,12 +270,21 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
     for (const operation of [path.get, path.post, path.patch, path.delete]) {
       if (!operation?.responses) continue;
       operation.responses['401'] ??= problem('Missing, expired or revoked session; code AUTH_REQUIRED');
-      if (pathname !== '/auth/logout') {
+      if (!['/auth/logout', '/auth/csrf'].includes(pathname)) {
         operation.responses['403'] = problem('Account disabled or Web access denied; code ACCOUNT_DISABLED or WEB_ACCESS_DENIED. Write requests may also reject the Origin.');
-      } else {
+      } else if (pathname === '/auth/logout') {
         operation.responses['403'] = problem('Request origin is not allowed; code ORIGIN_REJECTED');
       }
+      if (operation === path.post || operation === path.patch || operation === path.delete) {
+        operation.parameters = [...(operation.parameters ?? []),
+          { name: 'X-EPP-Request', in: 'header', required: true, schema: { type: 'string', enum: ['1'] } },
+          ...(pathname === '/auth/login' ? [] : [{ name: 'X-CSRF-Token', in: 'header' as const, required: pathname !== '/auth/logout', schema: { type: 'string' }, description: 'From GET /auth/csrf for this session. Logout requires it when a live session exists.' }])];
+        operation.responses['403'] = problem('Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED or WEB_ACCESS_DENIED');
+      }
       operation.responses['503'] = problem('Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots.');
+      if (operation.responses['429'] && !('$ref' in operation.responses['429'])) {
+        operation.responses['429'].headers = { 'Retry-After': { schema: { type: 'string' }, description: 'Seconds for AUTH_RATE_LIMIT only; other limits require their own recovery.' } };
+      }
       for (const response of Object.values(operation.responses)) {
         if (!response || '$ref' in response) continue;
         response.headers = { ...response.headers, 'Cache-Control': { schema: { type: 'string' }, description: 'private, no-store' }, 'X-Request-Id': {

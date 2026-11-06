@@ -1,0 +1,258 @@
+{
+  "info": {
+    "name": "EPP Chapter 35 Browser Boundary",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "仅对独立VERIFY逐项操作；password与csrfToken仅保存在本地，不分享或导出。选择一个空白本地Environment供02写入Token；不要在其他范围设置同名变量。Postman不执行浏览器CORS与SameSite策略。"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3350"
+    },
+    {
+      "key": "userId",
+      "value": "10000000-0000-4000-8000-000000000001"
+    },
+    {
+      "key": "password",
+      "value": ""
+    },
+    {
+      "key": "captureId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 登录原账号",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1",
+            "type": "text"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{{authBody}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(\"authBody\", JSON.stringify({",
+              "  userId: pm.variables.get(\"userId\"),",
+              "  password: pm.variables.get(\"password\"),",
+              "  label: \"Postman VERIFY\",",
+              "}).replaceAll('{{', '\\\\u007b\\\\u007b'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "if (pm.response.code === 200) pm.collectionVariables.set('sessionId', pm.response.json().sessionId);",
+              "pm.variables.unset(\"authBody\");"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 取得当前会话 Token",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/auth/csrf",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Token取得成功', () => pm.response.to.have.status(200));",
+              "if (pm.response.code === 200) pm.environment.set('csrfToken', pm.response.json().csrfToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 原素材仍可读取",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/captures/{{captureId}}",
+        "header": []
+      }
+    },
+    {
+      "name": "04 缺失 Token 被拒绝",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/captures",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"originalText\":\"Browser boundary example.\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('CSRF拒绝', () => { pm.response.to.have.status(403); pm.expect(pm.response.json().code).to.eql('CSRF_REJECTED'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 带 Token 创建",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/captures",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"originalText\":\"Browser boundary example.\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('创建成功', () => pm.response.to.have.status(201));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 错误 Origin 被拒绝",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/logout",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          },
+          {
+            "key": "Origin",
+            "value": "http://127.0.0.1:3351"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "07 会话仍有效",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/auth/me",
+        "header": []
+      }
+    },
+    {
+      "name": "08 正常退出",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/logout",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

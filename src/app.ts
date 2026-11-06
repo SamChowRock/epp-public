@@ -1,3 +1,4 @@
+import { authRateLimit, browserBoundary } from './browser-security.js';
 import { SessionService } from './session.service.js';
 import { privateResponses, sessionBoundary, sessionCookieName } from './session-http.js';
 import 'reflect-metadata';
@@ -26,15 +27,19 @@ export async function createApp(
     abortOnError: false,
   });
   app.set('query parser', 'simple');
+  app.set('trust proxy', config.trustedProxyIps.length ? [...config.trustedProxyIps] : false);
+  app.disable('x-powered-by');
   app.use(requestObservation(logger, app.get(ApplicationState)));
+  app.use(privateResponses);
+  app.use(browserBoundary(config));
   if (config.docsEnabled) {
     SwaggerModule.setup('docs', app, createOpenApiDocument(sessionCookieName(config)), {
       jsonDocumentUrl: 'openapi.json', raw: ['json'],
       swaggerOptions: { validatorUrl: null },
     });
   }
-  app.use(privateResponses);
   app.use(httpBoundary);
+  app.use(authRateLimit());
   app.use(sessionBoundary(app.get(SessionService), config));
   app.use(captureBody);
   return app;

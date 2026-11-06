@@ -1,3 +1,5 @@
+import { csrfToken } from '../dist/src/browser-security.js';
+import { APP_CONFIG } from '../dist/src/config.js';
 import { randomUUID } from 'node:crypto';
 import { DatabaseService } from '../dist/src/database.service.js';
 import { DEVELOPMENT_USER_ID } from '../dist/src/database-config.js';
@@ -11,6 +13,8 @@ export async function sessionFetch(t, app, userId = DEVELOPMENT_USER_ID) {
   t.after(() => db.session.deleteMany({ where: { id } }));
   const authenticatedFetch = (url, options = {}) => {
     const headers = new Headers(options.headers); headers.set('Cookie', 'epp_session=' + token);
+    headers.set('X-EPP-Request', '1');
+    headers.set('X-CSRF-Token', csrfToken(app.get(APP_CONFIG).cursorKey, id));
     return globalThis.fetch(url, { ...options, headers });
   };
   authenticatedFetch.cookie = 'epp_session=' + token;

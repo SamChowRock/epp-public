@@ -21,7 +21,8 @@ async function fixture(t) {
   await db.user.create({ data: { id: userId, passwordCredential: { create: { passwordHash: await hashPassword(password) } } } });
   await app.listen(0, '127.0.0.1'); const base = await app.getUrl();
   async function request(path, { method = 'GET', body, cookie } = {}) {
-    const response = await fetch(base + path, { method, headers: {
+    const csrf = cookie ? await fetch(base + '/auth/csrf', { headers: { Cookie: cookie } }).then(r => r.json()) : {};
+    const response = await fetch(base + path, { method, headers: { 'X-EPP-Request': '1', ...(csrf.csrfToken ? { 'X-CSRF-Token': csrf.csrfToken } : {}),
       ...(body === undefined ? {} : { 'content-type': 'application/json' }), ...(cookie ? { cookie } : {}),
     }, ...(body === undefined ? {} : { body: JSON.stringify(body) }), signal: AbortSignal.timeout(8000) });
     const text = await response.text();

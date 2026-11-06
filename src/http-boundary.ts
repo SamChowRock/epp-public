@@ -26,7 +26,7 @@ export function httpBoundary(
     const learningDetail = /^\/learning-records\/([^/]+)$/.exec(url.pathname);
     const sessionDetail = /^\/auth\/sessions\/([^/]+)$/.exec(url.pathname);
     const allowed = ['/auth/login', '/auth/logout', '/auth/password'].includes(url.pathname) ? ['POST']
-      : ['/auth/me', '/auth/sessions'].includes(url.pathname) ? ['GET'] : sessionDetail ? ['DELETE']
+      : ['/auth/me', '/auth/sessions', '/auth/csrf'].includes(url.pathname) ? ['GET'] : sessionDetail ? ['DELETE']
       : url.pathname === '/captures' ? ['GET', 'POST']
       : detail ? ['GET', 'PATCH'] : revisions || candidates ? ['GET', 'POST'] : discard ? ['POST']
       : learningDetail || ['/learning-records', '/star-map'].includes(url.pathname) ? ['GET'] : undefined;

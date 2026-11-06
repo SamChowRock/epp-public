@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+<title>EPP 浏览器边界实验</title>
+<h1>EPP 浏览器边界实验</h1>
+<p id="origin"></p><p>只连接本机 VERIFY。结果区不显示密码、Cookie 或 CSRF Token。用浏览器 Network 查看请求顺序。</p>
+<form id="login"><p><label>用户 ID <input id="user" value="10000000-0000-4000-8000-000000000001" size="40" required></label></p>
+<p><label>虚构本地密码 <input id="password" type="password" autocomplete="off" required></label> <button>登录</button></p></form>
+<p><button id="csrf">取得当前会话的 CSRF Token</button> <button id="me">读取当前身份</button></p>
+<p><button id="missing">不带 Token 创建素材</button> <button id="save">带 Token 创建素材</button> <button id="logout">退出</button></p>
+<p><button id="simple">跨源简单 POST</button> <button id="preflight">跨源 JSON POST</button> <button id="crossread">跨源读取</button></p>
+<p>跨源三项在 3351 页面操作，目标为 3350。同主机不同端口是跨源、同站。先在 3350 登录。</p>
+<h2>本页操作结果</h2><pre id="output" role="status" aria-live="polite"></pre>
+<script src="/client.js"></script></html>
