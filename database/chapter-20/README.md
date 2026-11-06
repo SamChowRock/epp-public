@@ -56,6 +56,10 @@ Swagger 的 `/docs` 也可 Try it out，OpenAPI 版本0.4.0。VS Code 在 Captur
 
 `07-batch-backfill-lab.sql` 同样只用临时表。先建表和示例来源，然后把BEGIN到COMMIT整块重复三次：修改1/2，再修改4，最后零行。第3条用户新值保持，第5条没有来源仍缺失。先查询结果和剩余原因，再执行文件末尾DROP。不将零行更新当成全量完成。
 
+[08-native-required-intent-lab.sql](08-native-required-intent-lab.sql) 对照PG18原生 `NOT NULL ... NOT VALID`：另建临时表，添加后attnotnull已经为true，但convalidated=false且旧NULL仍在；新NULL与未回填的VALIDATE均报23502，每次失败先ROLLBACK。单独提交可信回填，再验证到true；无需SET NOT NULL或删除辅助约束。两种路线ADD均需ACCESS EXCLUSIVE锁，VALIDATE均为SHARE UPDATE EXCLUSIVE；不把回填与ADD放进同一长事务。最终只删除临时表，不改业务列或正式迁移。
+
+保留CHECK演练的原因是Prisma 7.10.1的过渡模型：db pull会把原生未验证非空列生成为String，旧NULL却仍可能返回；diff至必填模型为空不能证明历史已满足约束。可空模型的diff则可能建议删除原生非空防线。原生SQL能通过迁移执行与历史重放，但需要自行管理过渡读取类型和目录核对。CHECK同样不能只靠diff验收；本章正式chineseIntent仍允许null。
+
 ## 隔离的迁移失败恢复
 
 使用专用 `epp_ch20_recovery`，绝不能将以下环境文件指向日常库。ADMIN的postgres连接自动提交，执行 `06-create-recovery-database.sql`；复制 `recovery.env.example` 为根目录 `.env.database-recovery`，填写同一实例上的角色凭据。建立两条指向该库的DBeaver独立会话A/B，用pg_backend_pid确认不同。
