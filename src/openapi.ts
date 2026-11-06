@@ -1,3 +1,4 @@
+import { LoginSchema, ChangePasswordSchema, SessionIdentitySchema, SessionListSchema } from './auth-contract.js';
 import { LearningQuerySchema, StarMapQuerySchema, LearningListSchema, LearningDetailSchema, StarMapSchema } from './learning-contract.js';
 import { z } from 'zod';
 import { AcceptCandidateSchema, AcceptanceSchema, CreateCandidateSchema, CandidateResponseSchema, CandidateListSchema, EmptyObjectSchema } from './candidate-contract.js';
@@ -34,18 +35,47 @@ const notModified: ResponseObject = {
   headers: etagHeaders,
 };
 
-export function createOpenApiDocument(): OpenAPIObject {
+export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject {
   const document: OpenAPIObject = {
     openapi: '3.0.3',
     info: {
-      title: 'EPP Capture API', version: '0.12.0',
-      description: 'PostgreSQL records for one fixed development user; no authentication. Errors use Problem Details. Capture creation is not idempotent; candidate acceptance supports operation identity.',
+      title: 'EPP Capture API', version: '0.13.0',
+      description: 'PostgreSQL records belonging to the authenticated session user. Errors use Problem Details. Capture creation is not idempotent; candidate acceptance supports operation identity.',
     },
+    security: [{ sessionCookie: [] }],
     paths: {
+      '/auth/login': { post: {
+        operationId: 'login', summary: 'Use an existing user ID and password to create a session', security: [],
+        description: 'A new random token is set only in an HttpOnly SameSite=Strict cookie. The database stores its SHA-256 digest. Absolute lifetime 8 hours; maximum 20 sessions per user. Labels are user supplied, not verified device identities. JSON only; no query parameters. Wrong and absent credentials share 401. Public origins require HTTPS. A lost response can leave an unused session; inspect the session list after signing in again.',
+        requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/Login' } } } },
+        responses: { '200': jsonResponse('SessionIdentity', 'Session created; browser stores Set-Cookie'),
+          '400': problem('Invalid input'), '401': problem('Credentials are invalid'), '429': problem('Attempt, concurrency or session limit') },
+      } },
+      '/auth/me': { get: { operationId: 'currentSession', summary: 'Read authenticated user and public session IDs',
+        responses: { '200': jsonResponse('SessionIdentity', 'Current identity') } } },
+      '/auth/sessions': { get: { operationId: 'listSessions', summary: 'List up to 20 unexpired sessions owned by this user',
+        description: 'Only public management ID, label, timestamps and current flag. Never includes the token or its digest.',
+        responses: { '200': jsonResponse('SessionList', 'Live sessions') } } },
+      '/auth/sessions/{id}': { delete: { operationId: 'revokeSession', summary: 'Revoke one owned session',
+        description: 'No body or query parameters. Missing or foreign IDs have the same 204 result and cannot revoke another user. Revoking the current session also clears this cookie. Requests already authenticated may finish; later requests require a live session.',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+        responses: { '204': { description: 'Revocation completed; no response body' }, '400': problem('Invalid ID or unexpected body') },
+      } },
+      '/auth/logout': { post: { operationId: 'logout', summary: 'Revoke the current session and clear its cookie', security: [],
+        description: 'No cookie, expired cookie and already revoked cookie may repeat this request. JSON {} is required. A database failure is not reported as a successful revocation.',
+        requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/EmptyObject' } } } },
+        responses: { '204': { description: 'Signed out; no response body' }, '400': problem('Invalid body or cookie') },
+      } },
+      '/auth/password': { post: { operationId: 'changePassword', summary: 'Verify the old password, change it and revoke all sessions',
+        description: 'Requires a live session and the current password. Password update and all-session deletion commit together; login serializes on the same credential row. Success clears the cookie and requires a fresh login. No body/query identity override.',
+        requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/ChangePassword' } } } },
+        responses: { '204': { description: 'Password changed and every session revoked; no response body' },
+          '400': problem('Invalid password input'), '429': problem('Attempt or concurrency limit') },
+      } },
       '/learning-records': {
         get: {
           operationId: 'listLearningRecords', summary: 'Read bounded acceptance sources',
-          description: 'One item per learning record. Default limit 20, maximum 100; order by createdAt descending then UUID descending. Optional expressionId filters before limiting. Unknown or foreign expression filters return an empty list. No mode preserves the original response. mode=offset accepts offset 0..10000 and adds nextOffset (null at end or cap); mode=cursor adds nextCursor (null at end). Continuations bind resource, user, limit, expressionId, from and to. Invalid, changed-scope or expired cursors return 400 INVALID_CURSOR; traversal expires after 30 minutes. from inclusive / to exclusive require UTC ISO milliseconds in years 0001..9999, with from strictly before to, and filter learning creation time. Both modes read live data, not a snapshot. Unknown and repeated query keys are rejected. No userId parameter; fixed development user only.',
+          description: 'One item per learning record. Default limit 20, maximum 100; order by createdAt descending then UUID descending. Optional expressionId filters before limiting. Unknown or foreign expression filters return an empty list. No mode preserves the original response. mode=offset accepts offset 0..10000 and adds nextOffset (null at end or cap); mode=cursor adds nextCursor (null at end). Continuations bind resource, user, limit, expressionId, from and to. Invalid, changed-scope or expired cursors return 400 INVALID_CURSOR; traversal expires after 30 minutes. from inclusive / to exclusive require UTC ISO milliseconds in years 0001..9999, with from strictly before to, and filter learning creation time. Both modes read live data, not a snapshot. Unknown and repeated query keys are rejected. No userId parameter; ownership comes from the session.',
           parameters: [ifNoneMatch, ...['limit', 'expressionId', 'mode', 'offset', 'cursor', 'from', 'to'].map(name => ({ name, in: 'query', required: false,
             schema: schema(LearningQuerySchema.shape[name as keyof typeof LearningQuerySchema.shape].unwrap(), 'input'),
           } as ParameterObject))],
@@ -209,7 +239,10 @@ export function createOpenApiDocument(): OpenAPIObject {
         },
       },
     },
-    components: { schemas: {
+    components: { securitySchemes: { sessionCookie: { type: 'apiKey', in: 'cookie', name: cookieName,
+      description: 'Set by login; never paste a token into Swagger. Same-origin browser requests carry the HttpOnly cookie.' } }, schemas: {
+      Login: schema(LoginSchema, 'input'), ChangePassword: schema(ChangePasswordSchema, 'input'),
+      SessionIdentity: schema(SessionIdentitySchema, 'output'), SessionList: schema(SessionListSchema, 'output'),
       LearningList: schema(LearningListSchema, 'output'),
       LearningDetail: schema(LearningDetailSchema, 'output'),
       StarMap: schema(StarMapSchema, 'output'),
@@ -230,12 +263,16 @@ export function createOpenApiDocument(): OpenAPIObject {
     } },
   };
   for (const path of Object.values(document.paths)) {
-    for (const operation of [path.get, path.post, path.patch]) {
+    for (const operation of [path.get, path.post, path.patch, path.delete]) {
       if (!operation?.responses) continue;
+      operation.responses['401'] ??= problem('Missing, expired or revoked session; code AUTH_REQUIRED');
+      if (operation === path.post || operation === path.patch || operation === path.delete) {
+        operation.responses['403'] = problem('Request origin is not allowed; code ORIGIN_REJECTED');
+      }
       operation.responses['503'] = problem('Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots.');
       for (const response of Object.values(operation.responses)) {
         if (!response || '$ref' in response) continue;
-        response.headers = { ...response.headers, 'X-Request-Id': {
+        response.headers = { ...response.headers, 'Cache-Control': { schema: { type: 'string' }, description: 'private, no-store' }, 'X-Request-Id': {
           description: 'Server-generated correlation ID; not an idempotency key.',
           schema: { type: 'string', format: 'uuid' },
         } };

@@ -18,8 +18,23 @@ model User {
   captures  Capture[]
   learningRecords LearningRecord[]
   passwordCredential PasswordCredential?
+  sessions Session[]
 
   @@map("users")
+}
+
+/// Session digests and lifetime constraints are maintained in migration SQL.
+model Session {
+  id String @id(map: "sessions_pkey") @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  tokenDigest String @unique(map: "sessions_token_digest_key") @map("token_digest") @db.Text
+  label String @db.Text
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sessions_user_id_fkey")
+
+  @@index([userId, expiresAt], map: "sessions_user_id_expires_at_idx")
+  @@map("sessions")
 }
 
 model PasswordCredential {

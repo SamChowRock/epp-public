@@ -1,3 +1,4 @@
+import { sessionFetch } from './session-fixture.mjs';
 import './database-env.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -5,6 +6,7 @@ import { createApp } from '../dist/src/app.js';
 
 test('invalid JSON returns a Problem and does not create a capture', async t => {
   const app = await createApp();
+  const fetch = await sessionFetch(t, app);
   t.after(() => app.close());
   await app.listen(0, '127.0.0.1');
   const baseUrl = await app.getUrl();

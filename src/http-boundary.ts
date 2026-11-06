@@ -24,7 +24,10 @@ export function httpBoundary(
     const candidates = /^\/revisions\/([^/]+)\/candidates$/.exec(url.pathname);
     const discard = /^\/candidates\/([^/]+)\/(?:discard|accept)$/.exec(url.pathname);
     const learningDetail = /^\/learning-records\/([^/]+)$/.exec(url.pathname);
-    const allowed = url.pathname === '/captures' ? ['GET', 'POST']
+    const sessionDetail = /^\/auth\/sessions\/([^/]+)$/.exec(url.pathname);
+    const allowed = ['/auth/login', '/auth/logout', '/auth/password'].includes(url.pathname) ? ['POST']
+      : ['/auth/me', '/auth/sessions'].includes(url.pathname) ? ['GET'] : sessionDetail ? ['DELETE']
+      : url.pathname === '/captures' ? ['GET', 'POST']
       : detail ? ['GET', 'PATCH'] : revisions || candidates ? ['GET', 'POST'] : discard ? ['POST']
       : learningDetail || ['/learning-records', '/star-map'].includes(url.pathname) ? ['GET'] : undefined;
     if (!allowed) throw new HttpError(404, 'Route not found', 'ROUTE_NOT_FOUND');
@@ -41,6 +44,9 @@ export function httpBoundary(
     }
     if (learningDetail?.[1]?.includes('%')) {
       throw new HttpError(404, 'Learning record not found', 'LEARNING_RECORD_NOT_FOUND');
+    }
+    if (sessionDetail?.[1]?.includes('%')) {
+      throw new HttpError(404, 'Session not found', 'SESSION_NOT_FOUND');
     }
     request.url = url.pathname + url.search;
     next();

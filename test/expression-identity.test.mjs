@@ -1,3 +1,4 @@
+import { sessionFetch } from './session-fixture.mjs';
 import { removeTestCaptures } from './cleanup.mjs';
 import './database-env.mjs';
 import test from 'node:test';
@@ -8,6 +9,7 @@ import { DatabaseService } from '../dist/src/database.service.js';
 
 test('identity reuse preserves sources, separates senses, and rolls back mismatched identity', async t => {
   const app = await createApp(), db = app.get(DatabaseService).client;
+  const fetch = await sessionFetch(t, app);
   const preservedExpressions = new Set((await db.expression.findMany({ select: { id: true } })).map(row => row.id));
   let capture;
   t.after(async () => {

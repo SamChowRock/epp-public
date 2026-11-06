@@ -5,6 +5,7 @@ import { z } from 'zod';
 export const APP_CONFIG = Symbol('APP_CONFIG');
 export type AppConfig = Readonly<{
   cursorKey: string;
+  appOrigin: string;
   port: number;
   mode: 'development' | 'test' | 'production';
   docsEnabled: boolean;
@@ -18,6 +19,7 @@ const DefaultsSchema = z.object({ port: z.number().int().min(1).max(65535) });
 const decimal = (max: number) => z.string().regex(/^[0-9]+$/)
   .transform(Number).pipe(z.number().int().min(1).max(max));
 const EnvironmentSchema = z.object({
+  APP_ORIGIN: z.string().optional(),
   CURSOR_HMAC_KEY: z.string().regex(/^[0-9a-f]{64}$/).optional(),
   PORT: decimal(65535).optional(),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -36,7 +38,18 @@ export function parseConfig(defaults: unknown, env: NodeJS.ProcessEnv): AppConfi
   }
   const value = parsed.data;
   if (value.NODE_ENV === 'production' && !value.CURSOR_HMAC_KEY) throw new ConfigError('CURSOR_HMAC_KEY');
+  if (value.NODE_ENV === 'production' && !value.APP_ORIGIN) throw new ConfigError('APP_ORIGIN');
+  const appOrigin = value.APP_ORIGIN ?? `http://127.0.0.1:${value.PORT ?? file.data.port}`;
+  try {
+    const origin = new URL(appOrigin);
+    if (origin.origin !== appOrigin || origin.username || origin.password
+      || !['http:', 'https:'].includes(origin.protocol)
+      || (origin.protocol === 'http:' && !['127.0.0.1', 'localhost', '[::1]'].includes(origin.hostname))) {
+      throw new Error('Invalid origin');
+    }
+  } catch { throw new ConfigError('APP_ORIGIN'); }
   return Object.freeze({
+    appOrigin,
     cursorKey: value.CURSOR_HMAC_KEY ?? randomBytes(32).toString('hex'),
     port: value.PORT ?? file.data.port,
     mode: value.NODE_ENV,

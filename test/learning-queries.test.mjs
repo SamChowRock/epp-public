@@ -1,3 +1,4 @@
+import { sessionFetch } from './session-fixture.mjs';
 import { removeTestCaptures } from './cleanup.mjs';
 import './database-env.mjs';
 import test from 'node:test';
@@ -10,6 +11,7 @@ import { DEVELOPMENT_USER_ID } from '../dist/src/database-config.js';
 
 test('bounded reads preserve sources, exclude foreign relations and retain historical identities', async t => {
   const app = await createApp(), db = app.get(DatabaseService).client;
+  const fetch = await sessionFetch(t, app);
   const preservedExpressions = new Set((await db.expression.findMany({ select: { id: true } })).map(row => row.id));
   const captures = [], foreign = randomUUID();
   t.after(async () => {
@@ -50,7 +52,7 @@ test('bounded reads preserve sources, exclude foreign relations and retain histo
   for (const key of ['userId','semanticKey','normalizedText','normalizedMeaning','response','operationId']) assert.equal(JSON.stringify(detail.body).includes('"'+key+'"'), false);
   const notModified = await new Promise((resolve,reject) => {
     http.get(base + '/learning-records/' + saved[0].learningRecord.id,
-      { headers: { 'If-None-Match': detail.headers.get('etag') } }, r => { r.resume();r.on('end',()=>resolve(r.statusCode)); }).on('error',reject);
+      { headers: { 'If-None-Match': detail.headers.get('etag'), Cookie: fetch.cookie } }, r => { r.resume();r.on('end',()=>resolve(r.statusCode)); }).on('error',reject);
   });assert.equal(notModified,304);
   for (const q of ['limit=0','limit=101','limit=01','limit=1&limit=2','userId='+foreign,'offset=1','expressionId=no','expressionId='+id+'&expressionId='+id]) assert.equal((await request('/learning-records?'+q)).status,400,q);
   assert.equal((await request('/star-map?expressionId='+id)).status,400);

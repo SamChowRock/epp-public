@@ -1,3 +1,4 @@
+import { sessionFetch } from './session-fixture.mjs';
 import './database-env.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -8,6 +9,7 @@ import { removeTestCaptures } from './cleanup.mjs';
 
 test('fixture cleanup preserves an existing expression and its original source after reuse', async t => {
   const app = await createApp(), db = app.get(DatabaseService).client;
+  const fetch = await sessionFetch(t, app);
   const originalExpressions = new Set((await db.expression.findMany({ select: { id: true } })).map(row => row.id));
   const captures = [];
   t.after(async () => {

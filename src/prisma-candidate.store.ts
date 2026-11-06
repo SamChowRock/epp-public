@@ -2,7 +2,6 @@ import { createHash, randomUUID } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
 import { Prisma } from './generated/prisma/client.js';
 import { DatabaseService } from './database.service.js';
-import { DEVELOPMENT_USER_ID } from './database-config.js';
 import { AcceptanceSchema, CandidateResponseSchema } from './candidate-contract.js';
 import type { Acceptance, Candidate, CreateCandidateInput } from './candidate-contract.js';
 
@@ -19,14 +18,14 @@ function project(row: Row): Candidate {
 }
 
 export class PrismaCandidateStore {
-  constructor(private readonly database: DatabaseService) {}
+  constructor(private readonly database: DatabaseService, private readonly userId: string) {}
 
   async create(revisionId: string, input: CreateCandidateInput): Promise<Candidate | 'occupied' | undefined> {
     if (!validId(revisionId)) return undefined;
     const rows = await this.database.run('createCandidate', () => this.database.client.$queryRaw<OuterRow[]>(Prisma.sql`
       WITH owned AS (
         SELECT r.id FROM public.capture_revisions r JOIN public.captures c ON c.id = r.capture_id
-        WHERE r.id = ${revisionId}::uuid AND c.user_id = ${DEVELOPMENT_USER_ID}::uuid
+        WHERE r.id = ${revisionId}::uuid AND c.user_id = ${this.userId}::uuid
       ), inserted AS (
         INSERT INTO public.candidates (id, revision_id, candidate_no, english_text, chinese_meaning)
         SELECT ${randomUUID()}::uuid, id, ${input.candidateNo}, ${input.englishText}, ${input.chineseMeaning}
@@ -47,7 +46,7 @@ export class PrismaCandidateStore {
       SELECT ${columns} FROM public.capture_revisions r
       JOIN public.captures c ON c.id = r.capture_id
       LEFT JOIN public.candidates n ON n.revision_id = r.id
-      WHERE r.id = ${revisionId}::uuid AND c.user_id = ${DEVELOPMENT_USER_ID}::uuid
+      WHERE r.id = ${revisionId}::uuid AND c.user_id = ${this.userId}::uuid
       ORDER BY n.candidate_no ASC
     `));
     if (rows.length === 0) return undefined;
@@ -58,7 +57,7 @@ export class PrismaCandidateStore {
     if (!validId(id)) return undefined;
     const action = 'accept-candidate/v1';
     const fingerprint = createHash('sha256').update(JSON.stringify([action, id])).digest('hex');
-    const lockKey = JSON.stringify(['command', DEVELOPMENT_USER_ID, operationId]);
+    const lockKey = JSON.stringify(['command', this.userId, operationId]);
     return this.database.run('acceptCandidate', async () => {
       for (let attempt = 0; ; attempt++) {
         try {
@@ -67,11 +66,11 @@ export class PrismaCandidateStore {
             // Serialize one operation even before its durable result row exists.
             await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${lockKey}, 0))::text`;
             const candidate = await tx.candidate.findFirst({
-              where: { id, revision: { capture: { userId: DEVELOPMENT_USER_ID } } },
+              where: { id, revision: { capture: { userId: this.userId } } },
             });
             if (!candidate) return undefined;
             const previous = await tx.commandReceipt.findUnique({
-              where: { userId_operationId: { userId: DEVELOPMENT_USER_ID, operationId } },
+              where: { userId_operationId: { userId: this.userId, operationId } },
             });
             if (previous) {
               if (previous.action !== action || previous.candidateId !== id
@@ -89,11 +88,11 @@ export class PrismaCandidateStore {
                 public.epp_identity_v1(${candidate.englishText}, ${candidate.chineseMeaning}) AS key
             `;
             if (!identity) throw new Error('Expression identity is missing');
-            const expressionLock = JSON.stringify(['expression', DEVELOPMENT_USER_ID, identity.key]);
+            const expressionLock = JSON.stringify(['expression', this.userId, identity.key]);
             await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${expressionLock}, 0))::text`;
             // Read after acquiring the lock so a preceding commit is visible at READ COMMITTED.
             let expression = await tx.expression.findUnique({
-              where: { userId_semanticKey: { userId: DEVELOPMENT_USER_ID, semanticKey: identity.key } },
+              where: { userId_semanticKey: { userId: this.userId, semanticKey: identity.key } },
               include: { forms: true },
             });
             if (expression) {
@@ -103,14 +102,14 @@ export class PrismaCandidateStore {
               }
             } else {
               expression = await tx.expression.create({ data: {
-                id: randomUUID(), userId: DEVELOPMENT_USER_ID, meaning: candidate.chineseMeaning,
+                id: randomUUID(), userId: this.userId, meaning: candidate.chineseMeaning,
                 normalizedMeaning: identity.normalizedMeaning, semanticKey: identity.key,
                 forms: { create: { id: randomUUID(), text: candidate.englishText,
                   normalizedText: identity.normalizedText } },
               }, include: { forms: true } });
             }
             const learningRecord = await tx.learningRecord.create({ data: {
-              id: randomUUID(), userId: DEVELOPMENT_USER_ID, candidateId: id, expressionId: expression.id,
+              id: randomUUID(), userId: this.userId, candidateId: id, expressionId: expression.id,
             } });
             const response = AcceptanceSchema.parse({
               candidate: project({ ...candidate, status: 'accepted', acceptedAt }),
@@ -118,7 +117,7 @@ export class PrismaCandidateStore {
               learningRecord: { ...learningRecord, createdAt: learningRecord.createdAt.toISOString() },
             });
             await tx.commandReceipt.create({ data: {
-              userId: DEVELOPMENT_USER_ID, operationId, action, candidateId: id, fingerprint,
+              userId: this.userId, operationId, action, candidateId: id, fingerprint,
               statusCode: 201, response,
             } });
             return response;
@@ -140,7 +139,7 @@ export class PrismaCandidateStore {
         SELECT n.id FROM public.candidates n
         JOIN public.capture_revisions r ON r.id = n.revision_id
         JOIN public.captures c ON c.id = r.capture_id
-        WHERE n.id = ${id}::uuid AND c.user_id = ${DEVELOPMENT_USER_ID}::uuid
+        WHERE n.id = ${id}::uuid AND c.user_id = ${this.userId}::uuid
       ), changed AS (
         UPDATE public.candidates n SET status = 'discarded', discarded_at = statement_timestamp()
         FROM owned WHERE n.id = owned.id AND n.status = 'pending' RETURNING n.*

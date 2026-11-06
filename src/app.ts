@@ -1,3 +1,5 @@
+import { SessionService } from './session.service.js';
+import { privateResponses, sessionBoundary, sessionCookieName } from './session-http.js';
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
@@ -26,12 +28,14 @@ export async function createApp(
   app.set('query parser', 'simple');
   app.use(requestObservation(logger, app.get(ApplicationState)));
   if (config.docsEnabled) {
-    SwaggerModule.setup('docs', app, createOpenApiDocument(), {
+    SwaggerModule.setup('docs', app, createOpenApiDocument(sessionCookieName(config)), {
       jsonDocumentUrl: 'openapi.json', raw: ['json'],
       swaggerOptions: { validatorUrl: null },
     });
   }
+  app.use(privateResponses);
   app.use(httpBoundary);
+  app.use(sessionBoundary(app.get(SessionService), config));
   app.use(captureBody);
   return app;
 }

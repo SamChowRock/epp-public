@@ -1,3 +1,4 @@
+import { sessionFetch } from './session-fixture.mjs';
 import { removeTestCaptures } from './cleanup.mjs';
 import './database-env.mjs';
 import test from 'node:test';
@@ -8,6 +9,7 @@ import { DatabaseService } from '../dist/src/database.service.js';
 
 test('one operation replays, rejects changed intent, and rolls back when receipt storage fails', async t => {
   const app = await createApp();
+  const fetch = await sessionFetch(t, app);
   const db = app.get(DatabaseService).client;
   const preservedExpressions = new Set((await db.expression.findMany({ select: { id: true } })).map(row => row.id));
   let capture, revision;

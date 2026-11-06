@@ -1,5 +1,9 @@
 # EPP 配套实践代码
 
+## 第三十三章 Session 与 Cookie
+
+从第32章继续，分支 `part-05/chapter-33` 新增会话表和登录、当前身份、列表、撤销、退出、改密接口；已有业务改为使用当前请求身份。按[本章说明](database/chapter-33/README.md)先升级非空 VERIFY，再导入[请求集合](requests/chapter-33.postman_collection.json)登录。此前各章说明描述各自版本；当前服务无 Cookie 返回401，不能直接照旧集合匿名读取。
+
 ## 第三十二章 安全地保存密码与秘密
 
 从第三十一章继续，分支 `part-05/chapter-32` 新增密码凭据表、本地初始化和秘密处理函数。按[本章说明](database/chapter-32/README.md)先跑独立实验，再升级非空 VERIFY、核对旧归属和初始化不覆盖；DEV 单独备份、升级与设置密码。仍未接登录，旧接口保留固定开发身份。
@@ -22,7 +26,7 @@
 
 第十四章的 1200 单元新建限制、旧记录读取兼容与数组存储属于隔离练习，参考补丁和图形请求仍保留在下方“第十四章综合实践”，不作为当前主服务行为。
 
-主服务集中解析启动配置，提供结构化日志与服务端 X-Request-Id；SIGINT/SIGTERM 先停止接收，再等待已有工作并释放资源。既有三个接口增加可空意图响应，另提供追加意图修改、完整修订和历史读取接口；Problem 契约沿用，关闭期间明确拒绝的新请求使用 503／SERVICE_DRAINING。Swagger 开发默认开启，生产默认关闭。记录保存在 PostgreSQL；API 退出会释放连接并保留已提交行。当前使用固定用户，尚无认证，仅供本机实践。
+主服务集中解析启动配置，提供结构化日志与服务端 X-Request-Id；SIGINT/SIGTERM 先停止接收，再等待已有工作并释放资源。既有三个接口增加可空意图响应，另提供追加意图修改、完整修订和历史读取接口；Problem 契约沿用，关闭期间明确拒绝的新请求使用 503／SERVICE_DRAINING。Swagger 开发默认开启，生产默认关闭。记录保存在 PostgreSQL；API 退出会释放连接并保留已提交行。当前用户由数据库会话确定，旧资源仍检查原归属；本章先在本机同源入口实践。
 
 使用 nvm 管理 Node.js；安装方式见 [nvm 官方说明](https://github.com/nvm-sh/nvm#installing-and-updating)。macOS、Linux 使用 Bash 或 Zsh，Windows 使用 WSL。在项目根目录运行：
 
@@ -32,7 +36,7 @@ nvm use
 node --version
 npm ci
 npm run check
-# 先按第三十二章说明核对凭据表迁移，并在 .env 配置运行连接，再启动。
+# 先按第三十三章说明核对会话表迁移，在 .env 配置 DATABASE_URL 和 APP_ORIGIN。
 npm run dev
 ```
 
@@ -44,10 +48,10 @@ Prisma CLI、Client 与 adapter-pg 固定 7.10.1，pg 为 8.16.3；本章连接�
 
 沿用第十一章的 Zod `4.6.6` 与 @nestjs/swagger `11.4.8`，后者提供 Swagger UI 及其静态资源。其他运行依赖为 Nest `11.2.5`（common、core、platform-express）、reflect-metadata `0.2.2` 与 rxjs `7.8.2`；沿用的独立支线示例显式依赖 Express `5.2.1`，适配器也使用 Express 5，overrides 固定其间接依赖 Multer `2.5.0`。开发依赖保留 TypeScript `5.9.3`、tsx `4.23.15`、`@types/node` `24.13.3`，以及 `@types/express` `5.0.6`。`npm ci` 按锁文件安装完整依赖；`npm run build` 先清理 `dist/`，编译业务源码，再复制默认配置；`npm start` 只运行产物。服务默认监听 `http://127.0.0.1:3000`。默认端口来自 `config/service.json`，启动时由 `src/config.ts`（产物为 `dist/src/config.js`）相对于模块读取，不依赖调用者的工作目录。
 
-以下生产命令都要求先按第二十九章说明配置 CURSOR_HMAC_KEY 和 DATABASE_URL；可以为一次启动覆盖端口：
+以下生产命令要求先配置 CURSOR_HMAC_KEY、DATABASE_URL 和 APP_ORIGIN；本机3001端口可用 APP_ORIGIN=http://127.0.0.1:3001，实际HTTPS入口使用其完整origin，不附路径或末尾斜杠。可以为一次启动覆盖端口：
 
 ```bash
-NODE_ENV=production PORT=3001 node --enable-source-maps dist/src/server.js
+NODE_ENV=production APP_ORIGIN=http://127.0.0.1:3001 PORT=3001 node --enable-source-maps dist/src/server.js
 ```
 
 `PORT` 必须为十进制数字字符串，转换后的整数范围是 1～65535；缺失时使用默认端口，空值或错误值会在监听前退出并返回非零状态。即使指定 `PORT`，默认配置文件仍必须存在且有效。配置由每个服务进程在启动时读取；dev 会在源配置变化后复制并重启，生产产物则需要重新构建，修改生产运行目录的默认配置后需重启；绑定地址始终为 `127.0.0.1`。改端口后同步修改请求地址。
@@ -58,6 +62,8 @@ NODE_ENV=production PORT=3001 node --enable-source-maps dist/src/server.js
 
 保持 `npm run dev` 运行。在 [Postman 桌面客户端](https://www.postman.com/downloads/) 中选择 **Import**，导入 [requests/epp.postman_collection.json](requests/epp.postman_collection.json)，打开“EPP 本机接口调试”集合。已有同类客户端也可以按相同方法、地址、头部和正文创建请求。
 
+先在第33章集合登录，保持同一客户端 Cookie jar。以下旧业务集合复用此 Cookie，不必给每个请求手写 Cookie。
+
 1. 打开“01 查看列表”，点击 **Send**，查看响应状态、Body 和 Headers。应返回 200 与前章已有的数据库记录。
 2. 打开“02 创建原文”，在 **Body → raw → JSON** 修改 originalText，点击 Send，查看 201、返回的 id 和响应头 Location。
 3. 将实际 id 填入集合 **Variables** 的 captureId，再发送“03 查看详情”，应返回 200。baseUrl 默认是 `http://127.0.0.1:3000`；改端口时一起修改，发送前核对变量解析后的实际 URL。所选环境中的同名变量可能覆盖集合变量。
@@ -67,7 +73,7 @@ NODE_ENV=production PORT=3001 node --enable-source-maps dist/src/server.js
 
 调试时保持同一个请求，在源码中设置断点后点击 Send。暂停期间客户端会等待；继续执行后才会收到响应。第五章起可用 VS Code 的 `EPP: attach to npm run dev` 自动重连，前面章节通过 Chrome 的 `chrome://inspect` 连接；重启后若连接断开，重新选择目标。生产运行方式见文末，日常学习保持 dev 模式。
 
-下面的 curl 是同一请求的终端表示，用于复制复现；日常可直接使用集合里的请求。
+下面的 curl 是旧章匿名请求表示；在当前第33章应返回401。需要终端复现时使用权限受控的 Cookie jar 文件并给请求加 `-b`，不要把 Cookie 写在命令、历史或截图中；日常使用已登录的 Postman 集合。
 
 ```bash
 curl -i http://127.0.0.1:3000/captures
@@ -76,13 +82,13 @@ curl -i http://127.0.0.1:3000/captures \
   --data '{"originalText":"I am not much of cook."}'
 ```
 
-创建成功返回 `201`，复制响应中的 `id`，用 `GET /captures/<id>` 查看详情。列表返回 `{ "items": [...] }`。同一正文重复提交会创建两条记录。创建可以省略 chineseIntent，响应明确返回 null；PATCH 必须提供该字段，字符串替换、null清空、缺失或空白拒绝。意图最多2000个UTF-16单元，原文和创建时间不由PATCH修改。q只搜索最新修订的原文。PATCH每次成功都会追加一版，重复发送并非幂等；并发争号可返回409／REVISION_CONFLICT。完整修订接口和历史范围参数见第二十二章说明。
+带有效会话创建成功返回 `201`，复制响应中的 `id`，用 `GET /captures/<id>` 查看详情。列表返回 `{ "items": [...] }`。同一正文重复提交会创建两条记录。创建可以省略 chineseIntent，响应明确返回 null；PATCH 必须提供该字段，字符串替换、null清空、缺失或空白拒绝。意图最多2000个UTF-16单元，原文和创建时间不由PATCH修改。q只搜索最新修订的原文。PATCH每次成功都会追加一版，重复发送并非幂等；并发争号可返回409／REVISION_CONFLICT。完整修订接口和历史范围参数见第二十二章说明。
 
 原文必须是无 NUL、无孤立代理项的非空白字符串，至多 2000 个 JavaScript UTF-16 代码单元；保留原始空格。q 同样拒绝不可原样表示的文本。请求体限制为 16 KiB，须为不带 BOM 的合法 UTF-8 JSON；非法编码不会被替换后写入。错误通过 HTTP 状态码与 `application/problem+json` 返回，包含 type、title、status、detail、code，字段校验失败还包含 issues。旧客户端读取 error 的逻辑需要改为使用新结构：无效输入 `400`、不存在 `404`、方法不支持 `405`、请求体过大 `413`、内容类型不支持 `415`。
 
 保持 `npm run dev` 运行，在 Chrome 的 `chrome://inspect` 中打开 Node 调试目标，连接后，在 `src/captures.service.ts` 的 `await this.store.insert(capture)` 和 `src/prisma-capture.store.ts` 的数据库写入处设置断点并再次发送创建请求。调试器仅监听本机 `9229` 端口。停止时，在运行服务的终端按 `Ctrl+C`。
 
-当前主服务已接入数据库，尚不包含登录、AI、CORS 配置和生产部署。第十三章统一协调 `SIGINT`／`SIGTERM`：停止接收、等待传输和已追踪工作、释放资源；达到关闭期限时以失败状态退出。完整原理与操作步骤见 [EPP 后端开发实践](https://github.com/SamChowRock/EPP-Book)。
+当前主服务已接入数据库，已包含本机会话登录，尚不包含 AI、跨域 CORS 配置和生产部署。第十三章统一协调 `SIGINT`／`SIGTERM`：停止接收、等待传输和已追踪工作、释放资源；达到关闭期限时以失败状态退出。完整原理与操作步骤见 [EPP 后端开发实践](https://github.com/SamChowRock/EPP-Book)。
 
 第二章支线“从字节到 JSON”另有独立示例。在项目根目录执行：
 
@@ -635,7 +641,7 @@ npm test
 
 ## 本机配置与交付核对
 
-第三章起可将 `.env.example` 复制为 `.env`，填写开发 PORT。dev/debug 通过 Node 的 --env-file-if-exists 加载它，已存在的进程环境变量优先；NODE_ENV 由对应脚本明确指定。`.env` 不进入版本控制或交付目录，生产进程由启动环境提供 CURSOR_HMAC_KEY、PORT 等配置，npm start 不自动读取开发文件。修改 .env 后手动重新启动 dev；复制示例不会自动改变已经运行的进程。
+第三章起可将 `.env.example` 复制为 `.env`，填写开发 PORT。dev/debug 通过 Node 的 --env-file-if-exists 加载它，已存在的进程环境变量优先；NODE_ENV 由对应脚本明确指定。`.env` 不进入版本控制或交付目录，生产进程由启动环境提供 DATABASE_URL、CURSOR_HMAC_KEY、APP_ORIGIN、PORT 等配置，npm start 不自动读取开发文件。修改 .env 后手动重新启动 dev；复制示例不会自动改变已经运行的进程。
 
 `npm run check` 是本章的静态检查入口。检查代码后，仍需用已保存的 Postman 请求核对合法创建、错误拒绝、列表与详情；静态检查不能证明 HTTP 可用。生产模式核对请使用另外的端口和请求集合副本，避免把请求发到开发进程。采用第五章构建布局后，在独立运行目录执行 npm ci --omit=dev，再用 PORT=3001 npm start 启动产物，Postman 中将该集合副本的 baseUrl 设为 http://127.0.0.1:3001；核对依赖、配置、正常与失败响应，最后停止该进程。
 

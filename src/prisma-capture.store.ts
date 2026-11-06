@@ -6,7 +6,6 @@ import { RevisionConflictError } from './capture-revision.js';
 import { StorageFailureError } from './database-errors.js';
 import type { CaptureStore } from './capture-store.js';
 import { DatabaseService } from './database.service.js';
-import { DEVELOPMENT_USER_ID } from './database-config.js';
 
 const validId = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(id);
 type Row = Omit<Capture, 'createdAt'> & { createdAt: Date };
@@ -18,12 +17,12 @@ const revisionColumns = Prisma.sql`r.id, r.capture_id AS "captureId", r.revision
   r.input_source AS "inputSource", r.chunks, r.created_at AS "createdAt"`;
 
 export class PrismaCaptureStore implements CaptureStore {
-  constructor(private readonly database: DatabaseService) {}
+  constructor(private readonly database: DatabaseService, private readonly userId: string) {}
 
   async insert(capture: Capture): Promise<void> {
     // One nested write: parent and first revision commit or roll back together.
     await this.database.run('insert', () => this.database.client.capture.create({
-      data: { id: capture.id, userId: DEVELOPMENT_USER_ID,
+      data: { id: capture.id, userId: this.userId,
         originalText: capture.originalText, chineseIntent: capture.chineseIntent, createdAt: new Date(capture.createdAt),
         revisions: { create: { id: randomUUID(), revisionNo: 1,
           originalText: capture.originalText, chineseIntent: capture.chineseIntent,
@@ -38,7 +37,7 @@ export class PrismaCaptureStore implements CaptureStore {
       FROM public.captures c
       JOIN LATERAL (SELECT original_text, chinese_intent FROM public.capture_revisions
         WHERE capture_id = c.id ORDER BY revision_no DESC LIMIT 1) r ON true
-      WHERE c.user_id = ${DEVELOPMENT_USER_ID}::uuid
+      WHERE c.user_id = ${this.userId}::uuid
         ${text === undefined ? Prisma.empty : Prisma.sql`AND strpos(r.original_text COLLATE "C", ${text}) > 0`}
       ORDER BY c.created_at ASC, c.id ASC
       ${limit === undefined ? Prisma.empty : Prisma.sql`LIMIT ${limit}`}
@@ -49,7 +48,7 @@ export class PrismaCaptureStore implements CaptureStore {
   async find(id: string): Promise<Capture | undefined> {
     if (!validId(id)) return undefined;
     const row = await this.database.run('find', () => this.database.client.capture.findFirst({
-      where: { id, userId: DEVELOPMENT_USER_ID },
+      where: { id, userId: this.userId },
       select: { id: true, createdAt: true, revisions: {
         orderBy: { revisionNo: 'desc' }, take: 1, select: { originalText: true, chineseIntent: true },
       } },
@@ -79,7 +78,7 @@ export class PrismaCaptureStore implements CaptureStore {
           SELECT revision_no, original_text, chinese_intent, input_source, chunks
           FROM public.capture_revisions WHERE capture_id = c.id ORDER BY revision_no DESC LIMIT 1
         ) latest ON true
-        WHERE c.id = ${id}::uuid AND c.user_id = ${DEVELOPMENT_USER_ID}::uuid
+        WHERE c.id = ${id}::uuid AND c.user_id = ${this.userId}::uuid
       ), inserted AS (
         INSERT INTO public.capture_revisions
           (id, capture_id, revision_no, original_text, chinese_intent, input_source, chunks)
@@ -114,7 +113,7 @@ export class PrismaCaptureStore implements CaptureStore {
     if (!validId(id)) return undefined;
     // Keep the parent even if this page has no revisions: [] and 404 mean different things.
     const row = await this.database.run('revisions', () => this.database.client.capture.findFirst({
-      where: { id, userId: DEVELOPMENT_USER_ID }, select: { revisions: {
+      where: { id, userId: this.userId }, select: { revisions: {
         where: before === undefined ? {} : { revisionNo: { lt: before } },
         orderBy: { revisionNo: 'desc' }, take,
       } },

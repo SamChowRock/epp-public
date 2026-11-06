@@ -1,3 +1,4 @@
+import { sessionFetch } from './session-fixture.mjs';
 import './database-env.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -8,6 +9,7 @@ import { removeTestCaptures } from './cleanup.mjs';
 
 test('live pagination handles ties, head inserts, deleted anchors, filters and half-open time', async t => {
   const app=await createApp(), db=app.get(DatabaseService).client;
+  const fetch = await sessionFetch(t, app);
   const preserved=new Set((await db.expression.findMany({select:{id:true}})).map(x=>x.id)), captures=[];
   t.after(async()=>{try{await removeTestCaptures(db,captures,preserved);}finally{await app.close();}});
   await app.listen(0,'127.0.0.1'); const base=await app.getUrl();

@@ -2,7 +2,6 @@ import pg from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from './generated/prisma/client.js';
 import type { DatabaseConfig } from './database-config.js';
-import { DEVELOPMENT_USER_ID } from './database-config.js';
 import { AppLogger } from './app-logger.js';
 import { databaseFailure, StorageFailureError, StorageUnavailableError } from './database-errors.js';
 
@@ -34,13 +33,11 @@ export class DatabaseService {
   async onModuleInit(): Promise<void> {
     try {
       await this.client.$connect();
-      const user = await this.client.user.findUnique({
-        where: { id: DEVELOPMENT_USER_ID }, select: { id: true },
-      });
-      if (!user) throw Object.assign(new Error('Development user is missing'), { code: 'DEV_USER_MISSING' });
       // Exercise the columns needed by the API, even when the table is empty.
       await this.client.capture.findMany({ take: 1,
         select: { id: true, userId: true, originalText: true, chineseIntent: true, createdAt: true } });
+      await this.client.passwordCredential.findMany({ take: 1, select: { userId: true, passwordHash: true } });
+      await this.client.session.findMany({ take: 1 });
       await this.client.captureRevision.findMany({ take: 1 });
       await this.client.candidate.findMany({ take: 1 });
       await this.client.expression.findMany({ take: 1 });

@@ -16,7 +16,7 @@ test('acceptance retries known rollbacks only, with a finite budget', async () =
   ]) {
     let calls = 0;
     const store = new PrismaCandidateStore({ run: (_operation, work) => work(),
-      client: { $transaction: async () => { if (++calls <= failures) throw failure(code); return 'conflict'; } } });
+      client: { $transaction: async () => { if (++calls <= failures) throw failure(code); return 'conflict'; } } }, '10000000-0000-4000-8000-000000000001');
     const result = store.accept('10000000-0000-4000-8000-000000000001', '20000000-0000-4000-8000-000000000002');
     if (succeeds) assert.equal(await result, 'conflict');
     else await assert.rejects(result, error => error.code === code);

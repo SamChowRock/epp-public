@@ -1,3 +1,5 @@
+import { AuthModule } from './auth.module.js';
+import { CURRENT_USER_ID } from './auth-context.js';
 import { APP_CONFIG } from './config.js';
 import type { AppConfig } from './config.js';
 import { LearningController } from './learning.controller.js';
@@ -19,22 +21,22 @@ import { CandidatesService } from './candidates.service.js';
 import { PrismaCandidateStore } from './prisma-candidate.store.js';
 
 @Module({
-  imports: [DatabaseModule],
+  imports: [DatabaseModule, AuthModule],
   controllers: [CapturesController, CandidatesController, LearningController],
   providers: [
     { provide: LearningQueries,
-      useFactory: (database: DatabaseService, state: ApplicationState, config: AppConfig) => new LearningQueries(database, state, config.cursorKey),
-      inject: [DatabaseService, ApplicationState, APP_CONFIG] },
+      useFactory: (database: DatabaseService, state: ApplicationState, config: AppConfig, userId: string) => new LearningQueries(database, state, config.cursorKey, userId),
+      inject: [DatabaseService, ApplicationState, APP_CONFIG, CURRENT_USER_ID] },
     { provide: PrismaCandidateStore,
-      useFactory: (database: DatabaseService) => new PrismaCandidateStore(database),
-      inject: [DatabaseService] },
+      useFactory: (database: DatabaseService, userId: string) => new PrismaCandidateStore(database, userId),
+      inject: [DatabaseService, CURRENT_USER_ID] },
     { provide: CandidatesService,
       useFactory: (store: PrismaCandidateStore, state: ApplicationState) => new CandidatesService(store, state),
       inject: [PrismaCandidateStore, ApplicationState] },
     CaptureListQueryPipe,
     { provide: PrismaCaptureStore,
-      useFactory: (database: DatabaseService) => new PrismaCaptureStore(database),
-      inject: [DatabaseService] },
+      useFactory: (database: DatabaseService, userId: string) => new PrismaCaptureStore(database, userId),
+      inject: [DatabaseService, CURRENT_USER_ID] },
     {
       provide: CAPTURE_STORE,
       useFactory: (store: PrismaCaptureStore, logger: AppLogger, state: ApplicationState) =>

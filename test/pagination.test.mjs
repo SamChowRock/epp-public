@@ -38,5 +38,5 @@ test('signed boundary binds scope and expiry and uses last returned row', () => 
   assert.throws(()=>pageRequest({...query,cursor:expired},'learning-records',owner,key));
   assert.deepEqual(pageResult(pageRequest({mode:'offset',offset:'10000',limit:'1'},'learning-records',owner,key),rows,key),{nextOffset:null});
   assert.throws(()=>parseConfig({port:3000},{NODE_ENV:'production'}),/CURSOR_HMAC_KEY/);
-  assert.equal(parseConfig({port:3000},{NODE_ENV:'production',CURSOR_HMAC_KEY:key}).cursorKey,key);
+  assert.equal(parseConfig({port:3000},{NODE_ENV:'production',CURSOR_HMAC_KEY:key,APP_ORIGIN:'https://epp.example'}).cursorKey,key);
 });

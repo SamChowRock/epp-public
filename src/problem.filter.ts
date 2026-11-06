@@ -17,6 +17,7 @@ export class ProblemFilter implements ExceptionFilter {
     }
     // A failed response must not advertise the success-only resource location.
     response.removeHeader('Location');
+    response.removeHeader('Set-Cookie');
     const failure = httpFailure(error);
     this.logger.write(failure.statusCode >= 500 ? 'error' : 'warn', 'http.failed', {
       status: failure.statusCode, code: failure.body.code,

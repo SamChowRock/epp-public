@@ -1,3 +1,4 @@
+import { sessionFetch } from './session-fixture.mjs';
 import { removeTestCaptures } from './cleanup.mjs';
 import './database-env.mjs';
 import test from 'node:test';
@@ -8,6 +9,7 @@ import { DatabaseService } from '../dist/src/database.service.js';
 
 test('acceptance rolls back a late failure, then commits once under contention', async t => {
   const app = await createApp();
+  const fetch = await sessionFetch(t, app);
   const database = app.get(DatabaseService), db = database.client;
   const preservedExpressions = new Set((await db.expression.findMany({ select: { id: true } })).map(row => row.id));
   let clean = async () => {};
