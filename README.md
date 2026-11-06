@@ -288,7 +288,20 @@ cp -R dist "$release_dir/dist" &&
 
 `part-01/chapter-06` 的主服务保持第五章状态。`examples/chapter-06-source.patch` 保存可选来源标签的独立实现，供完成自主实践后对照；该字段不进入第七章及后续主线。
 
-查看参考：`git show part-01/chapter-06:examples/chapter-06-source.patch`。需要运行参考时，从 `part-01/chapter-05` 另建干净的个人 worktree，在新目录执行 `git show part-01/chapter-06:examples/chapter-06-source.patch | git apply -`，然后执行 `nvm use`、`npm ci`、`npm run typecheck`、`npm run build`、`npm start`。不要在已有个人成果上直接应用补丁。详细需求、隔离步骤与响应观察见第六章。
+自己从空目录跟写、普通克隆和单分支克隆都可使用同一路径：保留当前项目，另建资料目录。以下每条命令成功后才执行下一条；已有目录用 `git worktree list` 找回练习，不覆盖它。
+
+```bash
+main_dir=$(pwd)
+git clone --single-branch --branch part-01/chapter-06 \
+  https://github.com/SamChowRock/epp-book-code.git ../epp-chapter-06-materials
+cd ../epp-chapter-06-materials
+git fetch origin refs/heads/part-01/chapter-05:refs/remotes/origin/part-01/chapter-05
+git worktree add -b practice/chapter-06-source ../epp-chapter-06-source origin/part-01/chapter-05
+```
+
+进入 `../epp-chapter-06-source`，执行 `nvm use`、`npm ci`，按正文独立实现。远程分支记录 `origin/part-01/chapter-05` 已由显式 fetch 建立，不依赖同名本地分支；原项目无需初始化 Git。
+
+查看参考：`git show origin/part-01/chapter-06:examples/chapter-06-source.patch`。需要运行参考时，在资料目录执行 `git worktree add -b practice/chapter-06-reference ../epp-chapter-06-reference origin/part-01/chapter-05`；成功后进入该目录，执行 `git show origin/part-01/chapter-06:examples/chapter-06-source.patch | git apply -`，然后安装依赖、类型检查、构建与启动。不要在已有个人成果上直接应用补丁。结束后用 `cd "$main_dir"` 回到原项目；重开终端后用自己记录的原路径。详细需求、隔离步骤与响应观察见第六章。
 
 ## 开发与生产运行
 
