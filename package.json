@@ -31,7 +31,7 @@
     "rxjs": "7.8.2",
     "express": "5.2.1",
     "zod": "4.6.6",
-    "@nestjs/swagger": "11.4.7"
+    "@nestjs/swagger": "11.4.8"
   },
   "overrides": {
     "multer": "2.5.0"
