@@ -8,7 +8,7 @@
 
 成品已含 `20261102100000_capture_revisions`。审查其建表、锁、回填与逐字段核对：旧 ID 保持，初始修订内容逐字复制，input_source=unknown、chunks=SQL NULL，修订时间为迁移时间；旧 captures 字段不变。新建 Capture 与第一个修订使用嵌套写入，后续只追加修订。
 
-在项目根目录运行 `nvm use` 和 `npm ci`。在 DBeaver 的 VERIFY 编辑器先单独执行[准备两条虚构旧数据](00-verify-samples.sql)的连接查询。确认库名、尚在第二十一章结构后，运行余下事务，保存返回的两行。固定 ID 的样本只准备一次。已升级的库可对照迁移前导出；重做实验用第二十一章备份另建验证库。
+在项目根目录运行 `nvm use` 和 `npm ci`。先按[备份与独立恢复](backup-restore.md)在第二十一章结构的校验库准备两条虚构样本，保存完整字段、归档并恢复到全新 epp_ch21_restore。使用[恢复核对](04-backup-check.sql)比较数据、迁移历史与约束。若已有库已升级且没有旧归档，说明中提供第二十一章独立样本库路径，不清空已有库。核对通过后将 `.env.database-verify` 指向恢复库；下面称该库为本轮 VERIFY，不再重复插入固定 ID。DEV 升级前另做自己的备份与独立恢复核对。
 
 ```bash
 unset DATABASE_URL SHADOW_DATABASE_URL
