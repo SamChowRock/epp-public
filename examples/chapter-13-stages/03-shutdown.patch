@@ -1,0 +1,436 @@
+diff --git a/examples/lifecycle-order.mjs b/examples/lifecycle-order.mjs
+new file mode 100644
+index 0000000..95f4c36
+--- /dev/null
++++ b/examples/lifecycle-order.mjs
+@@ -0,0 +1,17 @@
++import 'reflect-metadata';
++import { Module } from '@nestjs/common';
++import { NestFactory } from '@nestjs/core';
++
++class Resource {
++  onModuleInit() { console.log('resource: init'); }
++  onApplicationBootstrap() { console.log('resource: bootstrap'); }
++  onModuleDestroy() { console.log('resource: destroy'); }
++  beforeApplicationShutdown() { console.log('resource: before shutdown'); }
++  onApplicationShutdown() { console.log('resource: after shutdown'); }
++}
++class Root {}
++Module({ providers: [Resource] })(Root);
++const app = await NestFactory.createApplicationContext(Root, { logger: false });
++console.log('caller: context ready (no HTTP listener)');
++await app.close();
++console.log('caller: close complete');
+diff --git a/package.json b/package.json
+index 9f75ca1..8d02c4c 100644
+--- a/package.json
++++ b/package.json
+@@ -16,6 +16,7 @@
+     "dev:pipeline": "NODE_ENV=development node --env-file-if-exists=.env scripts/dev.mjs .dev/src/labs/request-pipeline-server.js",
+     "test": "npm run build && NODE_ENV=test node --test test/*.test.mjs",
+     "check": "npm run typecheck && npm run build",
++    "dev:lifecycle": "NODE_ENV=development PORT=3007 node --env-file-if-exists=.env scripts/dev.mjs .dev/src/labs/lifecycle-server.js",
+     "dev:express": "NODE_ENV=development node --env-file-if-exists=.env --watch --watch-preserve-output --inspect=127.0.0.1:9229 examples/express-pipeline.js",
+     "dev:responses": "NODE_ENV=development node --env-file-if-exists=.env scripts/dev.mjs .dev/examples/controller-responses/main.js examples/controller-responses/tsconfig.dev.json"
+   },
+diff --git a/requests/lifecycle.postman_collection.json b/requests/lifecycle.postman_collection.json
+new file mode 100644
+index 0000000..9932ece
+--- /dev/null
++++ b/requests/lifecycle.postman_collection.json
+@@ -0,0 +1,140 @@
++{
++  "info": {
++    "name": "EPP 生命周期实验",
++    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
++    "description": "独立实验端口3007。逐条Send；观察请求处理中SIGTERM、客户端取消、超时与资源释放。不要同时启动主线dev。"
++  },
++  "variable": [
++    {
++      "key": "baseUrl",
++      "value": "http://127.0.0.1:3007",
++      "type": "string"
++    }
++  ],
++  "item": [
++    {
++      "name": "01 正常收尾",
++      "request": {
++        "method": "POST",
++        "header": [
++          {
++            "key": "Content-Type",
++            "value": "application/json"
++          }
++        ],
++        "body": {
++          "mode": "raw",
++          "raw": "{\"delayMs\": 1500}",
++          "options": {
++            "raw": {
++              "language": "json"
++            }
++          }
++        },
++        "url": {
++          "raw": "{{baseUrl}}/lifecycle/work",
++          "host": [
++            "{{baseUrl}}"
++          ],
++          "path": [
++            "lifecycle",
++            "work"
++          ]
++        }
++      }
++    },
++    {
++      "name": "02 资源失败",
++      "request": {
++        "method": "POST",
++        "header": [
++          {
++            "key": "Content-Type",
++            "value": "application/json"
++          }
++        ],
++        "body": {
++          "mode": "raw",
++          "raw": "{\"delayMs\": 100, \"fail\": true}",
++          "options": {
++            "raw": {
++              "language": "json"
++            }
++          }
++        },
++        "url": {
++          "raw": "{{baseUrl}}/lifecycle/work",
++          "host": [
++            "{{baseUrl}}"
++          ],
++          "path": [
++            "lifecycle",
++            "work"
++          ]
++        }
++      }
++    },
++    {
++      "name": "03 超过关闭期限",
++      "request": {
++        "method": "POST",
++        "header": [
++          {
++            "key": "Content-Type",
++            "value": "application/json"
++          }
++        ],
++        "body": {
++          "mode": "raw",
++          "raw": "{\"delayMs\": 15000}",
++          "options": {
++            "raw": {
++              "language": "json"
++            }
++          }
++        },
++        "url": {
++          "raw": "{{baseUrl}}/lifecycle/work",
++          "host": [
++            "{{baseUrl}}"
++          ],
++          "path": [
++            "lifecycle",
++            "work"
++          ]
++        }
++      }
++    },
++    {
++      "name": "04 立即完成",
++      "request": {
++        "method": "POST",
++        "header": [
++          {
++            "key": "Content-Type",
++            "value": "application/json"
++          }
++        ],
++        "body": {
++          "mode": "raw",
++          "raw": "{\"delayMs\": 0}",
++          "options": {
++            "raw": {
++              "language": "json"
++            }
++          }
++        },
++        "url": {
++          "raw": "{{baseUrl}}/lifecycle/work",
++          "host": [
++            "{{baseUrl}}"
++          ],
++          "path": [
++            "lifecycle",
++            "work"
++          ]
++        }
++      }
++    }
++  ]
++}
+diff --git a/scripts/dev.mjs b/scripts/dev.mjs
+index 9f6de18..96f467c 100644
+--- a/scripts/dev.mjs
++++ b/scripts/dev.mjs
+@@ -23,7 +23,7 @@ async function stopServer() {
+   const current = child;
+   if (!current || current.exitCode !== null || current.signalCode !== null) return;
+   await new Promise(resolve => {
+-    const deadline = setTimeout(() => current.kill('SIGKILL'), 2000);
++    const deadline = setTimeout(() => current.kill('SIGKILL'), 35000);
+     current.once('exit', () => { clearTimeout(deadline); resolve(); });
+     current.kill('SIGTERM');
+   });
+diff --git a/src/labs/lifecycle-server.ts b/src/labs/lifecycle-server.ts
+new file mode 100644
+index 0000000..108ea17
+--- /dev/null
++++ b/src/labs/lifecycle-server.ts
+@@ -0,0 +1,20 @@
++import { ConfigError, loadConfig } from '../config.js';
++import { AppLogger } from '../app-logger.js';
++import { serve } from '../serve.js';
++import { createLifecycleApp } from './lifecycle.js';
++
++try {
++  const mode = process.env.LAB_MODE ?? 'normal';
++  if (mode !== 'normal' && mode !== 'init-fail' && mode !== 'close-hang') {
++    throw new ConfigError('LAB_MODE');
++  }
++  const config = await loadConfig({ ...process.env, PORT: process.env.PORT ?? '3007' });
++  const logger = new AppLogger(config.logLevel);
++  await serve(config, logger, () => createLifecycleApp(config, logger, mode));
++} catch (error) {
++  new AppLogger('error').write('error', 'app.start_failed', {
++    field: error instanceof ConfigError ? error.field : undefined,
++    code: error instanceof ConfigError ? 'CONFIG_INVALID' : 'START_FAILURE',
++  });
++  process.exitCode = 1;
++}
+diff --git a/src/labs/lifecycle.ts b/src/labs/lifecycle.ts
+new file mode 100644
+index 0000000..f80246f
+--- /dev/null
++++ b/src/labs/lifecycle.ts
+@@ -0,0 +1,86 @@
++import 'reflect-metadata';
++import { Body, Controller, Inject, Injectable, Module, Post } from '@nestjs/common';
++import { APP_FILTER, NestFactory } from '@nestjs/core';
++import { mkdtemp, open, rm } from 'node:fs/promises';
++import type { FileHandle } from 'node:fs/promises';
++import { tmpdir } from 'node:os';
++import { join } from 'node:path';
++import { setTimeout as delay } from 'node:timers/promises';
++import { z } from 'zod';
++import { APP_CONFIG } from '../config.js';
++import type { AppConfig } from '../config.js';
++import { RuntimeModule } from '../runtime.module.js';
++import { ApplicationState } from '../application-state.js';
++import { AppLogger } from '../app-logger.js';
++import { ProblemFilter } from '../problem.filter.js';
++import { requestObservation } from '../request-observation.js';
++import { parseInput } from '../input-validation.js';
++
++const Input = z.object({
++  delayMs: z.number().int().min(0).max(15000).default(1500),
++  fail: z.boolean().default(false),
++});
++export type LabMode = 'normal' | 'init-fail' | 'close-hang';
++
++export async function createLifecycleApp(config: AppConfig, logger: AppLogger, mode: LabMode) {
++  @Injectable()
++  class Resource {
++    private directory?: string;
++    private handle?: FileHandle;
++    constructor(
++      @Inject(APP_CONFIG) private readonly config: AppConfig,
++      @Inject(AppLogger) private readonly log: AppLogger,
++    ) {}
++    async onModuleInit(): Promise<void> {
++      this.directory = await mkdtemp(join(tmpdir(), 'epp-lifecycle-'));
++      try {
++        this.handle = await open(join(this.directory, 'events.log'), 'wx', 0o600);
++        if (mode === 'init-fail') throw new Error('Demonstration initialization failure');
++        this.log.write('info', 'resource.opened', { port: this.config.port });
++      } catch (error) {
++        await this.release();
++        throw error;
++      }
++    }
++    async use(ms: number, fail: boolean): Promise<void> {
++      await delay(ms);
++      if (fail) throw new Error('Demonstration resource failure');
++      if (!this.handle) throw new Error('Resource already closed');
++      await this.handle.writeFile('completed\n');
++      this.log.write('info', 'resource.used');
++    }
++    private async release(): Promise<void> {
++      await this.handle?.close();
++      this.handle = undefined;
++      if (this.directory) await rm(this.directory, { recursive: true, force: true });
++      this.directory = undefined;
++    }
++    async onModuleDestroy(): Promise<void> {
++      if (mode === 'close-hang') await new Promise<void>(() => {});
++      await this.release();
++      this.log.write('info', 'resource.closed');
++    }
++  }
++  @Controller('lifecycle')
++  class LifecycleController {
++    constructor(
++      @Inject(Resource) private readonly resource: Resource,
++      @Inject(ApplicationState) private readonly state: ApplicationState,
++    ) {}
++    @Post('work')
++    async work(@Body() body: unknown) {
++      const value = parseInput(Input, body);
++      await this.state.track(() => this.resource.use(value.delayMs, value.fail));
++      return { completed: true };
++    }
++  }
++  @Module({
++    imports: [RuntimeModule.register(config, logger)],
++    controllers: [LifecycleController],
++    providers: [Resource, { provide: APP_FILTER, useClass: ProblemFilter }],
++  })
++  class LifecycleModule {}
++  const app = await NestFactory.create(LifecycleModule, { logger: false, abortOnError: false });
++  app.use(requestObservation(logger, app.get(ApplicationState), ['/lifecycle/work']));
++  return app;
++}
+diff --git a/src/serve.ts b/src/serve.ts
+new file mode 100644
+index 0000000..2953bd4
+--- /dev/null
++++ b/src/serve.ts
+@@ -0,0 +1,74 @@
++import type { INestApplication } from '@nestjs/common';
++import type { Server } from 'node:http';
++import type { AppConfig } from './config.js';
++import { AppLogger } from './app-logger.js';
++import { ApplicationState } from './application-state.js';
++
++export async function serve(
++  config: AppConfig,
++  logger: AppLogger,
++  create: () => Promise<INestApplication>,
++): Promise<void> {
++  let app: INestApplication | undefined;
++  let stopping = false;
++  let closing: Promise<void> | undefined;
++  let boot: Promise<void>;
++  const stop = (signal: string): Promise<void> => {
++    if (closing) return closing;
++    stopping = true;
++    if (app) app.get(ApplicationState).draining = true;
++    logger.write('info', 'app.draining', { signal });
++    const deadline = setTimeout(() => {
++      logger.write('error', 'app.stop_timeout', { active: app?.get(ApplicationState).active });
++      (app?.getHttpServer() as Server | undefined)?.closeAllConnections();
++      // The hard deadline covers hung work AND hung resource cleanup.
++      process.exit(1);
++    }, config.shutdownTimeoutMs);
++    closing = (async () => {
++      await boot.catch(() => {});
++      if (app) {
++        const state = app.get(ApplicationState);
++        state.draining = true;
++        const server = app.getHttpServer() as Server;
++        await new Promise<void>((resolve, reject) => {
++          server.close(error => {
++            if (error && (error as NodeJS.ErrnoException).code !== 'ERR_SERVER_NOT_RUNNING') reject(error);
++            else resolve();
++          });
++        });
++        // A disconnected HTTP client does not cancel an accepted store operation.
++        await state.whenIdle();
++        await app.close();
++      }
++      logger.write('info', 'app.stopped', { signal });
++    })().catch(() => {
++      logger.write('error', 'app.stop_failed');
++      (app?.getHttpServer() as Server | undefined)?.closeAllConnections();
++      process.exit(1);
++    }).finally(() => {
++      clearTimeout(deadline);
++      process.off('SIGINT', onInt);
++      process.off('SIGTERM', onTerm);
++    });
++    return closing;
++  };
++  const onInt = () => { void stop('SIGINT'); };
++  const onTerm = () => { void stop('SIGTERM'); };
++  process.on('SIGINT', onInt);
++  process.on('SIGTERM', onTerm);
++  boot = (async () => {
++    app = await create();
++    if (stopping) return;
++    await app.init();
++    if (stopping) return;
++    await app.listen(config.port, '127.0.0.1');
++    if (!stopping) logger.write('info', 'app.ready', { port: config.port });
++  })();
++  try { await boot; }
++  catch (error) {
++    const code = (error as NodeJS.ErrnoException | undefined)?.code;
++    logger.write('error', 'app.start_failed', { code: code === 'EADDRINUSE' ? code : 'START_FAILURE' });
++    process.exitCode = 1;
++    await stop('startup-failure');
++  }
++}
+diff --git a/src/server.ts b/src/server.ts
+index c4e9402..b600325 100644
+--- a/src/server.ts
++++ b/src/server.ts
+@@ -1,26 +1,16 @@
+ import { createApp } from './app.js';
+-import { loadConfig } from './config.js';
+-import { errorCode, errorMessage } from './errors.js';
++import { ConfigError, loadConfig } from './config.js';
++import { AppLogger } from './app-logger.js';
++import { serve } from './serve.js';
+ 
+-const host = '127.0.0.1';
+-
+-async function start(): Promise<void> {
+-  const { port } = await loadConfig();
+-  const app = await createApp();
+-  try {
+-    await app.listen(port, host);
+-    console.log(`EPP listening on http://${host}:${port} (pid=${process.pid})`);
+-  } catch (error: unknown) {
+-    await app.close();
+-    throw error;
+-  }
+-}
+-
+-start().catch((error: unknown) => {
+-  if (errorCode(error) === 'EADDRINUSE') {
+-    console.error('Cannot start EPP: address already in use');
+-  } else {
+-    console.error(`Cannot start EPP: ${errorMessage(error)}`);
+-  }
++try {
++  const config = await loadConfig();
++  const logger = new AppLogger(config.logLevel);
++  await serve(config, logger, () => createApp(config, logger));
++} catch (error) {
++  new AppLogger('error').write('error', 'app.start_failed', {
++    field: error instanceof ConfigError ? error.field : undefined,
++    code: error instanceof ConfigError ? 'CONFIG_INVALID' : 'START_FAILURE',
++  });
+   process.exitCode = 1;
+-});
++}
