@@ -301,7 +301,20 @@ cp -R dist "$release_dir/dist" &&
 
 `part-01/chapter-06` 的主服务保持第五章状态。`examples/chapter-06-source.patch` 保存可选来源标签的独立实现，供完成自主实践后对照；该字段不进入第七章及后续主线。
 
-查看参考：`git show part-01/chapter-06:examples/chapter-06-source.patch`。需要运行参考时，从 `part-01/chapter-05` 另建干净的个人 worktree，在新目录执行 `git show part-01/chapter-06:examples/chapter-06-source.patch | git apply -`，然后执行 `nvm use`、`npm ci`、`npm run typecheck`、`npm run build`、`npm start`。不要在已有个人成果上直接应用补丁。详细需求、隔离步骤与响应观察见第六章。
+自己从空目录跟写、普通克隆和单分支克隆都可使用同一路径：保留当前项目，另建资料目录。以下每条命令成功后才执行下一条；已有目录用 `git worktree list` 找回练习，不覆盖它。
+
+```bash
+main_dir=$(pwd)
+git clone --single-branch --branch part-01/chapter-06 \
+  https://github.com/SamChowRock/epp-book-code.git ../epp-chapter-06-materials
+cd ../epp-chapter-06-materials
+git fetch origin refs/heads/part-01/chapter-05:refs/remotes/origin/part-01/chapter-05
+git worktree add -b practice/chapter-06-source ../epp-chapter-06-source origin/part-01/chapter-05
+```
+
+进入 `../epp-chapter-06-source`，执行 `nvm use`、`npm ci`，按正文独立实现。远程分支记录 `origin/part-01/chapter-05` 已由显式 fetch 建立，不依赖同名本地分支；原项目无需初始化 Git。
+
+查看参考：`git show origin/part-01/chapter-06:examples/chapter-06-source.patch`。需要运行参考时，在资料目录执行 `git worktree add -b practice/chapter-06-reference ../epp-chapter-06-reference origin/part-01/chapter-05`；成功后进入该目录，执行 `git show origin/part-01/chapter-06:examples/chapter-06-source.patch | git apply -`，然后安装依赖、类型检查、构建与启动。不要在已有个人成果上直接应用补丁。结束后用 `cd "$main_dir"` 回到原项目；重开终端后用自己记录的原路径。详细需求、隔离步骤与响应观察见第六章。
 
 ## 第七章建立的 Nest 组装与业务边界
 
@@ -618,6 +631,8 @@ npm test
 
 ## 第十三章配置、日志与关闭
 
+从第十二章跟做时，按[三个可运行阶段](examples/chapter-13-stages/README.md)推进：配置解析 → 请求日志 → 关闭协调。每段均先 check 再观察行为，可以暂停恢复；补丁用于独立第十二章目录，不覆盖自己的实现。
+
 本机 .env 可新增 LOG_LEVEL=debug、SHUTDOWN_TIMEOUT_MS=5000；已有 .env 不要直接覆盖。NODE_ENV 与文档开关由 src/config.ts 集中解析，src/http-options.ts 不再使用。PORT 和关闭期限先校验十进制表示；关闭期限为1～30000毫秒。配置无效时在创建应用前记录 CONFIG_INVALID 和字段名，返回非零退出码，不打印原值。APP_CONFIG 注入不可变配置快照；启动后改环境需重启。
 
 Postman 发送已有请求后，在响应 Headers 复制 X-Request-Id，在本机日志中搜索同一编号。开发时保存输出：
@@ -654,11 +669,20 @@ node examples/request-context.mjs
 
 先独立完成需求，再对照参考：新建 originalText 上限收紧为 1200 个 UTF-16 代码单元，旧记录仍可按原有 2000 单元范围读取；用数组替换 Map，同时保留 CAPTURE_STORE、观测包装、顺序、副本与失败约定。练习使用 `part-02/chapter-14` 快照；不要在本章持久化分支套用旧 Map／数组补丁。
 
-停止已有 dev，在本分支根目录创建独立练习目录：
+停止已有 dev，保留原项目；无论自己跟写还是使用配套代码，都另建本章资料目录：
 
 ```bash
+git clone --single-branch --branch part-02/chapter-14 \
+  https://github.com/SamChowRock/epp-book-code.git ../epp-chapter-14-materials
+```
+
+克隆成功后继续；失败或目录已存在时先处理原因，不继续下一条。已有练习按下文恢复，不重新应用补丁。
+
+```bash
+cd ../epp-chapter-14-materials
 review_root=$(pwd)
-git worktree add -b practice/chapter-14 ../epp-chapter-14-practice part-02/chapter-13
+git fetch origin refs/heads/part-02/chapter-13:refs/remotes/origin/part-02/chapter-13
+git worktree add -b practice/chapter-14 ../epp-chapter-14-practice origin/part-02/chapter-13
 ```
 
 确认创建成功后进入目录，按第十四章实现自己的版本；已存在的目录或分支应保留，换新名称。review_root 只保存在当前 shell，后面仍使用这个终端回到原目录。
@@ -673,13 +697,13 @@ PORT=3008 LOG_LEVEL=debug npm run dev
 
 用 VS Code 打开练习目录并 attach。业务端口为 3008，Inspector 仍为 9229，不能与另一份 dev 同时启动。保存后自动编译重启，内存清空；比较失败前后的记录数量时，先建立当前进程的基线。
 
-从最初的第十四章目录导入 [requests/review.postman_collection.json](requests/review.postman_collection.json)，集合默认 baseUrl 为 `http://127.0.0.1:3008`。逐条 Send：普通输入、1200 单元、600 个表情成功；1201 单元、601 个表情及纯空白返回400且不写入。普通输入的首尾空格保留。成功响应 id 手动填入集合 captureId，核对详情、Location 与 X-Request-Id。集合不自动发请求；第十三章基线本身仍允许 1201 单元。
+从第十四章资料目录导入 [requests/review.postman_collection.json](requests/review.postman_collection.json)，集合默认 baseUrl 为 `http://127.0.0.1:3008`。逐条 Send：普通输入、1200 单元、600 个表情成功；1201 单元、601 个表情及纯空白返回400且不写入。普通输入的首尾空格保留。成功响应 id 手动填入集合 captureId，核对详情、Location 与 X-Request-Id。集合不自动发请求；第十三章基线本身仍允许 1201 单元。
 
 需运行参考时，保留自己的实现，在另一个 worktree 使用 [examples/chapter-14-review.patch](examples/chapter-14-review.patch)：
 
 ```bash
 cd "$review_root"
-git worktree add -b practice/chapter-14-reference ../epp-chapter-14-reference part-02/chapter-13
+git worktree add -b practice/chapter-14-reference ../epp-chapter-14-reference origin/part-02/chapter-13
 ```
 
 创建成功后进入目录，只有补丁检查成功才应用；失败先检查基线和已有修改。
