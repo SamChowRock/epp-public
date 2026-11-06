@@ -1,5 +1,9 @@
 # EPP 配套实践代码
 
+## 第三十六章 注册、验证与密码重置
+
+分支 `part-05/chapter-36` 从第35章继续。按[本章说明](database/chapter-36/README.md)升级非空VERIFY，保留旧用户与密码；用[请求集合](requests/chapter-36.postman_collection.json)和本地Mailpit走完注册、资格检查与密码恢复。新增Nodemailer 10.3.1、邮箱与意图两表及凭据版本。四个匿名动作仍有来源／固定头／JSON／限流保护；旧ID登录保留，已验证邮箱也可登录。发送同步等待，202不保证送达，第六篇继续可靠投递。
+
 ## 第三十五章 保护浏览器入口
 
 分支 `part-05/chapter-35` 从第34章继续，无新增迁移或依赖。按[本章实验](examples/browser-boundary/README.md)使用独立VERIFY与真实浏览器，观察同源CSRF拒绝、同站跨源Cookie、预检和响应不可读。所有写请求新增固定头，已有会话写请求还需Token；[本章集合](requests/chapter-35.postman_collection.json)先登录再取Token。代理默认不可信，限流仍为有界单进程实现，生产交付不包含实验页面。
@@ -44,7 +48,7 @@ nvm use
 node --version
 npm ci
 npm run check
-# 先按第三十四章说明核对账号资格迁移，在 .env 配置 DATABASE_URL 和 APP_ORIGIN。
+# 先按第三十六章说明完成迁移，在 .env 配置 DATABASE_URL、APP_ORIGIN和LOCAL_SMTP_PORT。
 npm run dev
 ```
 

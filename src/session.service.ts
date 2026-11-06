@@ -18,7 +18,7 @@ export class SessionService {
   constructor(private readonly database: DatabaseService, private readonly state: ApplicationState) {}
   async onModuleInit(): Promise<void> { this.dummyHash = await hashPassword(issueToken()); }
 
-  private passwordWork<T>(work: () => Promise<T>): Promise<T> {
+  passwordWork<T>(work: () => Promise<T>): Promise<T> {
     if (this.activePasswords >= 2) throw new HttpError(429, 'Password service is busy', 'AUTH_BUSY');
     this.activePasswords++;
     return this.state.track(work).finally(() => { this.activePasswords--; });
@@ -26,30 +26,32 @@ export class SessionService {
 
   login(input: LoginInput) {
     return this.passwordWork(async () => {
+      const contact = 'email' in input ? await this.database.run('resolveLoginEmail', () => this.database.client.verifiedEmail.findUnique({ where: { email: input.email }, select: { userId: true } })) : null;
+      const userId = 'userId' in input ? input.userId : contact?.userId;
       const credential = await this.database.run('readLoginCredential', () => this.database.client.passwordCredential.findUnique({
-        where: { userId: input.userId }, select: { passwordHash: true },
+        where: { userId: userId ?? '00000000-0000-0000-0000-000000000000' }, select: { passwordHash: true },
       }));
       const verified = await verifyPassword(credential?.passwordHash ?? this.dummyHash, input.password);
-      if (!credential || !verified) throw unauthorized();
+      if (!userId || !credential || !verified) throw unauthorized();
       const token = issueToken(), id = randomUUID();
       const result = await this.database.run('createSession', () => this.database.client.$transaction(async tx => {
         await tx.$executeRaw`SET LOCAL lock_timeout = '1s'`;
         const [account] = await tx.$queryRaw<AccountAccess[]>`
-          SELECT status, web_enabled AS "webEnabled" FROM public.users WHERE id = ${input.userId}::uuid FOR UPDATE
+          SELECT status, web_enabled AS "webEnabled" FROM public.users WHERE id = ${userId}::uuid FOR UPDATE
         `;
         if (!account) return 'changed' as const;
         const denied = webAccessFailure(account);
         if (denied) return denied;
         const [current] = await tx.$queryRaw<Credential[]>`
           SELECT password_hash AS "passwordHash" FROM public.password_credentials
-          WHERE user_id = ${input.userId}::uuid FOR UPDATE
+          WHERE user_id = ${userId}::uuid FOR UPDATE
         `;
         if (current?.passwordHash !== credential.passwordHash) return 'changed' as const;
-        await tx.$executeRaw`DELETE FROM public.sessions WHERE user_id = ${input.userId}::uuid AND expires_at <= clock_timestamp()`;
-        if (await tx.session.count({ where: { userId: input.userId } }) >= 20) return 'limit' as const;
+        await tx.$executeRaw`DELETE FROM public.sessions WHERE user_id = ${userId}::uuid AND expires_at <= clock_timestamp()`;
+        if (await tx.session.count({ where: { userId } }) >= 20) return 'limit' as const;
         await tx.$executeRaw`
           INSERT INTO public.sessions(id, user_id, token_digest, label, expires_at)
-          VALUES (${id}::uuid, ${input.userId}::uuid, ${tokenDigest(token)}, ${input.label},
+          VALUES (${id}::uuid, ${userId}::uuid, ${tokenDigest(token)}, ${input.label},
             clock_timestamp() + interval '8 hours')
         `;
         return 'created' as const;
@@ -57,7 +59,7 @@ export class SessionService {
       if (result === 'changed') throw unauthorized();
       if (result === 'limit') throw new HttpError(429, 'Revoke an existing session before logging in again', 'SESSION_LIMIT');
       if (result !== 'created') throw new HttpError(403, 'Account is not permitted to use this service', result);
-      return { token, identity: { userId: input.userId, sessionId: id } };
+      return { token, identity: { userId, sessionId: id } };
     });
   }
 
@@ -125,7 +127,7 @@ export class SessionService {
           SELECT expires_at > clock_timestamp() AS valid FROM public.sessions WHERE id = ${identity.sessionId}::uuid
         `;
         if (!active?.valid) return 'invalid' as const;
-        await tx.passwordCredential.update({ where: { userId: identity.userId }, data: { passwordHash } });
+        await tx.passwordCredential.update({ where: { userId: identity.userId }, data: { passwordHash, version: { increment: 1 } } });
         await tx.session.deleteMany({ where: { userId: identity.userId } });
         return 'changed' as const;
       }, { maxWait: 2000, timeout: 5000 }));

@@ -21,6 +21,8 @@ model User {
   learningRecords LearningRecord[]
   passwordCredential PasswordCredential?
   sessions Session[]
+  verifiedEmail VerifiedEmail?
+  verificationIntents VerificationIntent[]
 
   @@map("users")
 }
@@ -42,6 +44,7 @@ model Session {
 model PasswordCredential {
   userId String @id(map: "password_credentials_pkey") @map("user_id") @db.Uuid
   passwordHash String @map("password_hash") @db.Text
+  version Int @default(1)
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   user User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "password_credentials_user_id_fkey")
 
@@ -151,4 +154,30 @@ model CommandReceipt {
 
   @@id([userId, operationId], map: "command_receipts_pkey")
   @@map("command_receipts")
+}
+
+/// Only verified addresses belong to a user; pending requests do not reserve an account.
+model VerifiedEmail {
+  email String @id(map: "verified_emails_pkey") @db.Text
+  userId String @unique(map: "verified_emails_user_id_key") @map("user_id") @db.Uuid
+  verifiedAt DateTime @default(now()) @map("verified_at") @db.Timestamptz(3)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "verified_emails_user_id_fkey")
+  @@map("verified_emails")
+}
+
+/// One current challenge per purpose/address. CHECK constraints are in migration SQL.
+model VerificationIntent {
+  id String @id(map: "verification_intents_pkey") @db.Uuid
+  purpose String @db.Text
+  email String @db.Text
+  tokenDigest String @unique(map: "verification_intents_token_digest_key") @map("token_digest") @db.Text
+  userId String? @map("user_id") @db.Uuid
+  credentialVersion Int? @map("credential_version")
+  issuedAt DateTime @default(now()) @map("issued_at") @db.Timestamptz(3)
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+  consumedAt DateTime? @map("consumed_at") @db.Timestamptz(3)
+  user User? @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "verification_intents_user_id_fkey")
+  @@unique([purpose, email], map: "verification_intents_purpose_email_key")
+  @@index([expiresAt], map: "verification_intents_expires_at_idx")
+  @@map("verification_intents")
 }

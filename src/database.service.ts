@@ -37,7 +37,9 @@ export class DatabaseService {
       await this.client.user.findMany({ take: 1, select: { id: true, status: true, webEnabled: true } });
       await this.client.capture.findMany({ take: 1,
         select: { id: true, userId: true, originalText: true, chineseIntent: true, createdAt: true } });
-      await this.client.passwordCredential.findMany({ take: 1, select: { userId: true, passwordHash: true } });
+      await this.client.passwordCredential.findMany({ take: 1, select: { userId: true, passwordHash: true, version: true } });
+      await this.client.verifiedEmail.findMany({ take: 1 });
+      await this.client.verificationIntent.findMany({ take: 1 });
       await this.client.session.findMany({ take: 1 });
       await this.client.captureRevision.findMany({ take: 1 });
       await this.client.candidate.findMany({ take: 1 });
