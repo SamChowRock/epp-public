@@ -14,8 +14,3 @@
 +        value.length > 1000 || !isPostgresText(value)) {
 +      throw new InvalidCaptureError('chineseIntent must be null or non-empty, at most 1000 code units, and well-formed Unicode without NUL');
      }
-@@ -27,3 +27,3 @@
-     if (originalText.length > 2000) {
--      throw new InvalidCaptureError('originalText must be at most 2000 code units');
-+      throw new InvalidCaptureError('originalText must be at most 1000 code units');
-     }
