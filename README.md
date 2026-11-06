@@ -638,11 +638,20 @@ node examples/request-context.mjs
 
 先独立完成需求，再对照参考：新建 originalText 上限收紧为 1200 个 UTF-16 代码单元，旧记录仍可按原有 2000 单元范围读取；用数组替换 Map，同时保留 CAPTURE_STORE、观测包装、顺序、副本与失败约定。练习不改变本分支主服务，第三篇继续从主线接入数据库。
 
-停止已有 dev，在本分支根目录创建独立练习目录：
+停止已有 dev，保留原项目；无论自己跟写还是使用配套代码，都另建本章资料目录：
 
 ```bash
+git clone --single-branch --branch part-02/chapter-14 \
+  https://github.com/SamChowRock/epp-book-code.git ../epp-chapter-14-materials
+```
+
+克隆成功后继续；失败或目录已存在时先处理原因，不继续下一条。已有练习按下文恢复，不重新应用补丁。
+
+```bash
+cd ../epp-chapter-14-materials
 review_root=$(pwd)
-git worktree add -b practice/chapter-14 ../epp-chapter-14-practice part-02/chapter-13
+git fetch origin refs/heads/part-02/chapter-13:refs/remotes/origin/part-02/chapter-13
+git worktree add -b practice/chapter-14 ../epp-chapter-14-practice origin/part-02/chapter-13
 ```
 
 确认创建成功后进入目录，按第十四章实现自己的版本；已存在的目录或分支应保留，换新名称。review_root 只保存在当前 shell，后面仍使用这个终端回到原目录。
@@ -657,13 +666,13 @@ PORT=3008 LOG_LEVEL=debug npm run dev
 
 用 VS Code 打开练习目录并 attach。业务端口为 3008，Inspector 仍为 9229，不能与另一份 dev 同时启动。保存后自动编译重启，内存清空；比较失败前后的记录数量时，先建立当前进程的基线。
 
-从最初的第十四章目录导入 [requests/review.postman_collection.json](requests/review.postman_collection.json)，集合默认 baseUrl 为 `http://127.0.0.1:3008`。逐条 Send：普通输入、1200 单元、600 个表情成功；1201 单元、601 个表情及纯空白返回400且不写入。普通输入的首尾空格保留。成功响应 id 手动填入集合 captureId，核对详情、Location 与 X-Request-Id。集合不自动发请求；第十三章基线本身仍允许 1201 单元。
+从第十四章资料目录导入 [requests/review.postman_collection.json](requests/review.postman_collection.json)，集合默认 baseUrl 为 `http://127.0.0.1:3008`。逐条 Send：普通输入、1200 单元、600 个表情成功；1201 单元、601 个表情及纯空白返回400且不写入。普通输入的首尾空格保留。成功响应 id 手动填入集合 captureId，核对详情、Location 与 X-Request-Id。集合不自动发请求；第十三章基线本身仍允许 1201 单元。
 
 需运行参考时，保留自己的实现，在另一个 worktree 使用 [examples/chapter-14-review.patch](examples/chapter-14-review.patch)：
 
 ```bash
 cd "$review_root"
-git worktree add -b practice/chapter-14-reference ../epp-chapter-14-reference part-02/chapter-13
+git worktree add -b practice/chapter-14-reference ../epp-chapter-14-reference origin/part-02/chapter-13
 ```
 
 创建成功后进入目录，只有补丁检查成功才应用；失败先检查基线和已有修改。
