@@ -1,0 +1,79 @@
+{
+  "info": {
+    "name": "EPP 第三十二章 旧记录保持",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000"
+    },
+    {
+      "key": "captureId",
+      "value": ""
+    },
+    {
+      "key": "learningId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 旧原文详情",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/captures/{{captureId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"读取成功\", () => pm.response.to.have.status(200));",
+              "pm.test(\"不返回凭据字段\", () => { const keys = []; const visit = x => { if (x && typeof x === \"object\") { for (const [k,v] of Object.entries(x)) { keys.push(k); visit(v); } } }; visit(pm.response.json()); pm.expect(keys.some(k => [\"passwordHash\", \"password_hash\", \"passwordCredential\"].includes(k))).to.eql(false); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 旧学习来源详情",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/learning-records/{{learningId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"读取成功\", () => pm.response.to.have.status(200));",
+              "pm.test(\"不返回凭据字段\", () => { const keys = []; const visit = x => { if (x && typeof x === \"object\") { for (const [k,v] of Object.entries(x)) { keys.push(k); visit(v); } } }; visit(pm.response.json()); pm.expect(keys.some(k => [\"passwordHash\", \"password_hash\", \"passwordCredential\"].includes(k))).to.eql(false); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 星图首页",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/star-map?limit=1"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"读取成功\", () => pm.response.to.have.status(200));",
+              "pm.test(\"不返回凭据字段\", () => { const keys = []; const visit = x => { if (x && typeof x === \"object\") { for (const [k,v] of Object.entries(x)) { keys.push(k); visit(v); } } }; visit(pm.response.json()); pm.expect(keys.some(k => [\"passwordHash\", \"password_hash\", \"passwordCredential\"].includes(k))).to.eql(false); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

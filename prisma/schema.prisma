@@ -17,8 +17,18 @@ model User {
   expressions Expression[]
   captures  Capture[]
   learningRecords LearningRecord[]
+  passwordCredential PasswordCredential?
 
   @@map("users")
+}
+
+model PasswordCredential {
+  userId String @id(map: "password_credentials_pkey") @map("user_id") @db.Uuid
+  passwordHash String @map("password_hash") @db.Text
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "password_credentials_user_id_fkey")
+
+  @@map("password_credentials")
 }
 
 /// CHECK constraints are maintained in migration SQL.
