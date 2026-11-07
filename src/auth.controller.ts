@@ -47,14 +47,14 @@ export class AuthController {
     @Query(new SchemaPipe(EmptyObjectSchema)) _query: object, @Res({ passthrough: true }) response: Response) {
     const identity = requireSession(request);
     await this.sessions.revoke(identity.userId, id);
-    if (id === identity.sessionId) clearSessionCookie(response, this.config);
+    if (id === identity.sessionId && !request.headers.authorization) clearSessionCookie(response, this.config);
   }
   @Post('logout')
   @HttpCode(204)
   async logout(@Req() request: AuthenticatedRequest, @Body(new SchemaPipe(EmptyObjectSchema)) _input: object,
     @Query(new SchemaPipe(EmptyObjectSchema)) _query: object, @Res({ passthrough: true }) response: Response) {
     if (request.auth) await this.sessions.revoke(request.auth.userId, request.auth.sessionId);
-    clearSessionCookie(response, this.config);
+    if (!request.headers.authorization) clearSessionCookie(response, this.config);
   }
   @Post('password')
   @HttpCode(204)

@@ -34,13 +34,14 @@ export class DatabaseService {
     try {
       await this.client.$connect();
       // Exercise the columns needed by the API, even when the table is empty.
-      await this.client.user.findMany({ take: 1, select: { id: true, status: true, webEnabled: true } });
+      await this.client.user.findMany({ take: 1, select: { id: true, status: true, webEnabled: true, miniEnabled: true } });
       await this.client.capture.findMany({ take: 1,
         select: { id: true, userId: true, originalText: true, chineseIntent: true, createdAt: true } });
       await this.client.passwordCredential.findMany({ take: 1, select: { userId: true, passwordHash: true, version: true } });
       await this.client.verifiedEmail.findMany({ take: 1 });
       await this.client.verificationIntent.findMany({ take: 1 });
       await this.client.session.findMany({ take: 1 });
+      await this.client.wechatIdentity.findMany({ take: 1 });
       await this.client.captureRevision.findMany({ take: 1 });
       await this.client.candidate.findMany({ take: 1 });
       await this.client.expression.findMany({ take: 1 });

@@ -14,7 +14,7 @@ export const LoginSchema = z.union([
 export const ChangePasswordSchema = z.object({ currentPassword: PasswordInput, newPassword: PasswordInput }).strict();
 export const SessionIdentitySchema = z.object({ userId: z.uuid(), sessionId: z.uuid() });
 export const SessionListSchema = z.object({ items: z.array(z.object({
-  id: z.uuid(), label: z.string(), createdAt: z.iso.datetime(), expiresAt: z.iso.datetime(), current: z.boolean(),
+  id: z.uuid(), label: z.string(), channel: z.enum(['web', 'mini']), createdAt: z.iso.datetime(), expiresAt: z.iso.datetime(), current: z.boolean(),
 })) });
 export type LoginInput = z.infer<typeof LoginSchema>;
 export type ChangePasswordInput = z.infer<typeof ChangePasswordSchema>;

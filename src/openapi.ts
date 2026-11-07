@@ -1,3 +1,4 @@
+import { MINI_PUBLIC_PATHS, MiniLoginSchema, MiniLinkSchema, MiniLoginResultSchema } from './mini-contract.js';
 import { RECOVERY_PATHS, RecoveryRequestSchema, RecoveryConfirmSchema, RecoveryAcceptedSchema, RegistrationSchema } from './recovery-contract.js';
 import { CsrfSchema, LoginSchema, ChangePasswordSchema, SessionIdentitySchema, SessionListSchema } from './auth-contract.js';
 import { LearningQuerySchema, StarMapQuerySchema, LearningListSchema, LearningDetailSchema, StarMapSchema } from './learning-contract.js';
@@ -40,10 +41,10 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
   const document: OpenAPIObject = {
     openapi: '3.0.3',
     info: {
-      title: 'EPP Capture API', version: '0.16.0',
+      title: 'EPP Capture API', version: '0.17.0',
       description: 'PostgreSQL records belonging to the authenticated session user. Errors use Problem Details. Capture creation is not idempotent; candidate acceptance supports operation identity.',
     },
-    security: [{ sessionCookie: [] }],
+    security: [{ sessionCookie: [] }, { miniBearer: [] }],
     paths: {
       '/auth/login': { post: {
         operationId: 'login', summary: 'Use a verified email or existing user ID and password to create a session', security: [],
@@ -243,8 +244,9 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
         },
       },
     },
-    components: { securitySchemes: { sessionCookie: { type: 'apiKey', in: 'cookie', name: cookieName,
+    components: { securitySchemes: { miniBearer: { type: 'http', scheme: 'bearer', description: 'Opaque mini-program session token; never use a Web token here.' }, sessionCookie: { type: 'apiKey', in: 'cookie', name: cookieName,
       description: 'Set by login; never paste a token into Swagger. Same-origin browser requests carry the HttpOnly cookie.' } }, schemas: {
+      MiniLogin: schema(MiniLoginSchema, 'input'), MiniLink: schema(MiniLinkSchema, 'input'), MiniLoginResult: schema(MiniLoginResultSchema, 'output'),
       RecoveryRequest: schema(RecoveryRequestSchema, 'input'), RecoveryConfirm: schema(RecoveryConfirmSchema, 'input'),
       RecoveryAccepted: schema(RecoveryAcceptedSchema, 'output'), Registration: schema(RegistrationSchema, 'output'),
       Csrf: schema(CsrfSchema, 'output'),
@@ -269,6 +271,22 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
       Problem: schema(ProblemSchema, 'output'),
     } },
   };
+  for (const path of MINI_PUBLIC_PATHS) {
+    document.paths[path] = { post: {
+      operationId: path.endsWith('/link') ? 'linkMiniAccount' : 'loginMini', security: [],
+      summary: 'Exchange a fresh platform code and create a mini-program session',
+      description: 'The server fixes the AppID. Link additionally requires the existing local user ID and current password; it never merges two mapped accounts. First login records a disabled-by-default mini entry eligibility; 200 with userId and miniEnabled=false records a pending mapping without a token. Missing provider configuration returns 503. Obtain a new code after any lost response, inspect owned sessions after login, and revoke unused ones. No cookies are set; do not send Cookie with Authorization.',
+      requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/' + (path.endsWith('/link') ? 'MiniLink' : 'MiniLogin') } } } },
+      responses: { '200': jsonResponse('MiniLoginResult', 'Either a pending account identity without a token, or an opaque token returned once; do not log or synchronize'),
+        '400': problem('Invalid input'), '401': problem('Password or platform code invalid'),
+        '409': problem('Platform identity already belongs to another user, or user has another identity in this AppID'),
+        '429': problem('Attempt, provider concurrency, password concurrency or session limit') },
+    } };
+  }
+  for (const path of ['/auth/password', '/auth/csrf']) {
+    const item = document.paths[path]!;
+    (item.post ?? item.get)!.security = [{ sessionCookie: [] }];
+  }
   for (const path of RECOVERY_PATHS) {
     const request = path.endsWith('/request'), registration = path === '/auth/register/confirm';
     document.paths[path] = { post: {
@@ -295,11 +313,11 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
       if (operation === path.post || operation === path.patch || operation === path.delete) {
         operation.parameters = [...(operation.parameters ?? []),
           { name: 'X-EPP-Request', in: 'header', required: true, schema: { type: 'string', enum: ['1'] } },
-          ...(pathname === '/auth/login' || RECOVERY_PATHS.includes(pathname) ? [] : [{ name: 'X-CSRF-Token', in: 'header' as const, required: pathname !== '/auth/logout', schema: { type: 'string' }, description: 'From GET /auth/csrf for this session. Logout requires it when a live session exists.' }])];
-        operation.responses['403'] = problem('Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED or WEB_ACCESS_DENIED');
+          ...(pathname === '/auth/login' || RECOVERY_PATHS.includes(pathname) || MINI_PUBLIC_PATHS.includes(pathname) ? [] : [{ name: 'X-CSRF-Token', in: 'header' as const, required: pathname === '/auth/password', schema: { type: 'string' }, description: 'Required for a live Cookie session on writes; obtain from GET /auth/csrf. Bearer sessions do not use CSRF tokens.' }])];
+        operation.responses['403'] = problem('Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED, WEB_ACCESS_DENIED, MINI_ACCESS_DENIED or SESSION_CHANNEL_DENIED');
       }
       if (RECOVERY_PATHS.includes(pathname)) operation.responses['403'] = problem('Origin or explicit request header rejected');
-      operation.responses['503'] = problem('Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots.');
+      operation.responses['503'] = problem('Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots.');
       if (operation.responses['429'] && !('$ref' in operation.responses['429'])) {
         operation.responses['429'].headers = { 'Retry-After': { schema: { type: 'string' }, description: 'Seconds for AUTH_RATE_LIMIT only; other limits require their own recovery.' } };
       }

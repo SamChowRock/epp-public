@@ -15,6 +15,8 @@ model User {
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
   status    String    @default("active") @db.Text
   webEnabled Boolean @default(false) @map("web_enabled")
+  miniEnabled Boolean @default(false) @map("mini_enabled")
+  wechatIdentities WechatIdentity[]
   commandReceipts CommandReceipt[]
   expressions Expression[]
   captures  Capture[]
@@ -33,6 +35,7 @@ model Session {
   userId String @map("user_id") @db.Uuid
   tokenDigest String @unique(map: "sessions_token_digest_key") @map("token_digest") @db.Text
   label String @db.Text
+  channel String @default("web") @db.Text
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
   user User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sessions_user_id_fkey")
@@ -180,4 +183,16 @@ model VerificationIntent {
   @@unique([purpose, email], map: "verification_intents_purpose_email_key")
   @@index([expiresAt], map: "verification_intents_expires_at_idx")
   @@map("verification_intents")
+}
+
+/// Platform identity belongs to one local user within a specific mini program.
+model WechatIdentity {
+  appId String @map("app_id") @db.Text
+  openId String @map("open_id") @db.Text
+  userId String @map("user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "wechat_identities_user_id_fkey")
+  @@id([appId, openId], map: "wechat_identities_pkey")
+  @@unique([appId, userId], map: "wechat_identities_app_user_key")
+  @@map("wechat_identities")
 }

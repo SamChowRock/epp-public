@@ -1,3 +1,4 @@
+import { MINI_PUBLIC_PATHS } from './mini-contract.js';
 import { RECOVERY_PATHS } from './recovery-contract.js';
 import { requireCsrf } from './browser-security.js';
 import type { RequestHandler, Response } from 'express';
@@ -28,6 +29,7 @@ function readCookie(header: string | undefined, name: string): string | undefine
 export const privateResponses: RequestHandler = (_request, response, next) => {
   response.setHeader('Cache-Control', 'private, no-store');
   response.vary('Cookie');
+  response.vary('Authorization');
   next();
 };
 
@@ -39,12 +41,22 @@ export function sessionBoundary(service: SessionService, config: AppConfig): Req
         || (request.headers['content-length'] !== undefined && request.headers['content-length'] !== '0'))) {
         throw new HttpError(400, 'DELETE does not accept a body', 'BODY_NOT_ALLOWED');
       }
-      if (path === '/auth/login' || RECOVERY_PATHS.includes(path ?? '')) return;
-      const token = readCookie(request.headers.cookie, sessionCookieName(config));
-      const identity = token === undefined ? undefined : await service.authenticate(token);
+      if (path === '/auth/login' || RECOVERY_PATHS.includes(path ?? '') || MINI_PUBLIC_PATHS.includes(path ?? '')) return;
+      const cookie = readCookie(request.headers.cookie, sessionCookieName(config));
+      const authorization = request.headers.authorization;
+      if (cookie !== undefined && authorization !== undefined) throw new HttpError(400, 'Use one session transport', 'AUTH_AMBIGUOUS');
+      const mini = authorization !== undefined;
+      if (mini && !/^Bearer [A-Za-z0-9_-]{43}$/.test(authorization)) throw new HttpError(401, 'Bearer token is invalid', 'AUTH_REQUIRED');
+      const token = mini ? authorization.slice(7) : cookie;
+      const identity = token === undefined ? undefined : await service.authenticate(token, mini ? 'mini' : 'web');
       if (identity) {
-        if (!['/auth/logout', '/auth/csrf'].includes(path ?? '')) requireWebAccess(identity);
-        if (!['GET', 'HEAD'].includes(request.method)) {
+        if (mini && ['/auth/csrf', '/auth/password'].includes(path ?? '')) throw new HttpError(403, 'This operation requires a Web session', 'SESSION_CHANNEL_DENIED');
+        if (mini) {
+          if (path !== '/auth/logout' && (identity.status !== 'active' || !identity.miniEnabled)) {
+            throw new HttpError(403, 'Account is not permitted to use this service', identity.status !== 'active' ? 'ACCOUNT_DISABLED' : 'MINI_ACCESS_DENIED');
+          }
+        } else if (!['/auth/logout', '/auth/csrf'].includes(path ?? '')) requireWebAccess(identity);
+        if (!mini && !['GET', 'HEAD'].includes(request.method)) {
           requireCsrf(request.headers['x-csrf-token'], config.cursorKey, identity.sessionId);
         }
         request.auth = Object.freeze({ userId: identity.userId, sessionId: identity.sessionId });

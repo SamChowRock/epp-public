@@ -1,0 +1,437 @@
+{
+  "info": {
+    "name": "EPP 第37章 小程序独立会话",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Use an unsynchronized local environment. Cookies disabled on every request. 01/02 require a fresh real wx.login code each time; local exercise starts at 03. Never export filled secrets."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000"
+    },
+    {
+      "key": "code",
+      "value": ""
+    },
+    {
+      "key": "miniToken",
+      "value": ""
+    },
+    {
+      "key": "otherMiniToken",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "password",
+      "value": ""
+    },
+    {
+      "key": "miniSessionId",
+      "value": ""
+    },
+    {
+      "key": "captureId",
+      "value": ""
+    },
+    {
+      "key": "label",
+      "value": "Mini program"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 真实平台首次登录或再次登录",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/mini/login",
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{{requestBody37}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const body = { code: pm.variables.get(\"code\"), label: pm.variables.get(\"label\") };",
+              "const text = JSON.stringify(body);",
+              "pm.variables.set(\"requestBody37\", text.replace(/\\{\\{/g,\"\\\\u007b\\\\u007b\").replace(/\\}\\}/g,\"\\\\u007d\\\\u007d\"));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "  const body = pm.response.json();",
+              "  pm.environment.set(\"userId\", body.userId);",
+              "  if (body.token) {",
+              "    pm.environment.set(\"miniToken\", body.token);",
+              "    pm.environment.set(\"miniSessionId\", body.sessionId);",
+              "  } else {",
+              "    pm.environment.unset(\"miniToken\");",
+              "    pm.environment.unset(\"miniSessionId\");",
+              "  }",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 真实平台关联已有账号（首次登录前）",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/mini/link",
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{{requestBody37}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const body = { code: pm.variables.get(\"code\"), label: pm.variables.get(\"label\"), userId: pm.variables.get(\"userId\"), password: pm.variables.get(\"password\") };",
+              "const text = JSON.stringify(body);",
+              "pm.variables.set(\"requestBody37\", text.replace(/\\{\\{/g,\"\\\\u007b\\\\u007b\").replace(/\\}\\}/g,\"\\\\u007d\\\\u007d\"));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "  const body = pm.response.json();",
+              "  pm.environment.set(\"userId\", body.userId);",
+              "  if (body.token) {",
+              "    pm.environment.set(\"miniToken\", body.token);",
+              "    pm.environment.set(\"miniSessionId\", body.sessionId);",
+              "  } else {",
+              "    pm.environment.unset(\"miniToken\");",
+              "    pm.environment.unset(\"miniSessionId\");",
+              "  }",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 当前小程序身份",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{miniToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/me",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Expected status\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 读取关联前已有素材",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{miniToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/captures/{{captureId}}",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Expected status\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 另一账号不能读取该素材",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{otherMiniToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/captures/{{captureId}}",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Expected status\", () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 当前账号的两类会话",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{miniToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/sessions",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Expected status\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 小程序不能取 Web CSRF",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{miniToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/csrf",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Expected status\", () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 退出小程序会话",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{miniToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/logout",
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{{requestBody37}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const body = {};",
+              "const text = JSON.stringify(body);",
+              "pm.variables.set(\"requestBody37\", text.replace(/\\{\\{/g,\"\\\\u007b\\\\u007b\").replace(/\\}\\}/g,\"\\\\u007d\\\\u007d\"));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Expected status\", () => pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 退出后旧令牌失效",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{miniToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/me",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Expected status\", () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -63,22 +63,29 @@ export class SessionService {
     });
   }
 
-  async authenticate(token: string): Promise<(SessionIdentity & AccountAccess) | undefined> {
+  async provePassword(userId: string, password: string): Promise<string> {
+    const credential = await this.database.run('proveLinkPassword', () => this.database.client.passwordCredential.findUnique({ where: { userId } }));
+    const valid = await verifyPassword(credential?.passwordHash ?? this.dummyHash, password);
+    if (!credential || !valid) throw unauthorized();
+    return credential.passwordHash;
+  }
+
+  async authenticate(token: string, channel: 'web' | 'mini' = 'web'): Promise<(SessionIdentity & AccountAccess & { miniEnabled: boolean }) | undefined> {
     let digest: string;
     try { digest = tokenDigest(token); } catch { return undefined; }
-    const rows = await this.state.track(() => this.database.run('authenticateSession', () => this.database.client.$queryRaw<(SessionIdentity & AccountAccess)[]>`
-      SELECT s.id AS "sessionId", s.user_id AS "userId", u.status, u.web_enabled AS "webEnabled"
+    const rows = await this.state.track(() => this.database.run('authenticateSession', () => this.database.client.$queryRaw<(SessionIdentity & AccountAccess & { miniEnabled: boolean })[]>`
+      SELECT s.id AS "sessionId", s.user_id AS "userId", u.status, u.web_enabled AS "webEnabled", u.mini_enabled AS "miniEnabled"
       FROM public.sessions s JOIN public.users u ON u.id = s.user_id
-      WHERE s.token_digest = ${digest} AND s.expires_at > clock_timestamp()
+      WHERE s.token_digest = ${digest} AND s.channel = ${channel} AND s.expires_at > clock_timestamp()
     `));
     return rows[0];
   }
 
   async list(identity: SessionIdentity) {
     const rows = await this.state.track(() => this.database.run('listSessions', () => this.database.client.$queryRaw<{
-      id: string; label: string; createdAt: Date; expiresAt: Date;
+      id: string; label: string; channel: string; createdAt: Date; expiresAt: Date;
     }[]>`
-      SELECT id, label, created_at AS "createdAt", expires_at AS "expiresAt"
+      SELECT id, label, channel, created_at AS "createdAt", expires_at AS "expiresAt"
       FROM public.sessions WHERE user_id = ${identity.userId}::uuid AND expires_at > clock_timestamp()
       ORDER BY created_at DESC, id DESC LIMIT 20
     `));

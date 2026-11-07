@@ -1,0 +1,14 @@
+# 最小小程序登录入口
+
+这里只放登录／关联、读五条素材与退出，使用微信原生API，无UI框架或构建依赖。前置是第37章API与迁移；本地映射观察见[VERIFY说明](../database/chapter-37/README.md)。
+
+1. 在[微信公众平台](https://mp.weixin.qq.com/)准备实际小程序，确认管理员／开发者资格。在开发管理中取得AppID；AppSecret只放API的环境配置，不能写入此目录。游客AppID只够看静态入口，不能完成真实身份交换。
+2. 从[官方入口](https://developers.weixin.qq.com/miniprogram/dev/devtools/download.html)安装微信开发者工具，登录并导入本目录；项目类型小程序、不开云开发，填实际AppID。`project.config.json` 的touristappid是占位值，不是可用测试凭据；个人配置文件已忽略。不要为了截屏展示登录二维码或AppSecret。
+3. 后端同时设置WECHAT_APP_ID与WECHAT_APP_SECRET，重启开发进程。开发工具项目AppID必须与服务端相同；不能把公众号或网站应用的标识混用。后端固定访问api.weixin.qq.com，失败先查匹配关系、网络和平台配额，不把完整外呼URL打印到日志。
+4. 模拟器本机联调可将 `pages/login/index.js` 的baseUrl保留127.0.0.1:3000，并在开发工具本地设置临时关闭域名校验。它只用于开发观察。真机的127.0.0.1指向手机；当前API只监听电脑loopback，不会因为关闭校验就变成手机可达。真实接入使用有有效证书的HTTPS域名，将完整协议／域名／端口按平台规则配置为request合法域名。参考[网络官方文档](https://developers.weixin.qq.com/miniprogram/dev/framework/ability/network.html)，普通服务器域名要求备案；开发工具放行不等于发布后可用。
+5. API的APP_ORIGIN保持实际Web入口，沿用来源保护；原生wx.request按平台行为发请求，不因为Referer长得像微信就信任身份。它显式发送X-EPP-Request与后端签发的Authorization。合法域名只约束小程序网络访问，不代替后端鉴权。
+6. 已有账号先填userId与密码并点“验证密码并关联”；新账号用“登录或建立新账号”。每次按钮都会重新wx.login，按钮忙时不重复发。若显示“身份已确认，待开通”，对应200及userId／miniEnabled=false，未取得令牌；管理者按这个userId核实资格，再获取新code重试。已有令牌访问业务时的403仍表示资格拒绝。409先查既有绑定，不能修改前端userId强行合并。
+7. 登录后点“读取我的素材”，只显示本次列表数量，不把令牌或原文打印在页面。令牌仅保存在进程内存；进程被回收后需重新登录，关闭页面或退到后台不保证清空，也不等于退出。退出成功才清空令牌；网络结果未知时保留它以便再次撤销。401清空；403不循环重登，也不自动授予资格。示例没有刷新令牌和静默持久登录。
+8. DevTools Network定位自己的 `/auth/mini/*` 请求，区分wx.login失败、开发工具拦域名、API401／403／409／429／503、API成功后读取失败。不要导出包含code、密码、Authorization或响应token的HAR。恢复请求应取新code、检查账号和会话，不自动无限重试。
+
+真实验收需关闭域名跳过选项，用开发版或体验版在目标手机完成登录、原记录读取、退出和失效读取。没有HTTPS入口时可以先完成本机映射与会话实践，再在第九篇部署后回来；真实平台账号、域名配置与真机结果是独立完成条件。

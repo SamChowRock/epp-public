@@ -1,5 +1,9 @@
 # EPP 配套实践代码
 
+## 第三十七章 小程序登录与独立会话
+
+分支 `part-05/chapter-37` 从第36章继续。按[本章说明](database/chapter-37/README.md)在非空VERIFY追加平台身份映射、入口资格与会话channel；旧用户、记录和Web会话保留。用[请求集合](requests/chapter-37.postman_collection.json)观察旧记录归属、两种令牌传输与撤销，真实平台入口在[最小小程序](mini-program/README.md)。本地练习只替换平台交换，不证明真实微信登录；正式应用没有Fake开关或接收OpenID的公开接口。无新增依赖。
+
 ## 第三十六章 注册、验证与密码重置
 
 分支 `part-05/chapter-36` 从第35章继续。按[本章说明](database/chapter-36/README.md)升级非空VERIFY，保留旧用户与密码；用[请求集合](requests/chapter-36.postman_collection.json)和本地Mailpit走完注册、资格检查与密码恢复。新增Nodemailer 10.3.1、邮箱与意图两表及凭据版本。四个匿名动作仍有来源／固定头／JSON／限流保护；旧ID登录保留，已验证邮箱也可登录。发送同步等待，202不保证送达，第六篇继续可靠投递。
@@ -48,7 +52,7 @@ nvm use
 node --version
 npm ci
 npm run check
-# 先按第三十六章说明完成迁移，在 .env 配置 DATABASE_URL、APP_ORIGIN和LOCAL_SMTP_PORT。
+# 先按第三十七章说明完成迁移；.env 中 DATABASE_URL 指向已迁移库。
 npm run dev
 ```
 
