@@ -1,3 +1,4 @@
+import { OidcStart } from './oidc.controller.js';
 import { MINI_PUBLIC_PATHS, MiniLoginSchema, MiniLinkSchema, MiniLoginResultSchema } from './mini-contract.js';
 import { RECOVERY_PATHS, RecoveryRequestSchema, RecoveryConfirmSchema, RecoveryAcceptedSchema, RegistrationSchema } from './recovery-contract.js';
 import { CsrfSchema, LoginSchema, ChangePasswordSchema, SessionIdentitySchema, SessionListSchema } from './auth-contract.js';
@@ -41,7 +42,7 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
   const document: OpenAPIObject = {
     openapi: '3.0.3',
     info: {
-      title: 'EPP Capture API', version: '0.17.0',
+      title: 'EPP Capture API', version: '0.18.0',
       description: 'PostgreSQL records belonging to the authenticated session user. Errors use Problem Details. Capture creation is not idempotent; candidate acceptance supports operation identity.',
     },
     security: [{ sessionCookie: [] }, { miniBearer: [] }],
@@ -330,5 +331,19 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
       }
     }
   }
+  document.paths['/auth/oidc'] = { get: { security: [], summary: 'Open the same-origin login page', responses: { '200': { description: 'HTML' } } } };
+  document.paths['/auth/oidc/start'] = { post: { security: [], summary: 'Start a login or prove the local account password for linking',
+    parameters: [{ in:'header', name:'X-EPP-Request', required:true, schema:{ type:'string', enum:['1'] } }],
+    requestBody: { required:true, content:{ 'application/json':{ schema:schema(OidcStart,'input') } } },
+    responses:{ '200': { description:'Temporary HttpOnly Lax cookie and a navigation URL', content:{ 'application/json':{ schema:{
+      type:'object', required:['authorizationUrl'], properties:{authorizationUrl:{type:'string',format:'uri'}} } } } },
+      '400':problem('Invalid mode or input'), '401':problem('Local password rejected'), '403':problem('Origin or header rejected'),
+      '429':problem('Attempt limit'), '503':problem('Issuer not configured or unavailable') } } };
+  document.paths['/auth/oidc/callback'] = { get: { security: [], summary:'Browser redirect; one-use transaction cookie required',
+    parameters:['code','state','iss','error'].map(name=>({name,in:'query',required:name==='state',schema:{type:'string'}})),
+    responses:{ '303':{description:'Return to the fixed EPP page; only eligible accounts receive a Web session cookie'},
+      '400':problem('Wrong browser, expired or used state'), '401':problem('Exchange, claims or local proof rejected'),
+      '403':problem('Cancelled or disabled account'), '409':problem('Mapping conflict'), '429':problem('Session or exchange limit'),
+      '503':problem('Storage or provider unavailable') } } };
   return document;
 }

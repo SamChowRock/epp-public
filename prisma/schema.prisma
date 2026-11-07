@@ -16,6 +16,7 @@ model User {
   status    String    @default("active") @db.Text
   webEnabled Boolean @default(false) @map("web_enabled")
   miniEnabled Boolean @default(false) @map("mini_enabled")
+  oidcIdentities OidcIdentity[]
   wechatIdentities WechatIdentity[]
   commandReceipts CommandReceipt[]
   expressions Expression[]
@@ -195,4 +196,14 @@ model WechatIdentity {
   @@id([appId, openId], map: "wechat_identities_pkey")
   @@unique([appId, userId], map: "wechat_identities_app_user_key")
   @@map("wechat_identities")
+}
+
+model OidcIdentity {
+  issuer String @db.Text
+  subject String @db.Text
+  userId String @map("user_id") @db.Uuid
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  @@id([issuer, subject])
+  @@unique([issuer, userId])
+  @@map("oidc_identities")
 }

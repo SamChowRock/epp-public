@@ -66,6 +66,16 @@
       "sourceMaps": true,
       "outFiles": ["${workspaceFolder}/dist/**/*.js"],
       "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Chapter 38: OIDC callback (local VERIFY)",
+      "type": "node",
+      "request": "attach",
+      "address": "127.0.0.1",
+      "port": 9480,
+      "sourceMaps": true,
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"],
+      "skipFiles": ["<node_internals>/**"]
     }
   ]
 }

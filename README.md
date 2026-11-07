@@ -1,5 +1,9 @@
 # EPP 配套实践代码
 
+## 第三十八章 先理解 OAuth，再接入 OIDC 外部登录
+
+分支 `part-05/chapter-38` 从第37章继续，使用 openid-client 6.8.9。在非空 VERIFY 库追加外部身份映射。按[迁移、浏览器关联与运行说明](database/chapter-38/README.md)准备 VERIFY 并启动两站实验；用浏览器完成回调和旧素材核对，用[Postman 集合](requests/chapter-38.postman_collection.json)观察请求契约。正式接入另需受信供应商注册和精确的回调地址。
+
 ## 第三十七章 小程序登录与独立会话
 
 分支 `part-05/chapter-37` 从第36章继续。按[本章说明](database/chapter-37/README.md)在非空VERIFY追加平台身份映射、入口资格与会话channel；旧用户、记录和Web会话保留。用[请求集合](requests/chapter-37.postman_collection.json)观察旧记录归属、两种令牌传输与撤销，真实平台入口在[最小小程序](mini-program/README.md)。本地练习只替换平台交换，不证明真实微信登录；正式应用没有Fake开关或接收OpenID的公开接口。无新增依赖。
@@ -52,7 +56,7 @@ nvm use
 node --version
 npm ci
 npm run check
-# 先按第三十七章说明完成迁移；.env 中 DATABASE_URL 指向已迁移库。
+# 先按第三十八章说明完成迁移；.env 中 DATABASE_URL 指向已迁移库。
 npm run dev
 ```
 

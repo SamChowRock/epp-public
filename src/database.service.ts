@@ -41,6 +41,7 @@ export class DatabaseService {
       await this.client.verifiedEmail.findMany({ take: 1 });
       await this.client.verificationIntent.findMany({ take: 1 });
       await this.client.session.findMany({ take: 1 });
+      await this.client.oidcIdentity.findMany({ take: 1, select: { userId: true } });
       await this.client.wechatIdentity.findMany({ take: 1 });
       await this.client.captureRevision.findMany({ take: 1 });
       await this.client.candidate.findMany({ take: 1 });

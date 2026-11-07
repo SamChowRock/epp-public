@@ -27,7 +27,8 @@ export function httpBoundary(
     const discard = /^\/candidates\/([^/]+)\/(?:discard|accept)$/.exec(url.pathname);
     const learningDetail = /^\/learning-records\/([^/]+)$/.exec(url.pathname);
     const sessionDetail = /^\/auth\/sessions\/([^/]+)$/.exec(url.pathname);
-    const allowed = ['/auth/login', '/auth/logout', '/auth/password', ...RECOVERY_PATHS, ...MINI_PUBLIC_PATHS].includes(url.pathname) ? ['POST']
+    const allowed = ['/auth/oidc', '/auth/oidc/callback'].includes(url.pathname) ? ['GET']
+      : ['/auth/oidc/start', '/auth/login', '/auth/logout', '/auth/password', ...RECOVERY_PATHS, ...MINI_PUBLIC_PATHS].includes(url.pathname) ? ['POST']
       : ['/auth/me', '/auth/sessions', '/auth/csrf'].includes(url.pathname) ? ['GET'] : sessionDetail ? ['DELETE']
       : url.pathname === '/captures' ? ['GET', 'POST']
       : detail ? ['GET', 'PATCH'] : revisions || candidates ? ['GET', 'POST'] : discard ? ['POST']

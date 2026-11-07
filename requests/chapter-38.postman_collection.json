@@ -1,0 +1,70 @@
+{
+  "info": {
+    "name": "EPP 38 · OIDC",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3380"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 打开同源登录页",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/auth/oidc"
+      }
+    },
+    {
+      "name": "02 发起普通登录（请勿复制到另一浏览器）",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/oidc/start",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"mode\": \"login\"}"
+        }
+      }
+    },
+    {
+      "name": "03 缺少浏览器事务的回调应返回400",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/auth/oidc/callback"
+      }
+    },
+    {
+      "name": "04 拒绝客户端直接指定 subject",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/oidc/start",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"mode\": \"login\", \"subject\": \"untrusted\"}"
+        }
+      }
+    }
+  ]
+}

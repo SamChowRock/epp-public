@@ -18,7 +18,7 @@ export function clearSessionCookie(response: Response, config: AppConfig): void 
   response.clearCookie(sessionCookieName(config), cookieOptions(config));
 }
 
-function readCookie(header: string | undefined, name: string): string | undefined {
+export function readCookie(header: string | undefined, name: string): string | undefined {
   if (header === undefined) return undefined;
   if (header.length > 4096) throw new HttpError(400, 'Cookie header is too large', 'COOKIE_INVALID');
   const matches = header.split(';').map(part => part.trim()).filter(part => part.slice(0, part.indexOf('=')) === name);
@@ -41,7 +41,7 @@ export function sessionBoundary(service: SessionService, config: AppConfig): Req
         || (request.headers['content-length'] !== undefined && request.headers['content-length'] !== '0'))) {
         throw new HttpError(400, 'DELETE does not accept a body', 'BODY_NOT_ALLOWED');
       }
-      if (path === '/auth/login' || RECOVERY_PATHS.includes(path ?? '') || MINI_PUBLIC_PATHS.includes(path ?? '')) return;
+      if (['/auth/oidc', '/auth/oidc/start', '/auth/oidc/callback'].includes(path ?? '') || path === '/auth/login' || RECOVERY_PATHS.includes(path ?? '') || MINI_PUBLIC_PATHS.includes(path ?? '')) return;
       const cookie = readCookie(request.headers.cookie, sessionCookieName(config));
       const authorization = request.headers.authorization;
       if (cookie !== undefined && authorization !== undefined) throw new HttpError(400, 'Use one session transport', 'AUTH_AMBIGUOUS');
