@@ -31,7 +31,7 @@ try {
   }
 } catch (error) {
   const allowed = new Set(['PASSWORD_COMMAND_INVALID', 'PASSWORD_INPUT_INVALID',
-    'PASSWORD_QUERY_DEBUG_FORBIDDEN', 'PASSWORD_RECORD_INVALID']);
+    'PASSWORD_QUERY_DEBUG_FORBIDDEN', 'PASSWORD_RECORD_INVALID', 'PASSWORD_BLOCKLISTED']);
   console.error(error?.code === 'P2002' ? 'PASSWORD_ALREADY_EXISTS'
     : allowed.has(error?.message) ? error.message : 'PASSWORD_OPERATION_FAILED');
   process.exitCode = 1;
