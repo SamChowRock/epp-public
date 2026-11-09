@@ -39,6 +39,19 @@ test('website callback belongs to the starting browser and verified app identity
   };
   const finish = (a, cookie = a.cookie) => fetch(a.url, { headers:{ cookie }, redirect:'manual' });
   try {
+    // Start two independent browser transactions. Only replace the code, preserving
+    // the recipient's state and Cookie. The local provider has no PKCE binding.
+    const fromA = await (await start({ mode:'login' }))('A');
+    const fromB = await (await start({ mode:'login' }))('B');
+    const mixed = new URL(fromA.url);
+    mixed.searchParams.set('code', new URL(fromB.url).searchParams.get('code'));
+    const injected = await finish({ url:mixed, cookie:fromA.cookie });
+    assert.equal(injected.status,303);
+    const injectedId = injected.headers.get('location').split('#pending=')[1];
+    assert.ok(injectedId);
+    assert.equal(await db.wechatIdentity.count({where:{appId:lab.appId,openId:'fictional-B',userId:injectedId}}),1);
+    assert.equal((await finish(fromA)).status,400);
+    assert.equal((await finish(fromB)).status,401);
     const link = await (await start({ mode:'link', userId, password }))('A');
     assert.equal((await finish(link, '')).status, 400);
     const pair = await Promise.all([finish(link), finish(link)]);

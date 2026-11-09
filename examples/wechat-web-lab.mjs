@@ -1,4 +1,5 @@
 import '../test/database-env.mjs';
+import { withVerifiedDatabase } from '../scripts/verify-database.mjs';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { createServer } from 'node:http';
 import { createInterface } from 'node:readline/promises';
@@ -106,6 +107,7 @@ export async function startWechatLab(port = 3390) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  await withVerifiedDatabase(process.argv[2]);
   const lab = await startWechatLab();
   const tty = createInterface({ input: process.stdin, output: process.stdout });
   try {

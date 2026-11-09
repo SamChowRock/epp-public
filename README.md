@@ -2,7 +2,11 @@
 
 ## 第三十九章 微信网站扫码登录
 
-分支 `part-05/chapter-39` 承接第 38 章。采用第 38 章已迁移的独立 VERIFY 库，配置本地忽略的 `.env.test` 中的 TEST_DATABASE_URL；沿用 Node 24.22.1，执行 `npm ci`、`npm run check`，再用 `node --env-file=.env.test --inspect=127.0.0.1:9490 examples/wechat-web-lab.mjs` 启动双站实验。在浏览器打开 http://127.0.0.1:3390/auth/wechat-web，先用终端的虚构身份关联 A，再读取 /captures/本轮captureId；用独立浏览器会话普通登录 B，观察待开通。在 DBeaver 用[只读 SQL](database/chapter-39/01-observe.sql)核对归属、入口资格和会话，在 Postman 导入[第 39 章集合](requests/chapter-39.postman_collection.json)。按 Return 结束并清理本轮数据。该实验使用虚构授权页和兑换响应，不需平台账号。无需新增迁移或安装 SDK。
+分支 `part-05/chapter-39` 承接第 38 章。采用第 38 章已迁移的独立 VERIFY 库，配置本地忽略的 `.env.test` 中的 TEST_DATABASE_URL；沿用 Node 24.22.1，执行 `npm ci`、`npm run check`，再用 `node --env-file=.env.test --inspect=127.0.0.1:9490 examples/wechat-web-lab.mjs epp_ch39_verify` 启动双站实验。在浏览器打开 http://127.0.0.1:3390/auth/wechat-web，先用终端的虚构身份关联 A，再读取 /captures/本轮captureId；用独立浏览器会话普通登录 B，观察待开通。在 DBeaver 用[只读 SQL](database/chapter-39/01-observe.sql)核对归属、入口资格和会话，在 Postman 导入[第 39 章集合](requests/chapter-39.postman_collection.json)。按 Return 结束并清理本轮数据。该实验使用虚构授权页和兑换响应，不需平台账号。无需新增迁移或安装 SDK。
+
+命令末尾换成建库时独立选定的 VERIFY 名称。先执行 `unset DATABASE_URL SHADOW_DATABASE_URL TEST_DATABASE_URL`，再按相应命令加载本地文件。实验启动在真实连接核对库名后才写样本。若从本章分支的一份全新空库起步，先 `npm ci`，配置 .env.database-verify 后运行 `node --env-file=.env.database-verify scripts/deploy-verify.mjs bootstrap epp_ch39_verify` 和 `npm run db:verify -- migrate status`。已有第 35 章以后基线的副本用 deploy 模式正常追加。
+
+可在同一 VERIFY 上运行 `node --env-file=.env.test --test test/wechat-web.test.mjs`，观察独立事务的授权码替换反例；断言使用虚构平台。
 
 正式网站应用单独配置 WECHAT_WEB_APP_ID、WECHAT_WEB_APP_SECRET 和 HTTPS 的 APP_ORIGIN；完整回调路径为 /auth/wechat-web/callback。开发仍用 npm run dev，交付使用 npm run check、独立目录安装 npm ci --omit=dev 和 npm start。单进程处理开始与回调，重启后须重开登录。
 

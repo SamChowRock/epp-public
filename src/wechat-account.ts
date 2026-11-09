@@ -28,11 +28,17 @@ export async function resolveWechatAccount(database: DatabaseService, appId: str
       const other = await tx.wechatIdentity.findUnique({ where: { appId_userId: { appId, userId } } });
       if (other && other.openId !== openId) return { error: 'IDENTITY_CONFLICT' };
     }
-    if (!mapping) await tx.wechatIdentity.create({ data: { appId, openId, userId } });
-    // An authenticated platform identity can be recorded without granting entry eligibility.
-    if (!(channel === 'web' ? account.webEnabled : account.miniEnabled)) return { userId, pending: true as const };
-    await tx.$executeRaw`DELETE FROM public.sessions WHERE user_id = ${userId}::uuid AND expires_at <= clock_timestamp()`;
-    if (await tx.session.count({ where: { userId } }) >= 20) return { error: 'SESSION_LIMIT' };
+    const enabled = channel === 'web' ? account.webEnabled : account.miniEnabled;
+    let full = false;
+    if (enabled) {
+      await tx.$executeRaw`DELETE FROM public.sessions WHERE user_id = ${userId}::uuid AND expires_at <= clock_timestamp()`;
+      full = await tx.session.count({ where: { userId } }) >= 20;
+    }
+    // Website linking can succeed independently of session issuance. Mini linking on an
+    // enabled account establishes a new login method only when it can issue the session.
+    if (!mapping && (channel === 'web' || !full)) await tx.wechatIdentity.create({ data: { appId, openId, userId } });
+    if (!enabled) return { userId, pending: true as const };
+    if (full) return { error: 'SESSION_LIMIT' };
     await tx.$executeRaw`
       INSERT INTO public.sessions(id, user_id, token_digest, label, channel, expires_at)
       VALUES (${sessionId}::uuid, ${userId}::uuid, ${tokenDigest(token)}, ${label}, ${channel},
