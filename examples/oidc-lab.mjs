@@ -1,4 +1,5 @@
 import '../test/database-env.mjs';
+import { withVerifiedDatabase } from '../scripts/verify-database.mjs';
 import { randomUUID } from 'node:crypto';
 import { createInterface } from 'node:readline/promises';
 import { pathToFileURL } from 'node:url';
@@ -45,6 +46,7 @@ export async function startLab(port=3380) {
   }catch(e){await close();throw e;}
 }
 if(process.argv[1] && import.meta.url===pathToFileURL(process.argv[1]).href){
+  await withVerifiedDatabase(process.argv[2]);
   const lab=await startLab();const tty=createInterface({input:process.stdin,output:process.stdout});
   try{console.log('Open '+lab.origin+'/auth/oidc. Choose LINK first. These are disposable lab credentials only.');
     console.log({userId:lab.ids[0],password:lab.password,captureId:lab.capture.id});
