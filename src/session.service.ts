@@ -93,11 +93,12 @@ export class SessionService {
   changePassword(identity: SessionIdentity, input: ChangePasswordInput): Promise<void> {
     return this.passwordWork(async () => {
       const credential = await this.database.run('readChangeCredential', () => this.database.client.passwordCredential.findUnique({
-        where: { userId: identity.userId }, select: { passwordHash: true },
+        where: { userId: identity.userId },
+        select: { passwordHash: true, user: { select: { verifiedEmail: { select: { email: true } } } } },
       }));
       if (!credential || !await verifyPassword(credential.passwordHash, input.currentPassword)) throw unauthorized();
       let passwordHash: string;
-      try { passwordHash = await hashPassword(input.newPassword, { userId: identity.userId }); }
+      try { passwordHash = await hashPassword(input.newPassword, { userId: identity.userId, email: credential.user.verifiedEmail?.email }); }
       catch (error) {
         if (error instanceof Error && error.message === 'PASSWORD_BLOCKLISTED') {
           throw new HttpError(400, 'Choose a different password: this one is common or easy to guess', 'PASSWORD_BLOCKLISTED');
