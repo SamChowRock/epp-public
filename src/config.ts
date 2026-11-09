@@ -6,6 +6,7 @@ import { z } from 'zod';
 export const APP_CONFIG = Symbol('APP_CONFIG');
 export type AppConfig = Readonly<{
   oidc?: Readonly<{ issuer: string; clientId: string; secret: string }>;
+  wechatWeb?: Readonly<{ appId: string; secret: string }>;
   wechat?: Readonly<{ appId: string; secret: string }>;
   localSmtpPort: number;
   trustedProxyIps: readonly string[];
@@ -27,6 +28,8 @@ const EnvironmentSchema = z.object({
   OIDC_ISSUER: z.string().min(1).max(512).optional(),
   OIDC_CLIENT_ID: z.string().min(1).max(256).optional(),
   OIDC_CLIENT_SECRET: z.string().min(1).max(4096).optional(),
+  WECHAT_WEB_APP_ID: z.string().regex(/^wx[0-9a-f]{16}$/).optional(),
+  WECHAT_WEB_APP_SECRET: z.string().regex(/^[0-9a-f]{32}$/).optional(),
   WECHAT_APP_ID: z.string().regex(/^wx[0-9a-f]{16}$/).optional(),
   WECHAT_APP_SECRET: z.string().regex(/^[0-9a-f]{32}$/).optional(),
   LOCAL_SMTP_PORT: decimal(65535).default(1025),
@@ -72,9 +75,15 @@ export function parseConfig(defaults: unknown, env: NodeJS.ProcessEnv): AppConfi
         || (value.NODE_ENV === 'production' && !appOrigin.startsWith('https:'))) throw new Error();
     } catch { throw new ConfigError('OIDC_ISSUER/APP_ORIGIN'); }
   }
+  const webId = value.WECHAT_WEB_APP_ID, webSecret = value.WECHAT_WEB_APP_SECRET;
+  if (Boolean(webId) !== Boolean(webSecret) || (webId && webId === value.WECHAT_APP_ID))
+    throw new ConfigError('WECHAT_WEB_APP_ID/WECHAT_WEB_APP_SECRET');
+  if (webId && value.NODE_ENV !== 'test' && !appOrigin.startsWith('https:'))
+    throw new ConfigError('WECHAT_WEB_APP_ID/APP_ORIGIN');
   const trustedProxyIps = value.TRUST_PROXY_IPS === undefined ? [] : value.TRUST_PROXY_IPS.split(',');
   if (trustedProxyIps.length > 10 || trustedProxyIps.some(ip => !isIP(ip))) throw new ConfigError('TRUST_PROXY_IPS');
   return Object.freeze({
+    ...(webId && webSecret ? { wechatWeb: Object.freeze({ appId: webId, secret: webSecret }) } : {}),
     ...(issuer && clientId && secret ? { oidc: Object.freeze({ issuer, clientId, secret }) } : {}),
     ...(value.WECHAT_APP_ID && value.WECHAT_APP_SECRET ? { wechat: Object.freeze({ appId: value.WECHAT_APP_ID, secret: value.WECHAT_APP_SECRET }) } : {}),
     localSmtpPort: value.LOCAL_SMTP_PORT,

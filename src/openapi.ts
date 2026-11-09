@@ -1,4 +1,4 @@
-import { OidcStart } from './oidc.controller.js';
+import { ExternalStart } from './external-start.js';
 import { MINI_PUBLIC_PATHS, MiniLoginSchema, MiniLinkSchema, MiniLoginResultSchema } from './mini-contract.js';
 import { RECOVERY_PATHS, RecoveryRequestSchema, RecoveryConfirmSchema, RecoveryAcceptedSchema, RegistrationSchema } from './recovery-contract.js';
 import { CsrfSchema, LoginSchema, ChangePasswordSchema, SessionIdentitySchema, SessionListSchema } from './auth-contract.js';
@@ -334,7 +334,7 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
   document.paths['/auth/oidc'] = { get: { security: [], summary: 'Open the same-origin login page', responses: { '200': { description: 'HTML' } } } };
   document.paths['/auth/oidc/start'] = { post: { security: [], summary: 'Start a login or prove the local account password for linking',
     parameters: [{ in:'header', name:'X-EPP-Request', required:true, schema:{ type:'string', enum:['1'] } }],
-    requestBody: { required:true, content:{ 'application/json':{ schema:schema(OidcStart,'input') } } },
+    requestBody: { required:true, content:{ 'application/json':{ schema:schema(ExternalStart,'input') } } },
     responses:{ '200': { description:'Temporary HttpOnly Lax cookie and a navigation URL', content:{ 'application/json':{ schema:{
       type:'object', required:['authorizationUrl'], properties:{authorizationUrl:{type:'string',format:'uri'}} } } } },
       '400':problem('Invalid mode or input'), '401':problem('Local password rejected'), '403':problem('Origin or header rejected'),
@@ -345,5 +345,12 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
       '400':problem('Wrong browser, expired or used state'), '401':problem('Exchange, claims or local proof rejected'),
       '403':problem('Cancelled or disabled account'), '409':problem('Mapping conflict'), '429':problem('Session or exchange limit'),
       '503':problem('Storage or provider unavailable') } } };
+  for (const suffix of ['', '/start', '/callback']) {
+    document.paths['/auth/wechat-web' + suffix] = structuredClone(document.paths['/auth/oidc' + suffix]!);
+  }
+  const callback = document.paths['/auth/wechat-web/callback']!.get!;
+  callback.responses['401'] = problem('Website code or local password proof rejected');
+  callback.responses['403'] = problem('Local account disabled');
+  callback.parameters = ['code', 'state'].map(name => ({ name, in: 'query', required: true, schema: { type: 'string' } }));
   return document;
 }

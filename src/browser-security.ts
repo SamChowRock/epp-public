@@ -46,7 +46,7 @@ export function authRateLimit(): RequestHandler {
   // shortcut: bounded per-process buckets; use a shared atomic store before multiple API instances.
   const attempts = new Map<string, { until: number; count: number }>();
   return (request, response, next) => {
-    if (request.method !== 'POST' || !['/auth/oidc/start', '/auth/login', '/auth/password', ...RECOVERY_PATHS, ...MINI_PUBLIC_PATHS].includes(request.path)) { next(); return; }
+    if (request.method !== 'POST' || !['/auth/wechat-web/start', '/auth/oidc/start', '/auth/login', '/auth/password', ...RECOVERY_PATHS, ...MINI_PUBLIC_PATHS].includes(request.path)) { next(); return; }
     const now = performance.now();
     for (const [key, value] of attempts) if (value.until <= now) attempts.delete(key);
     const key = request.ip ?? request.socket.remoteAddress ?? 'unknown';

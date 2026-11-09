@@ -41,7 +41,7 @@ export function sessionBoundary(service: SessionService, config: AppConfig): Req
         || (request.headers['content-length'] !== undefined && request.headers['content-length'] !== '0'))) {
         throw new HttpError(400, 'DELETE does not accept a body', 'BODY_NOT_ALLOWED');
       }
-      if (['/auth/oidc', '/auth/oidc/start', '/auth/oidc/callback'].includes(path ?? '') || path === '/auth/login' || RECOVERY_PATHS.includes(path ?? '') || MINI_PUBLIC_PATHS.includes(path ?? '')) return;
+      if (['/auth/wechat-web', '/auth/oidc', '/auth/wechat-web/start', '/auth/oidc/start', '/auth/wechat-web/callback', '/auth/oidc/callback'].includes(path ?? '') || path === '/auth/login' || RECOVERY_PATHS.includes(path ?? '') || MINI_PUBLIC_PATHS.includes(path ?? '')) return;
       const cookie = readCookie(request.headers.cookie, sessionCookieName(config));
       const authorization = request.headers.authorization;
       if (cookie !== undefined && authorization !== undefined) throw new HttpError(400, 'Use one session transport', 'AUTH_AMBIGUOUS');

@@ -1,0 +1,70 @@
+{
+  "info": {
+    "name": "EPP 39 · 微信网站扫码",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3390"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 打开同源登录页",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/auth/wechat-web"
+      }
+    },
+    {
+      "name": "02 发起普通登录（请勿复制到另一浏览器）",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/wechat-web/start",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"mode\": \"login\"}"
+        }
+      }
+    },
+    {
+      "name": "03 缺少浏览器事务的回调应返回400",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/auth/wechat-web/callback"
+      }
+    },
+    {
+      "name": "04 拒绝客户端直接指定 openid",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/auth/wechat-web/start",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"mode\": \"login\", \"openid\": \"untrusted\"}"
+        }
+      }
+    }
+  ]
+}

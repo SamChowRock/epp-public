@@ -1,3 +1,5 @@
+import { WechatWebFlow } from './wechat-web-flow.js';
+import { WechatWebController } from './wechat-web.controller.js';
 import { OidcController } from './oidc.controller.js';
 import { MiniController } from './mini.controller.js';
 import { MiniService } from './mini.service.js';
@@ -18,8 +20,10 @@ import { CURRENT_USER_ID, requireSession } from './auth-context.js';
 import type { AuthenticatedRequest } from './auth-context.js';
 
 @Module({
-  imports: [DatabaseModule], controllers: [AuthController, RecoveryController, MiniController, OidcController],
+  imports: [DatabaseModule], controllers: [AuthController, RecoveryController, MiniController, OidcController, WechatWebController],
   providers: [
+    { provide: WechatWebFlow, useFactory: (config: AppConfig) => new WechatWebFlow(config),
+      inject: [APP_CONFIG] },
     { provide: MiniService, useFactory: (db: DatabaseService, sessions: SessionService,
       state: ApplicationState, config: AppConfig) => new MiniService(db, sessions, state, new WechatLogin(config.wechat)),
       inject: [DatabaseService, SessionService, ApplicationState, APP_CONFIG] },

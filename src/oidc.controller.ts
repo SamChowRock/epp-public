@@ -6,7 +6,7 @@ import { APP_CONFIG, type AppConfig } from './config.js';
 import { DatabaseService } from './database.service.js';
 import { SessionService } from './session.service.js';
 import { ApplicationState } from './application-state.js';
-import { UserIdSchema } from './auth-contract.js';
+import { ExternalStart } from './external-start.js';
 import { EmptyObjectSchema } from './candidate-contract.js';
 import { SchemaPipe } from './schema.pipe.js';
 import { readCookie, setSessionCookie } from './session-http.js';
@@ -14,10 +14,6 @@ import { OidcFlow } from './oidc-flow.js';
 import { resolveOidcAccount } from './oidc-accounts.js';
 import { oidcPage } from './oidc-page.js';
 
-export const OidcStart = z.discriminatedUnion('mode', [
-  z.object({ mode: z.literal('login') }).strict(),
-  z.object({ mode: z.literal('link'), userId: UserIdSchema, password: z.string().min(1).max(256).refine(s => s.isWellFormed()) }).strict(),
-]);
 @Controller('auth/oidc')
 export class OidcController {
   private readonly flow: OidcFlow;
@@ -33,7 +29,7 @@ export class OidcController {
     res.type('html').send(oidcPage(nonce));
   }
   @Post('start') @HttpCode(200)
-  start(@Body(new SchemaPipe(OidcStart)) input: z.infer<typeof OidcStart>, @Query(new SchemaPipe(EmptyObjectSchema)) _query: object,
+  start(@Body(new SchemaPipe(ExternalStart)) input: z.infer<typeof ExternalStart>, @Query(new SchemaPipe(EmptyObjectSchema)) _query: object,
     @Res({ passthrough: true }) res: Response) {
     return this.state.track(async () => {
       const proof = input.mode === 'link' ? { userId: input.userId, passwordHash: await this.sessions.passwordWork(() =>
