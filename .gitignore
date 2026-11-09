@@ -1,0 +1,14 @@
+node_modules/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+dist/
+
+.dev/
+src/generated/prisma/
+database/chapter-18/baseline-draft.sql
+database/chapter-20/recovery-history/
+
+.worker-dev/
