@@ -191,6 +191,9 @@ model VerificationOutbox {
   recipient String @db.Text
   status String @default("pending") @db.Text
   availableAt DateTime @default(now()) @map("available_at") @db.Timestamptz(3)
+  // Partial expression index verification_outbox_pick_idx is managed in migration SQL.
+  claimId String? @map("claim_id") @db.Uuid
+  leaseUntil DateTime? @map("lease_until") @db.Timestamptz(3)
   @@index([status, availableAt, id], map: "verification_outbox_ready_idx")
   @@map("verification_outbox")
 }

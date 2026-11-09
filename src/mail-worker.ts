@@ -39,12 +39,12 @@ async function main() {
     if (!stop.signal.aborted) logger.write('info', 'worker.ready');
     while (!stop.signal.aborted) {
       const status = await sendOne(database, delivery);
-      if (status === 'empty') {
+      if (status === 'empty' || status === 'busy') {
         try { await sleep(1000, undefined, { signal: stop.signal }); }
         catch (error) { if (!stop.signal.aborted) throw error; }
         continue;
       }
-      const halted = status === 'unknown' || status === 'paused';
+      const halted = status === 'unknown' || status === 'paused' || status === 'lost-after-send';
       logger.write(halted ? 'warn' : 'info', 'worker.result', { code: status });
       if (halted) {
         process.exitCode = 2;

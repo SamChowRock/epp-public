@@ -1,5 +1,9 @@
 # EPP 配套实践代码
 
+## 第四十四章　安全领取任务与识别过期执行者
+
+从 `part-06/chapter-43` 继续。按[本章双执行者实验](database/chapter-44/README.md)升级隔离库，在领取后和 SMTP 接受后分别暂停；对照租约、通道与收件箱，判断何时可接手，何时必须停发。
+
 ## 第四十三章　为什么需要独立 Worker
 
 从 `part-06/chapter-42` 继续，分支 `part-06/chapter-43` 追加验证邮件通道控制表，重启后保留停发状态。按[双进程启动说明](database/chapter-43/README.md)配置 API 与寄信进程，导入[本章集合](requests/chapter-43.postman_collection.json)，用当前身份和邮箱对照重置前后的事实。

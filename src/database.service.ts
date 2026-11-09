@@ -35,7 +35,7 @@ export class DatabaseService {
       await this.client.$connect();
       if (this.applicationName === 'epp-worker') {
         await this.client.verificationMailControl.findUniqueOrThrow({ where: { id: 1 } });
-        await this.client.$queryRaw`SELECT id, intent_id, generation, recipient, purpose, available_at, status
+        await this.client.$queryRaw`SELECT id, intent_id, generation, recipient, purpose, available_at, status, claim_id, lease_until
           FROM public.verification_outbox LIMIT 0`;
         await this.client.$queryRaw`SELECT id, email, purpose, token_digest, issued_at, expires_at, consumed_at
           FROM public.verification_intents LIMIT 0`;

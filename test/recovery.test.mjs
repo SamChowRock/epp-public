@@ -184,7 +184,7 @@ test('a replaced, expired or already attempted mailing cannot issue another usab
   assert.equal(await dispatch(old.id), 'obsolete');
   const results = await Promise.all([dispatch(current.id), dispatch(current.id)]);
   assert.equal(results.filter(result => result === 'accepted').length, 1);
-  assert(results.some(result => result === 'paused' || result === 'empty'));
+  assert(results.some(result => result === 'busy' || result === 'empty'));
   assert.equal(messages.length, 1);
   const other = address();
   await recovery.request('register', other);
@@ -194,4 +194,100 @@ test('a replaced, expired or already attempted mailing cannot issue another usab
   } });
   assert.equal(await dispatch(expired.id), 'obsolete');
   assert.equal(messages.length, 1);
+});
+
+test('a locked candidate is skipped; a replacement claim fences its predecessor before SMTP', async t => {
+  const { database, db, recovery, address } = await fixture(t);
+  const { claimOne } = await import('../dist/src/verification-claim.js');
+  const { deliverClaim } = await import('../dist/src/verification-outbox.js');
+  const ids = [];
+  for (const recipient of [address(), address()]) {
+    await recovery.request('register', recipient);
+    ids.push((await db.verificationOutbox.findFirstOrThrow({where:{recipient}})).id);
+  }
+  const lock = await database.pool.connect();
+  try {
+    await lock.query('BEGIN');
+    await lock.query('SELECT id FROM verification_outbox WHERE id=$1 FOR UPDATE', [ids[0]]);
+    assert.equal(await claimOne(database, ids[0]), 'empty');
+    const other = await claimOne(database, ids[1]); assert.equal(other.id, ids[1]);
+  } finally { await lock.query('ROLLBACK'); lock.release(); }
+  const a = await claimOne(database, ids[0]);
+  assert.equal(await claimOne(database, ids[0]), 'empty');
+  await db.$executeRaw`UPDATE verification_outbox SET lease_until=clock_timestamp()-interval '1 second' WHERE id=${a.id}::uuid`;
+  const b = await claimOne(database, ids[0]); assert.notEqual(a.claim_id,b.claim_id);
+  let sent = 0; const delivery = { async send() { sent++; } };
+  assert.equal(await deliverClaim(database, delivery, a), 'stale');
+  assert.equal(await deliverClaim(database, delivery, b), 'accepted');
+  assert.equal(sent, 1);
+});
+
+test('an expired sender cannot record success, release the gate, or trigger a replay', async t => {
+  const { database, db, recovery, address, dispatch } = await fixture(t);
+  const email = address(); await recovery.request('register', email);
+  const { id } = await db.verificationOutbox.findFirstOrThrow({where:{recipient:email}});
+  let attempts = 0;
+  const result = await sendOne(database, { async send() {
+    attempts++;
+    assert.equal(await dispatch(id), 'busy');
+    await db.$executeRaw`UPDATE verification_outbox SET lease_until=clock_timestamp()-interval '1 second' WHERE id=${id}::uuid`;
+    assert.equal(await dispatch(id), 'paused');
+  } }, id);
+  assert.equal(result,'lost-after-send');
+  assert.equal(await dispatch(id),'paused'); assert.equal(attempts,1);
+  assert.equal((await db.verificationOutbox.findUniqueOrThrow({where:{id}})).status,'attempting');
+  assert.equal((await db.verificationMailControl.findUniqueOrThrow({where:{id:1}})).pausedBy,id);
+});
+
+test('the preparation check uses the clock after waiting for the intent lock', async t => {
+  const { database, db, recovery, address } = await fixture(t);
+  const { claimOne } = await import('../dist/src/verification-claim.js');
+  const { deliverClaim } = await import('../dist/src/verification-outbox.js');
+  const recipient = address(); await recovery.request('register', recipient);
+  const job = await db.verificationOutbox.findFirstOrThrow({ where: { recipient } });
+  const claim = await claimOne(database, job.id);
+  const lock = await database.pool.connect();
+  let result, sends = 0;
+  try {
+    await lock.query('BEGIN');
+    await lock.query('SELECT id FROM public.verification_intents WHERE id=$1 FOR UPDATE', [job.intentId]);
+    await db.$executeRaw`UPDATE public.verification_outbox SET lease_until=clock_timestamp()+interval '1.2 seconds'
+      WHERE id=${job.id}::uuid`;
+    result = deliverClaim(database, {async send() { sends++; }}, claim);
+    // This session really blocks the preparing transaction, while its lease is still live.
+    for (let n=0; ; n++) {
+      const {rows} = await lock.query(`SELECT EXISTS (SELECT FROM pg_stat_activity a
+        WHERE pg_backend_pid()=ANY(pg_blocking_pids(a.pid))) AS blocked,
+        lease_until>clock_timestamp() AS live FROM verification_outbox WHERE id=$1`, [job.id]);
+      if (rows[0].blocked) { assert.equal(rows[0].live, true); break; }
+      assert(n<80); await new Promise(r=>setTimeout(r,10));
+    }
+    await lock.query('SELECT pg_sleep(GREATEST(0,extract(epoch from lease_until-clock_timestamp()))::float8 + 0.05) FROM verification_outbox WHERE id=$1',[job.id]);
+  } finally { await lock.query('ROLLBACK'); lock.release(); }
+  assert.equal(await result, 'stale'); assert.equal(sends,0);
+  assert.equal((await db.verificationIntent.findUniqueOrThrow({where:{id:job.intentId}})).tokenDigest,job.generation);
+});
+
+test('parallel reservations release only their own job when the SMTP channel becomes busy', async t => {
+  const { database, db, recovery, address } = await fixture(t);
+  const { claimOne } = await import('../dist/src/verification-claim.js');
+  const { deliverClaim } = await import('../dist/src/verification-outbox.js');
+  const claims = [];
+  for (const recipient of [address(), address()]) {
+    await recovery.request('register', recipient);
+    const { id } = await db.verificationOutbox.findFirstOrThrow({ where: { recipient } });
+    claims.push(await claimOne(database,id));
+  }
+  const [a,b] = claims;
+  let wrongSend = 0;
+  const other = {async send() { wrongSend++; }};
+  assert.equal(await deliverClaim(database, {async send() {
+    assert.equal(await deliverClaim(database, other, {...b, claim_id:randomUUID()}),'busy');
+    assert.equal((await db.verificationOutbox.findUniqueOrThrow({where:{id:b.id}})).claimId,b.claim_id);
+    assert.equal(await deliverClaim(database, other, b),'busy');
+    const row=await db.verificationOutbox.findUniqueOrThrow({where:{id:b.id}});
+    assert.equal(row.status,'pending'); assert.equal(row.claimId,null); assert.equal(row.leaseUntil,null);
+  }}, a),'accepted');
+  assert.equal(wrongSend,0);
+  assert.equal(await sendOne(database,other,b.id),'accepted'); assert.equal(wrongSend,1);
 });
