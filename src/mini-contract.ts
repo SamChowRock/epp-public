@@ -10,7 +10,7 @@ export const MiniLinkSchema = MiniLoginSchema.extend({
   userId: UserIdSchema,
   password: z.string().min(1).max(256).refine(value => value.isWellFormed()),
 });
-export const MiniLoginResultSchema = z.union([z.object({ userId: z.uuid(), miniEnabled: z.literal(false) }), SessionIdentitySchema.extend({
+export const MiniLoginResultSchema = z.union([z.object({ userId: UserIdSchema, miniEnabled: z.literal(false) }), SessionIdentitySchema.extend({
   token: z.string().regex(/^[A-Za-z0-9_-]{43}$/), expiresIn: z.literal(28800),
 })]);
 export type MiniLogin = z.infer<typeof MiniLoginSchema>;

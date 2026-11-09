@@ -65,6 +65,7 @@ test('concurrent registration consumes once; pending requests never reserve an a
   const row = await db.verificationIntent.findUniqueOrThrow({ where: { tokenDigest: tokenDigest(token) } });
   assert(!JSON.stringify(row).includes(token));
   await assert.rejects(recovery.confirm('reset', { token, newPassword: password }), invalid);
+  await assert.rejects(recovery.confirm('register', { token, newPassword: email }), e => e.code === 'PASSWORD_BLOCKLISTED');
   const results = await Promise.allSettled([1, 2].map(() => recovery.confirm('register', { token, newPassword: password })));
   assert.equal(results.filter(x => x.status === 'fulfilled').length, 1);
   assert.equal(results.find(x => x.status === 'rejected').reason.code, 'VERIFICATION_INVALID');
@@ -96,6 +97,10 @@ test('reset replaces credentials and revokes sessions atomically; active change 
   await db.user.update({ where: { id: user.userId }, data: { webEnabled: true } });
   const login = await sessions.login({ email: user.email, password, label: 'Before reset' });
   const token = await issue('reset', user.email);
+  await assert.rejects(recovery.confirm('reset', { token, newPassword: user.email }), e => e.code === 'PASSWORD_BLOCKLISTED');
+  await assert.rejects(sessions.changePassword(login.identity, { currentPassword: password, newPassword: user.email }),
+    e => e.code === 'PASSWORD_BLOCKLISTED');
+  assert(await sessions.authenticate(login.token));
   const results = await Promise.allSettled([1, 2].map(() => recovery.confirm('reset', { token, newPassword: nextPassword })));
   assert.equal(results.filter(x => x.status === 'fulfilled').length, 1);
   assert.equal(await sessions.authenticate(login.token), undefined);
