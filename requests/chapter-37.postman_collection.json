@@ -342,6 +342,172 @@
       ]
     },
     {
+      "name": "07a 改密分支：原 Web 会话取 CSRF",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "Cookie",
+            "value": "epp_session={{webToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/csrf",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Expected status\", () => pm.response.to.have.status(200));",
+              "pm.environment.unset(\"webCsrf\");",
+              "if (pm.response.code === 200) pm.environment.set(\"webCsrf\", pm.response.json().csrfToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07b 改密分支：用原 Web 会话改密",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "Cookie",
+            "value": "epp_session={{webToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{webCsrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/password",
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{{requestBody37}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const body = { currentPassword: pm.environment.get(\"password\"), newPassword: \"Updated fictional chapter 37 password\" };",
+              "const text = JSON.stringify(body);",
+              "pm.variables.set(\"requestBody37\", text.replace(/\\{\\{/g,\"\\\\u007b\\\\u007b\").replace(/\\}\\}/g,\"\\\\u007d\\\\u007d\"));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Expected status\", () => pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07c 改密后：重放原 Web Cookie",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "Cookie",
+            "value": "epp_session={{webToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/me",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Expected status\", () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07d 改密后：重放原 mini Bearer",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{miniToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/me",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Expected status\", () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
       "name": "08 退出小程序会话",
       "request": {
         "method": "POST",
