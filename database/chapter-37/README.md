@@ -6,10 +6,13 @@
 
 ```bash
 npm ci
-npm run db:verify -- migrate deploy
+unset DATABASE_URL SHADOW_DATABASE_URL
+node --env-file=.env.database-verify scripts/deploy-verify.mjs deploy epp_ch37_verify
 npm run db:verify -- migrate status
 npm run check
 ```
+
+从当前分支初始化专用空库时，先运行 `npm ci`，设置 `.env.database-verify`，清除 shell 的 `DATABASE_URL` 和 `SHADOW_DATABASE_URL` 后运行 `node --env-file=.env.database-verify scripts/deploy-verify.mjs bootstrap epp_ch37_verify`，最后运行 `npm run db:verify -- migrate status`。命令末尾都换成建库或恢复时确定的库名。脚本在实际连接查询 current_database()，一致才部署。bootstrap 先复制第 35 章迁移原件建立基线，再部署当前完整目录；已有前章历史用 deploy。非空副本另做旧数据对照。
 
 `prisma generate` 不升级数据库。DBeaver刷新表结构，核对旧用户新增开关为false、旧会话为web，按原ID重读旧记录。新增表应为空，不给旧用户推断OpenID。核对完成才单独备份并升级DEV；切回旧代码不会自动撤销迁移。
 
@@ -19,7 +22,9 @@ npm run check
 
 ```bash
 npm run build
-node --env-file=.env.test --inspect=127.0.0.1:9470 examples/mini-login-local.mjs
+unset DATABASE_URL TEST_DATABASE_URL
+verify_db='epp_ch37_verify'  # 换成建库或恢复时取的库名
+node --env-file=.env.test --inspect=127.0.0.1:9470 examples/mini-login-local.mjs "$verify_db"
 ```
 
 脚本创建本轮两个虚构用户，经Web入口先存素材，再用独立的 `MiniService` 实例替换平台交换并关联；应用的真实登录适配器不变。随后读取同一素材：原用户200，另一用户404。没有调用微信，不把任意OpenID接进业务路由。3370必须空闲；若占用，先选自己的其他空闲端口，给命令加 `PORT=3371`。
@@ -30,7 +35,7 @@ node --env-file=.env.test --inspect=127.0.0.1:9470 examples/mini-login-local.mjs
 
 VS Code在“运行和调试”选择 `Chapter 37: mini session (local VERIFY)`，按F5连接脚本的9470端口。断点放在 `src/session-http.ts` 的 `if (identity)` 行；04请求暂停后在Debug Console输入 `({ mini, authenticated: Boolean(identity), sameOwner: identity?.userId === '本轮userId' })`，把字符串替换成本轮原账号UUID。不展开令牌／Cookie／配置。继续执行，移除断点，再发送04确认正常结果；人工暂停的耗时不作性能数据。
 
-最后发08退出204、09旧令牌401，再回终端按Return。脚本清理本轮素材、映射、凭据和会话，移除环境文件并关闭API；Postman中已导入的变量需自行清空，不会随磁盘文件删除。强制杀进程可能留虚构数据，按终端本轮两个UUID检查，切勿按全表清空。脚本不改旧用户。
+保持两种会话有效，先选一组操作。只退出小程序时发08退出204、09旧令牌401；检验全通道撤销时跳过08，先用03确认mini为200，再发07a用环境中的旧Web Cookie取CSRF（200），07b用本轮虚构密码改密（204），07c、07d分别重放原Cookie与Bearer，均应401。练习账号没有验证邮箱，邮件重置须另备已验证邮箱和可收取重置凭据的测试账号。要做另一组，按Return清理后重新启动、重新导入并选择新环境。完成后再回终端按Return。脚本清理本轮素材、映射、凭据和会话，移除环境文件并关闭API；Postman中已导入的变量需自行清空，不会随磁盘文件删除。强制杀进程可能留虚构数据，按终端本轮两个UUID检查，切勿按全表清空。脚本不改旧用户。
 
 ## 接真实微信
 
@@ -38,7 +43,7 @@ VS Code在“运行和调试”选择 `Chapter 37: mini session (local VERIFY)`�
 
 已有账号先关联，避免先为同一个平台身份创建另一个本地用户。首次新平台身份会保存默认未开通的用户和映射，返回200及 `{userId,miniEnabled:false}`，不含令牌；管理者按这个ID确认目标后开通mini资格，再用新code登录。关联已有账号也不改变资格；身份已属于别的用户时409，不自动合并。一个AppID下一个本地账号只关联一个微信身份。
 
-默认会话8小时，两类合计最多20条，数据库只存摘要。Bearer仅接受mini会话，Cookie仅接受web；两者同时出现400。业务沿用原userId隔离，退出／撤销／过期规则共用；密码重置和Web主动改密撤销全部两类会话。小程序不访问 `/auth/password`、`/auth/csrf`。身份映射不会因退出或重置被删除，微信仍是一个独立登录途径。
+默认会话8小时，两类合计最多20条。已有mini资格的账号满额时，本次首次关联与签发一起拒绝；先释放一个会话，再取新code重新关联。没有mini资格时保存已核实的映射并返回待开通。数据库只存摘要。Bearer仅接受mini会话，Cookie仅接受web；两者同时出现400。业务沿用原userId隔离，退出／撤销／过期规则共用；密码重置和Web主动改密撤销全部两类会话。小程序不访问 `/auth/password`、`/auth/csrf`。身份映射不会因退出或重置被删除，微信仍是一个独立登录途径。
 
 ## 交付与恢复
 

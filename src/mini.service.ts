@@ -41,11 +41,12 @@ export class MiniService {
         const other = await tx.wechatIdentity.findUnique({ where: { appId_userId: { appId, userId } } });
         if (other && other.openId !== openId) return { error: 'IDENTITY_CONFLICT' };
       }
+      if (account.miniEnabled) {
+        await tx.$executeRaw`DELETE FROM public.sessions WHERE user_id = ${userId}::uuid AND expires_at <= clock_timestamp()`;
+        if (await tx.session.count({ where: { userId } }) >= 20) return { error: 'SESSION_LIMIT' };
+      }
       if (!mapping) await tx.wechatIdentity.create({ data: { appId, openId, userId } });
-      // An authenticated platform identity can be recorded without granting entry eligibility.
       if (!account.miniEnabled) return { userId, pending: true as const };
-      await tx.$executeRaw`DELETE FROM public.sessions WHERE user_id = ${userId}::uuid AND expires_at <= clock_timestamp()`;
-      if (await tx.session.count({ where: { userId } }) >= 20) return { error: 'SESSION_LIMIT' };
       await tx.$executeRaw`
         INSERT INTO public.sessions(id, user_id, token_digest, label, channel, expires_at)
         VALUES (${sessionId}::uuid, ${userId}::uuid, ${tokenDigest(token)}, ${input.label}, 'mini',

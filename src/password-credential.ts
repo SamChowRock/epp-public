@@ -3,7 +3,7 @@ import { hashPassword, verifyPassword } from './password.js';
 import { DEVELOPMENT_USER_ID } from './database-config.js';
 
 export async function initializePassword(db: PrismaClient, password: unknown, userId = DEVELOPMENT_USER_ID): Promise<void> {
-  const passwordHash = await hashPassword(password);
+  const passwordHash = await hashPassword(password, { userId });
   await db.passwordCredential.create({
     data: { userId, passwordHash }, select: { userId: true },
   });

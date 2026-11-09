@@ -4,7 +4,9 @@
 
 ## 迁移与启动
 
-先按第22章备份并独立恢复非空VERIFY，停该库写入并保存旧账号与具体业务记录。核对 `.env.database-verify`，清除旧shell的DATABASE_URL、SHADOW_DATABASE_URL、DB_QUERY_DEBUG覆盖，运行 `npm run db:verify -- migrate status`、`npm run db:verify -- migrate deploy`、`npm run db:verify -- migrate status`。追加迁移只建两表并给旧凭据补version=1，不重置密码，也不为旧用户捏造邮箱。旧ID登录继续可用。DBeaver先运行[安全投影](01-observe.sql)确认当前库与新表。
+先按第22章备份并独立恢复非空VERIFY，停该库写入并保存旧账号与具体业务记录。核对 `.env.database-verify`，清除旧shell的DATABASE_URL、SHADOW_DATABASE_URL、DB_QUERY_DEBUG覆盖，运行 `npm run db:verify -- migrate status`、`node --env-file=.env.database-verify scripts/deploy-verify.mjs deploy epp_ch36_verify`、`npm run db:verify -- migrate status`。追加迁移只建两表并给旧凭据补version=1，不重置密码，也不为旧用户捏造邮箱。旧ID登录继续可用。DBeaver先运行[安全投影](01-observe.sql)确认当前库与新表。
+
+从当前分支初始化专用空库时，先运行 `npm ci`，设置 `.env.database-verify`，清除 shell 的 `DATABASE_URL` 和 `SHADOW_DATABASE_URL` 后运行 `node --env-file=.env.database-verify scripts/deploy-verify.mjs bootstrap epp_ch36_verify`，最后运行 `npm run db:verify -- migrate status`。命令末尾都换成建库或恢复时确定的库名。脚本在实际连接查询 current_database()，一致才部署。bootstrap 先复制第 35 章迁移原件建立基线，再部署当前完整目录；已有前章历史用 deploy。非空副本另做旧数据对照。
 
 Node24.22.1下 `npm ci`、`npm run check`。Mailpit 1.33.0从[官方发行](https://github.com/axllent/mailpit/releases/tag/v1.33.0)下载对应macOS架构，解压后在工具目录前台运行：
 
@@ -19,14 +21,17 @@ Node24.22.1下 `npm ci`、`npm run check`。Mailpit 1.33.0从[官方发行](http
 
 ```bash
 unset DATABASE_URL TEST_DATABASE_URL APP_ORIGIN PORT LOCAL_SMTP_PORT DB_QUERY_DEBUG
+verify_db='epp_ch36_verify'  # 换成本轮副本的库名
 NODE_ENV=development node --env-file=.env.test --input-type=module -e '
 process.env.DATABASE_URL = process.env.TEST_DATABASE_URL;
+const { withVerifiedDatabase } = await import("./scripts/verify-database.mjs");
+await withVerifiedDatabase(process.argv[1]);
 process.env.PORT = "3360";
 process.env.APP_ORIGIN = "http://127.0.0.1:3360";
 process.env.LOCAL_SMTP_PORT = "1025";
 process.env.DB_QUERY_DEBUG = "false";
 await import("./scripts/dev.mjs");
-'
+' "$verify_db"
 ```
 
 沿用自动编译、重启及127.0.0.1 Inspector。新增入口与旧业务一起受来源、固定请求头、JSON／字节限制保护；这四个匿名动作不依赖Cookie／CSRF，但已有主动改密仍需要会话证明。每IP每分钟10次POST与登录共用，密码计算共用两名额，签发／投递另有两名额，同一用途／地址60秒冷却。
