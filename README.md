@@ -1,5 +1,9 @@
 # EPP 配套实践代码
 
+## 第四十二章　Transactional Outbox
+
+分支 `part-06/chapter-42` 从密码路线第 36 章继续。按[本章说明](database/chapter-42/README.md)升级 VERIFY，用原注册／重置请求提交业务意图与寄信任务，关闭 API 后运行一次性程序向 Mailpit 寄信。第 36 章标题下的同步投递说明描述旧分支。
+
 ## 第三十六章 注册、验证与密码重置
 
 分支 `part-05/chapter-36` 从第35章继续。按[本章说明](database/chapter-36/README.md)升级非空VERIFY，保留旧用户与密码；用[请求集合](requests/chapter-36.postman_collection.json)和本地Mailpit走完注册、资格检查与密码恢复。新增Nodemailer 10.3.1、邮箱与意图两表及凭据版本。四个匿名动作仍有来源／固定头／JSON／限流保护；旧ID登录保留，已验证邮箱也可登录。发送同步等待，202不保证送达，第六篇继续可靠投递。

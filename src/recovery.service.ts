@@ -2,11 +2,9 @@ import { randomUUID } from 'node:crypto';
 import { DatabaseService } from './database.service.js';
 import { SessionService } from './session.service.js';
 import { ApplicationState } from './application-state.js';
-import { AppLogger } from './app-logger.js';
 import { HttpError } from './http.js';
 import { issueToken, tokenDigest } from './token.js';
 import { hashPassword } from './password.js';
-import type { VerificationDelivery } from './verification-delivery.js';
 import type { RecoveryPurpose, RecoveryConfirm } from './recovery-contract.js';
 import type { Prisma } from './generated/prisma/client.js';
 
@@ -14,17 +12,16 @@ const accepted = { message: 'Check your inbox. If no message arrives, wait one m
 const invalid = () => new HttpError(400, 'Verification is invalid or expired; request a new message', 'VERIFICATION_INVALID');
 
 export class RecoveryService {
-  private activeDeliveries = 0;
+  private activeRequests = 0;
   constructor(private readonly database: DatabaseService, private readonly sessions: SessionService,
-    private readonly state: ApplicationState, private readonly delivery: VerificationDelivery,
-    private readonly logger: AppLogger) {}
+    private readonly state: ApplicationState) {}
 
   request(purpose: RecoveryPurpose, email: string) {
-    if (this.activeDeliveries >= 2) throw new HttpError(429, 'Delivery service is busy', 'DELIVERY_BUSY');
-    this.activeDeliveries++;
+    if (this.activeRequests >= 2) throw new HttpError(429, 'Delivery service is busy', 'DELIVERY_BUSY');
+    this.activeRequests++;
     return this.state.track(async () => {
-      const token = issueToken(), digest = tokenDigest(token);
-      const issued = await this.database.run('issueVerification', () => this.database.client.$transaction(async tx => {
+      const generation = tokenDigest(issueToken());
+      await this.database.run('issueVerification', () => this.database.client.$transaction(async tx => {
         const contact = purpose === 'reset' ? await tx.verifiedEmail.findUnique({
           where: { email }, include: { user: { select: { passwordCredential: { select: { version: true } } } } },
         }) : null;
@@ -32,10 +29,10 @@ export class RecoveryService {
         const userId = credential ? contact!.userId : null;
         const version = credential?.version ?? null;
         // One row per purpose/address gives resend cooldown and replacement the same atomic boundary.
-        return tx.$queryRaw<{ id: string }[]>`
+        const [issued] = await tx.$queryRaw<{ id: string }[]>`
           INSERT INTO public.verification_intents
             (id, purpose, email, token_digest, user_id, credential_version, issued_at, expires_at)
-          VALUES (${randomUUID()}::uuid, ${purpose}, ${email}, ${digest}, ${userId}::uuid, ${version},
+          VALUES (${randomUUID()}::uuid, ${purpose}, ${email}, ${generation}, ${userId}::uuid, ${version},
             clock_timestamp(), clock_timestamp() + interval '15 minutes')
           ON CONFLICT (purpose, email) DO UPDATE SET token_digest = EXCLUDED.token_digest,
             user_id = EXCLUDED.user_id, credential_version = EXCLUDED.credential_version,
@@ -43,19 +40,14 @@ export class RecoveryService {
           WHERE verification_intents.issued_at <= clock_timestamp() - interval '1 minute'
           RETURNING id
         `;
-      }, { maxWait: 2000, timeout: 5000 }));
-      if (issued.length) {
-        const started = performance.now();
-        try {
-          await this.delivery.send(email, purpose, token);
-          this.logger.write('info', 'delivery.accepted', { durationMs: Math.round(performance.now() - started) });
-        } catch {
-          // A failed acknowledgement does not prove non-delivery; keep the intent and hide provider details.
-          this.logger.write('warn', 'delivery.failed', { code: 'MAIL_DELIVERY_UNCONFIRMED', durationMs: Math.round(performance.now() - started) });
+        if (issued) {
+          await tx.verificationOutbox.create({ data: {
+            id: randomUUID(), intentId: issued.id, generation, purpose, recipient: email,
+          } });
         }
-      }
+      }, { maxWait: 2000, timeout: 5000 }));
       return accepted;
-    }).finally(() => { this.activeDeliveries--; });
+    }).finally(() => { this.activeRequests--; });
   }
 
   private async lockIntent(tx: Prisma.TransactionClient, purpose: RecoveryPurpose, digest: string) {

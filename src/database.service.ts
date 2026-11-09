@@ -40,6 +40,7 @@ export class DatabaseService {
       await this.client.passwordCredential.findMany({ take: 1, select: { userId: true, passwordHash: true, version: true } });
       await this.client.verifiedEmail.findMany({ take: 1 });
       await this.client.verificationIntent.findMany({ take: 1 });
+      await this.client.verificationOutbox.findMany({ take: 1 });
       await this.client.session.findMany({ take: 1 });
       await this.client.captureRevision.findMany({ take: 1 });
       await this.client.candidate.findMany({ take: 1 });

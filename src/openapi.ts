@@ -274,7 +274,7 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
     document.paths[path] = { post: {
       operationId: path.slice(1).replaceAll('/', '_'), security: [],
       summary: request ? 'Request a verification email' : 'Consume a verification token once',
-      description: request ? 'Always the same 202 for existing and absent accounts, cooldown, and unconfirmed SMTP delivery. Both receive local mail when not throttled. 15 minute expiry, one minute address cooldown. No durable delivery guarantee.'
+      description: request ? 'Always the same 202 for existing and absent accounts, cooldown, and queued verification mail. A fresh issuance queues one local delivery. 15 minute expiry from request, one minute address cooldown.'
         : 'Token belongs to the purpose in this path. Registration defaults to webEnabled=false. Reset checks credential version and active account, changes the password and revokes all sessions atomically; it never grants Web access or logs in.',
       requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/' + (request ? 'RecoveryRequest' : 'RecoveryConfirm') } } } },
       responses: { [request ? '202' : registration ? '201' : '204']: request ? jsonResponse('RecoveryAccepted', 'Request handled; not proof of delivery')

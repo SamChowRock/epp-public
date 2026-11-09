@@ -181,3 +181,16 @@ model VerificationIntent {
   @@index([expiresAt], map: "verification_intents_expires_at_idx")
   @@map("verification_intents")
 }
+
+/// One immutable verification-mail instruction per issuance. Keep evidence when intents expire.
+model VerificationOutbox {
+  id String @id @db.Uuid
+  intentId String @map("intent_id") @db.Uuid
+  generation String @unique @db.Text
+  purpose String @db.Text
+  recipient String @db.Text
+  status String @default("pending") @db.Text
+  availableAt DateTime @default(now()) @map("available_at") @db.Timestamptz(3)
+  @@index([status, availableAt, id], map: "verification_outbox_ready_idx")
+  @@map("verification_outbox")
+}

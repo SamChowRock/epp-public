@@ -1,8 +1,5 @@
 import { RecoveryController } from './recovery.controller.js';
 import { RecoveryService } from './recovery.service.js';
-import { LocalMailDelivery } from './verification-delivery.js';
-import { APP_CONFIG, type AppConfig } from './config.js';
-import { AppLogger } from './app-logger.js';
 import { Module, Scope } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { DatabaseModule } from './database.module.js';
@@ -17,9 +14,9 @@ import type { AuthenticatedRequest } from './auth-context.js';
   imports: [DatabaseModule], controllers: [AuthController, RecoveryController],
   providers: [
     { provide: RecoveryService, useFactory: (db: DatabaseService, sessions: SessionService,
-      state: ApplicationState, config: AppConfig, logger: AppLogger) =>
-      new RecoveryService(db, sessions, state, new LocalMailDelivery(config), logger),
-      inject: [DatabaseService, SessionService, ApplicationState, APP_CONFIG, AppLogger] },
+      state: ApplicationState) =>
+      new RecoveryService(db, sessions, state),
+      inject: [DatabaseService, SessionService, ApplicationState] },
     { provide: SessionService, useFactory: (db: DatabaseService, state: ApplicationState) => new SessionService(db, state),
       inject: [DatabaseService, ApplicationState] },
     { provide: CURRENT_USER_ID, scope: Scope.REQUEST,
