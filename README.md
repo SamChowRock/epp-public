@@ -6,7 +6,17 @@
 
 命令末尾换成建库时独立选定的 VERIFY 名称。先执行 `unset DATABASE_URL SHADOW_DATABASE_URL TEST_DATABASE_URL`，再按相应命令加载本地文件。实验启动在真实连接核对库名后才写样本。若从本章分支的一份全新空库起步，先 `npm ci`，配置 .env.database-verify 后运行 `node --env-file=.env.database-verify scripts/deploy-verify.mjs bootstrap epp_ch39_verify` 和 `npm run db:verify -- migrate status`。已有第 35 章以后基线的副本用 deploy 模式正常追加。
 
-可在同一 VERIFY 上运行 `node --env-file=.env.test --test test/wechat-web.test.mjs`，观察独立事务的授权码替换反例；断言使用虚构平台。
+可在同一 VERIFY 上执行下面的授权码替换实验。加载测试连接并核对实际库名后，在同一进程运行两个本地用例。
+```bash
+unset DATABASE_URL TEST_DATABASE_URL
+verify_db='epp_ch39_verify'  # 换成建库或恢复时独立选定的实际库名
+NODE_ENV=test node --env-file=.env.test --input-type=module -e '
+await import("./test/database-env.mjs");
+const { withVerifiedDatabase } = await import("./scripts/verify-database.mjs");
+await withVerifiedDatabase(process.argv[1]);
+await import("./test/wechat-web.test.mjs");
+' "$verify_db"
+```
 
 正式网站应用单独配置 WECHAT_WEB_APP_ID、WECHAT_WEB_APP_SECRET 和 HTTPS 的 APP_ORIGIN；完整回调路径为 /auth/wechat-web/callback。开发仍用 npm run dev，交付使用 npm run check、独立目录安装 npm ci --omit=dev 和 npm start。单进程处理开始与回调，重启后须重开登录。
 

@@ -39,19 +39,6 @@ test('website callback belongs to the starting browser and verified app identity
   };
   const finish = (a, cookie = a.cookie) => fetch(a.url, { headers:{ cookie }, redirect:'manual' });
   try {
-    // Start two independent browser transactions. Only replace the code, preserving
-    // the recipient's state and Cookie. The local provider has no PKCE binding.
-    const fromA = await (await start({ mode:'login' }))('A');
-    const fromB = await (await start({ mode:'login' }))('B');
-    const mixed = new URL(fromA.url);
-    mixed.searchParams.set('code', new URL(fromB.url).searchParams.get('code'));
-    const injected = await finish({ url:mixed, cookie:fromA.cookie });
-    assert.equal(injected.status,303);
-    const injectedId = injected.headers.get('location').split('#pending=')[1];
-    assert.ok(injectedId);
-    assert.equal(await db.wechatIdentity.count({where:{appId:lab.appId,openId:'fictional-B',userId:injectedId}}),1);
-    assert.equal((await finish(fromA)).status,400);
-    assert.equal((await finish(fromB)).status,401);
     const link = await (await start({ mode:'link', userId, password }))('A');
     assert.equal((await finish(link, '')).status, 400);
     const pair = await Promise.all([finish(link), finish(link)]);
@@ -70,5 +57,22 @@ test('website callback belongs to the starting browser and verified app identity
     const second = pending.headers.get('location').split('=')[1];
     assert.notEqual(second,userId);
     assert.equal(await db.session.count({where:{userId:second}}),0);
+
+    // B's browser receives A's unused authorization code; only the code is replaced.
+    const fromB = await (await start({ mode:'login' }))('B');
+    const fromA = await (await start({ mode:'login' }))('A');
+    assert.equal((await finish(fromA, fromB.cookie)).status,400);
+    const mixed = new URL(fromB.url);
+    mixed.searchParams.set('code', new URL(fromA.url).searchParams.get('code'));
+    const injected = await finish({ url:mixed, cookie:fromB.cookie });
+    assert.equal(injected.status,303);
+    const wrongSession = injected.headers.getSetCookie().find(c=>c.startsWith('epp_session=')).split(';')[0];
+    const wrongBrowser = { headers:{ cookie:wrongSession } };
+    assert.equal((await (await fetch(origin + '/auth/me',wrongBrowser)).json()).userId,userId);
+    const exposed = await fetch(origin + '/captures/' + lab.capture.id,wrongBrowser);
+    assert.equal(exposed.status,200);
+    assert.deepEqual(await exposed.json(),lab.capture);
+    assert.equal((await finish(fromB)).status,400);
+    assert.equal((await finish(fromA)).status,401);
   } finally { await lab.close(); }
 });
