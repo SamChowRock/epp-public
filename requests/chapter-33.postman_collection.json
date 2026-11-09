@@ -2,7 +2,7 @@
   "info": {
     "name": "EPP 第33章 会话与旧数据",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "仅对已升级的独立 VERIFY 操作。使用客户端 Cookie jar，不复制令牌到集合。密码变量只存本机；不要导出其值，不运行整个集合。改密后全部会话失效。\n第35章入口：写请求带 X-EPP-Request: 1；先登录，再从本章集合 GET /auth/csrf 保存当前 Cookie 对应的 csrfToken 环境变量。旧版本集合语义见对应章节分支。切换账号后重新取 Token。"
+    "description": "仅对已升级的独立 VERIFY 操作。使用客户端 Cookie jar，不复制令牌到集合。密码变量只存本机；不要导出其值，不运行整个集合。改密后全部会话失效。\n第35章入口：写请求带 X-EPP-Request: 1；先选一个未同步的本地 Environment。每次登录成功或切换账号后发送本集合“取得当前会话的 CSRF Token”，用同一 baseUrl 和 Cookie 取得 csrfToken。旧版本集合语义见对应章节分支。切换账号后重新取 Token。"
   },
   "variable": [
     {
@@ -87,6 +87,26 @@
               "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
               "if (pm.response.code === 200) pm.collectionVariables.set('sessionId', pm.response.json().sessionId);",
               "pm.variables.unset(\"authBody\");"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "取得当前会话的 CSRF Token",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/auth/csrf",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Token取得成功', () => pm.response.to.have.status(200));",
+              "if (pm.response.code === 200) pm.environment.set('csrfToken', pm.response.json().csrfToken);"
             ]
           }
         }

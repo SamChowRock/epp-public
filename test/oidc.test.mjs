@@ -34,12 +34,11 @@ test('OIDC browser transaction, verified claims, account binding and local autho
       provider.fault=fault;assert.equal((await (await begin()).finish()).status,401,fault);
     }
     provider.fault='';assert.equal(await db.session.count({where:{userId:ids[0]}}),1);
-    provider.subject=prefix+'-new';
-    const pending=await (await begin()).finish();assert.equal(pending.status,303);assert.match(pending.headers.get('location'),/#pending=/);
+    const pending=await (await begin('login',undefined,'allow-b')).finish();assert.equal(pending.status,303);assert.match(pending.headers.get('location'),/#pending=/);
     assert.ok(!pending.headers.getSetCookie().some(x=>x.startsWith('epp_session=')));
-    const account=await db.oidcIdentity.findUniqueOrThrow({where:{issuer_subject:{issuer:provider.issuer,subject:provider.subject}}});
+    const account=await db.oidcIdentity.findUniqueOrThrow({where:{issuer_subject:{issuer:provider.issuer,subject:prefix+'-b'}}});
     assert.equal(await db.session.count({where:{userId:account.userId}}),0);
-    provider.subject=prefix;const stale=await begin('link');
+    const stale=await begin('link');
     await db.passwordCredential.update({where:{userId:ids[0]},data:{passwordHash:await hashPassword('Changed fictional password')}});
     assert.equal((await stale.finish()).status,401);
   }finally{await lab.close();}

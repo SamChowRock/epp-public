@@ -79,8 +79,11 @@ export class RecoveryService {
       }));
       if (!observed || observed.purpose !== purpose) throw invalid();
       let passwordHash: string;
-      try { passwordHash = await hashPassword(input.newPassword); }
+      try { passwordHash = await hashPassword(input.newPassword, { userId: observed.userId, email: observed.email }); }
       catch (error) {
+        if (error instanceof Error && error.message === 'PASSWORD_BLOCKLISTED') {
+          throw new HttpError(400, 'Choose a different password: this one is common or easy to guess', 'PASSWORD_BLOCKLISTED');
+        }
         if (error instanceof Error && error.message === 'PASSWORD_INPUT_INVALID') {
           throw new HttpError(400, 'New password does not meet the input policy', 'PASSWORD_INPUT_INVALID');
         }

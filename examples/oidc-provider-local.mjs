@@ -26,7 +26,7 @@ export async function localProvider({ port=0, callback, clientId, secret }) {
         res.setHeader('Referrer-Policy','same-origin');
         res.setHeader('Content-Security-Policy',`default-src 'none'; form-action 'self' ${new URL(callback).origin}; frame-ancestors 'none'`);
         res.setHeader('Content-Type','text/html; charset=utf-8');
-        return res.end(`<!doctype html><html lang="zh-CN"><meta charset=utf-8><title>本地身份提供方</title><main><h1>本地身份提供方</h1><p>当前是虚构读者。允许 EPP 确认这个身份？本次不授予读取其他资源的权限。</p><form action="/approve" method="post"><input type="hidden" name="ticket" value="${ticket}"><button name="choice" value="allow">以虚构读者身份继续</button> <button name="choice" value="deny">取消</button></form></main></html>`);
+        return res.end(`<!doctype html><html lang="zh-CN"><meta charset=utf-8><title>本地身份提供方</title><main><h1>本地身份提供方</h1><p>当前是虚构读者。允许 EPP 确认这个身份？本次不授予读取其他资源的权限。</p><form action="/approve" method="post"><input type="hidden" name="ticket" value="${ticket}"><button name="choice" value="allow">以实验身份 A 继续</button> <button name="choice" value="allow-b">以实验身份 B 继续</button> <button name="choice" value="deny">取消</button></form></main></html>`);
       }
       if(req.method!=='POST')return json(404,{error:'not_found'});
       let body='';for await(const chunk of req){body+=chunk;if(body.length>8192)return json(413,{error:'too_large'});}
@@ -35,7 +35,10 @@ export async function localProvider({ port=0, callback, clientId, secret }) {
         if(req.headers.origin && req.headers.origin!==issuer)return json(403,{error:'origin'});
         const ticket=form.get('ticket'), a=pending.get(ticket);if(!a)return json(400,{error:'invalid_request'});pending.delete(ticket);
         const dest=new URL(callback);dest.searchParams.set('state',a.state);
-        if(form.get('choice')==='allow'){const code=key();codes.set(code,{...a,subject:lab.subject});dest.searchParams.set('code',code);}
+        const choice=form.get('choice');
+        if(choice==='allow'||choice==='allow-b'){
+          const code=key();
+          codes.set(code,{...a,subject:choice==='allow' ? lab.subject : lab.subject+'-b'});dest.searchParams.set('code',code);}
         else dest.searchParams.set('error','access_denied');
         res.writeHead(303,{Location:dest.href});return res.end();
       }

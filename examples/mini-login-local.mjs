@@ -1,5 +1,6 @@
 // Independent VERIFY exercise: the application never accepts a client-supplied OpenID.
 import '../test/database-env.mjs';
+import { withVerifiedDatabase } from '../scripts/verify-database.mjs';
 import { createInterface } from 'node:readline/promises';
 import { writeFile, rm } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
@@ -14,6 +15,7 @@ import { ApplicationState } from '../dist/src/application-state.js';
 import { hashPassword } from '../dist/src/password.js';
 import { removeTestCaptures } from '../test/cleanup.mjs';
 const file = new URL('../.mini-local.postman_environment.json', import.meta.url);
+await withVerifiedDatabase(process.argv[2]);
 const config = parseConfig({ port: 3370 }, { NODE_ENV: 'test', PORT: process.env.PORT ?? '3370', LOG_LEVEL: 'warn' });
 const app = await createApp(config, new AppLogger('warn'));
 const database = app.get(DatabaseService), db = database.client, sessions = app.get(SessionService);
@@ -42,7 +44,7 @@ try {
   const foreign = await fetch(baseUrl + '/captures/' + capture.id, { headers: { Authorization: 'Bearer ' + other.token } });
   assert.equal(foreign.status, 404);
   const values = { baseUrl, miniToken: own.token, otherMiniToken: other.token, userId, otherUserId,
-    captureId: capture.id, miniSessionId: own.sessionId, code: '', password: '', label: 'Mini program' };
+    captureId: capture.id, miniSessionId: own.sessionId, webToken: web.token, code: '', password, label: 'Mini program' };
   await writeFile(file, JSON.stringify({ name: 'EPP 37 local VERIFY only', values: Object.entries(values).map(([key,value]) =>
     ({ key, value, enabled: true, type: /Token|password/.test(key) ? 'secret' : 'default' })), _postman_variable_scope: 'environment' }, null, 2), { mode: 0o600 });
   console.log(JSON.stringify({ userId, otherUserId, captureId: capture.id, ownRead: read.status, foreignRead: foreign.status,

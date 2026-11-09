@@ -149,6 +149,21 @@ test('entry changes, expiry and logout retain independent channels and all-sessi
   assert.equal(f.state.active, 0);
 });
 
+test('a full enabled account cannot acquire a new mini login method; pending identities can be recorded', async t => {
+  const f = await fixture(t), userId = f.users[0], openId = f.fresh();
+  await f.db.$executeRaw`INSERT INTO public.sessions(id,user_id,token_digest,label,channel,expires_at)
+    SELECT gen_random_uuid(), ${userId}::uuid, encode(sha256(gen_random_uuid()::text::bytea),'hex'),
+      'Fixture','web',clock_timestamp()+interval '1 hour' FROM generate_series(1,20)`;
+  const link = () => f.mini.link({ code: openId, userId, password, label: 'First link' });
+  await assert.rejects(link(), code('SESSION_LIMIT'));
+  assert.equal(await f.db.wechatIdentity.count({ where: { appId, openId } }), 0);
+  assert.equal(await f.db.session.count({ where: { userId } }), 20);
+  await f.db.user.update({ where: { id: userId }, data: { miniEnabled: false } });
+  assert.deepEqual(await link(), { userId, miniEnabled: false });
+  assert.equal(await f.db.wechatIdentity.count({ where: { appId, openId, userId } }), 1);
+  assert.equal(await f.db.session.count({ where: { userId } }), 20);
+});
+
 test('a credential changed during platform exchange cannot establish an account association', async t => {
   const f = await fixture(t), openId = f.fresh();
   let release, entered;
