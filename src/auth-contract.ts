@@ -8,7 +8,7 @@ export const LoginSchema = z.object({
   label: z.string().min(1).max(60).refine(isPostgresText).regex(/\S/).default('Current login'),
 }).strict();
 export const ChangePasswordSchema = z.object({ currentPassword: PasswordInput, newPassword: PasswordInput }).strict();
-export const SessionIdentitySchema = z.object({ userId: z.uuid(), sessionId: z.uuid() });
+export const SessionIdentitySchema = z.object({ userId: UserIdSchema, sessionId: z.uuid() });
 export const SessionListSchema = z.object({ items: z.array(z.object({
   id: z.uuid(), label: z.string(), createdAt: z.iso.datetime(), expiresAt: z.iso.datetime(), current: z.boolean(),
 })) });

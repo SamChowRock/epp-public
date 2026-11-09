@@ -1,4 +1,11 @@
 import { argon2id, hash, verify } from 'argon2';
+import commonPasswords from './common-passwords.json' with { type: 'json' };
+
+const blocked = new Set([...commonPasswords.passwords,
+  'password123456789', 'passwordpassword', 'correct horse battery staple', 'epp-book-password', 'epp-development-password',
+]);
+
+type PasswordContext = { userId?: string | null; email?: string };
 
 const options = { type: argon2id, memoryCost: 19456, timeCost: 2, parallelism: 1, hashLength: 32 } as const;
 
@@ -12,8 +19,15 @@ function passwordText(value: unknown): string {
   return text;
 }
 
-export async function hashPassword(value: unknown): Promise<string> {
-  return hash(passwordText(value), options);
+export async function hashPassword(value: unknown, context: PasswordContext = {}): Promise<string> {
+  const text = passwordText(value);
+  const key = text.trim().toLowerCase();
+  const identifiers = [context.userId, context.email, context.email?.split('@')[0]];
+  if (!key || /^(.)\1*$/su.test(key) || blocked.has(key)
+    || identifiers.some(id => id && key === id.toLowerCase())) {
+    throw new Error('PASSWORD_BLOCKLISTED');
+  }
+  return hash(text, options);
 }
 
 export async function verifyPassword(encoded: string, value: unknown): Promise<boolean> {
