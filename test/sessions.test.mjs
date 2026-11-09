@@ -167,6 +167,11 @@ test('Postman auth scripts preserve quoted and escaped passwords through real HT
   const { app, db, users } = await fixture(t);
   const { readFile } = await import('node:fs/promises'), { runInNewContext } = await import('node:vm');
   const collection = JSON.parse(await readFile(new URL('../requests/chapter-33.postman_collection.json', import.meta.url)));
+  const byPath = path => {
+    const item = collection.item.find(entry => entry.request.url === '{{baseUrl}}' + path);
+    assert.ok(item, 'Missing collection request for ' + path);
+    return item;
+  };
   const original = 'Quoted " password \\ with {{literal}} braces';
   const replacement = 'Another " password \\ with Unicode：中文';
   await db.passwordCredential.update({ where: { userId: users[0] }, data: { passwordHash: await hashPassword(original) } });
@@ -182,13 +187,13 @@ test('Postman auth scripts preserve quoted and escaped passwords through real HT
       method: 'POST', headers: { 'X-EPP-Request': '1', ...(cookie ? { 'X-CSRF-Token': (await (await fetch((await app.getUrl()) + '/auth/csrf', { headers: { cookie } })).json()).csrfToken } : {}), 'content-type': 'application/json', ...(cookie ? { cookie } : {}) }, body,
     });
   }
-  const login = await send(collection.item[0]); assert.equal(login.status, 200);
+  const login = await send(byPath('/auth/login')); assert.equal(login.status, 200);
   assert.equal(JSON.parse(values.get('authBody')).password, original);
-  const changed = await send(collection.item[8], login.headers.get('set-cookie').split(';')[0]);
+  const changed = await send(byPath('/auth/password'), login.headers.get('set-cookie').split(';')[0]);
   assert.equal(changed.status, 204);
   assert.equal(JSON.parse(values.get('authBody')).newPassword, replacement);
   values.set('password', replacement);
-  assert.equal((await send(collection.item[0])).status, 200);
+  assert.equal((await send(byPath('/auth/login'))).status, 200);
 });
 
 test('session count and login attempt limits reject new work without revoking existing sessions', async t => {
