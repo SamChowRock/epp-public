@@ -54,13 +54,9 @@
 - [第 37 章　小程序登录与独立会话](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-37)
 - [第 38 章　先理解 OAuth，再接入 OIDC 外部登录](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-38)
 - [第 39 章　微信网站扫码登录](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-39)
+- [第 40 章　用已登录的小程序扫码确认网站登录](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-40)
 
-## 本地章节分支
+## 第六篇
 
-以下章节尚未发布到 GitHub。已有对应本地分支时，可在仓库目录运行表中的命令。
-
-| 章节 | 切换命令 |
-| --- | --- |
-| 第 40 章　用已登录的小程序扫码确认网站登录 | `git switch part-05/chapter-40` |
-| 第 42 章　Transactional Outbox | `git switch part-06/chapter-42` |
-| 第 43 章　为什么需要独立 Worker | `git switch part-06/chapter-43` |
+- [第 42 章　Transactional Outbox](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-42)
+- [第 43 章　为什么需要独立 Worker](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-43)
