@@ -12,7 +12,7 @@ export const LoginSchema = z.union([
   z.object({ email: EmailSchema, ...LoginFields }).strict(),
 ]);
 export const ChangePasswordSchema = z.object({ currentPassword: PasswordInput, newPassword: PasswordInput }).strict();
-export const SessionIdentitySchema = z.object({ userId: z.uuid(), sessionId: z.uuid() });
+export const SessionIdentitySchema = z.object({ userId: UserIdSchema, sessionId: z.uuid() });
 export const SessionListSchema = z.object({ items: z.array(z.object({
   id: z.uuid(), label: z.string(), createdAt: z.iso.datetime(), expiresAt: z.iso.datetime(), current: z.boolean(),
 })) });
