@@ -25,7 +25,9 @@
     "check": "npm run typecheck && npm run build",
     "dev:lifecycle": "NODE_ENV=development PORT=3007 node --env-file-if-exists=.env scripts/dev.mjs .dev/src/labs/lifecycle-server.js",
     "dev:express": "NODE_ENV=development node --env-file-if-exists=.env --watch --watch-preserve-output --inspect=127.0.0.1:9229 examples/express-pipeline.js",
-    "dev:responses": "NODE_ENV=development node --env-file-if-exists=.env scripts/dev.mjs .dev/examples/controller-responses/main.js examples/controller-responses/tsconfig.dev.json"
+    "dev:responses": "NODE_ENV=development node --env-file-if-exists=.env scripts/dev.mjs .dev/examples/controller-responses/main.js examples/controller-responses/tsconfig.dev.json",
+    "dev:worker": "NODE_ENV=development node --env-file=.env.worker scripts/dev.mjs .worker-dev/src/mail-worker.js tsconfig.worker-dev.json",
+    "start:worker": "NODE_ENV=production node --enable-source-maps dist/src/mail-worker.js"
   },
   "devDependencies": {
     "@types/express": "5.0.6",

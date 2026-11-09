@@ -15,7 +15,7 @@ async function main() {
     if (row?.name !== expected) throw Error('DATABASE_MISMATCH');
     const result = await sendOne(database, new LocalMailDelivery(config), process.argv[3]);
     console.log(result);
-    if (result === 'unknown') process.exitCode = 2;
+    if (result === 'unknown' || result === 'paused') process.exitCode = 2;
   } finally { await database.onModuleDestroy(); }
 }
 main().catch(() => {

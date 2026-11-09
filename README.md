@@ -1,5 +1,9 @@
 # EPP 配套实践代码
 
+## 第四十三章　为什么需要独立 Worker
+
+从 `part-06/chapter-42` 继续，分支 `part-06/chapter-43` 追加验证邮件通道控制表，重启后保留停发状态。按[双进程启动说明](database/chapter-43/README.md)配置 API 与寄信进程，导入[本章集合](requests/chapter-43.postman_collection.json)，用当前身份和邮箱对照重置前后的事实。
+
 ## 第四十二章　Transactional Outbox
 
 分支 `part-06/chapter-42` 从密码路线第 36 章继续。按[本章说明](database/chapter-42/README.md)升级 VERIFY，用原注册／重置请求提交业务意图与寄信任务，关闭 API 后运行一次性程序向 Mailpit 寄信。第 36 章标题下的同步投递说明描述旧分支。

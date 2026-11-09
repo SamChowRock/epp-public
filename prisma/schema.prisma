@@ -194,3 +194,10 @@ model VerificationOutbox {
   @@index([status, availableAt, id], map: "verification_outbox_ready_idx")
   @@map("verification_outbox")
 }
+
+/// Singleton for the verification-mail channel. NULL permits new claims.
+model VerificationMailControl {
+  id Int @id @db.SmallInt
+  pausedBy String? @map("paused_by") @db.Uuid
+  @@map("verification_mail_control")
+}

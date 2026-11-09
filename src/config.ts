@@ -21,8 +21,9 @@ export class ConfigError extends Error {
 const DefaultsSchema = z.object({ port: z.number().int().min(1).max(65535) });
 const decimal = (max: number) => z.string().regex(/^[0-9]+$/)
   .transform(Number).pipe(z.number().int().min(1).max(max));
+export const mailPortSchema = decimal(65535).default(1025);
 const EnvironmentSchema = z.object({
-  LOCAL_SMTP_PORT: decimal(65535).default(1025),
+  LOCAL_SMTP_PORT: mailPortSchema,
   APP_ORIGIN: z.string().optional(),
   TRUST_PROXY_IPS: z.string().optional(),
   CURSOR_HMAC_KEY: z.string().regex(/^[0-9a-f]{64}$/).optional(),

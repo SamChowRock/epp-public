@@ -7,6 +7,11 @@ type Job = { id: string; intent_id: string; generation: string; recipient: strin
 
 export async function sendOne(database: DatabaseService, delivery: VerificationDelivery, messageId?: string) {
   const prepared = await database.client.$transaction(async tx => {
+    const [channel] = await tx.$queryRaw<{ paused_by: string | null }[]>`
+      SELECT paused_by FROM public.verification_mail_control WHERE id = 1 FOR UPDATE
+    `;
+    if (!channel) throw new Error('MAIL_CONTROL_MISSING');
+    if (channel.paused_by) return 'paused' as const;
     const [job] = await tx.$queryRaw<Job[]>`
       SELECT id, intent_id, generation, recipient, purpose FROM public.verification_outbox
       WHERE status = 'pending' AND available_at <= clock_timestamp()
@@ -25,14 +30,24 @@ export async function sendOne(database: DatabaseService, delivery: VerificationD
     `;
     await tx.verificationOutbox.update({ where: { id: job.id },
       data: { status: window ? 'attempting' : 'obsolete' } });
+    if (window) {
+      await tx.verificationMailControl.update({ where: { id: 1 }, data: { pausedBy: job.id } });
+    }
     return { job, token, window };
   }, { maxWait: 2000, timeout: 5000 });
+  if (prepared === 'paused') return 'paused';
   if (!prepared) return 'empty';
   if (!prepared.window) return 'obsolete';
   const { job, token, window } = prepared;
-  let status: 'accepted' | 'unknown' = 'accepted';
-  try { await delivery.send(job.recipient, job.purpose, token, window.issued_at, window.expires_at); }
-  catch { status = 'unknown'; }
-  await database.client.verificationOutbox.update({ where: { id: job.id }, data: { status } });
-  return status;
+  try {
+    await delivery.send(job.recipient, job.purpose, token, window.issued_at, window.expires_at);
+  } catch {
+    await database.client.verificationOutbox.update({ where: { id: job.id }, data: { status: 'unknown' } });
+    return 'unknown';
+  }
+  await database.client.$transaction([
+    database.client.verificationMailControl.updateMany({ where: { id: 1, pausedBy: job.id }, data: { pausedBy: null } }),
+    database.client.verificationOutbox.update({ where: { id: job.id }, data: { status: 'accepted' } }),
+  ]);
+  return 'accepted';
 }

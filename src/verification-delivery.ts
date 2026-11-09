@@ -8,7 +8,7 @@ export interface VerificationDelivery {
 
 export class LocalMailDelivery implements VerificationDelivery {
   private readonly transport;
-  constructor(config: AppConfig) {
+  constructor(config: Pick<AppConfig, 'localSmtpPort'>) {
     // shortcut: loopback SMTP sink only; configure TLS, authentication and verified sender before external delivery.
     this.transport = nodemailer.createTransport({
       host: '127.0.0.1', port: config.localSmtpPort, secure: false, ignoreTLS: true,

@@ -19,6 +19,23 @@
       ]
     },
     {
+      "name": "EPP: attach to mail worker",
+      "type": "node",
+      "request": "attach",
+      "address": "127.0.0.1",
+      "port": 9230,
+      "restart": true,
+      "timeout": 30000,
+      "sourceMaps": true,
+      "outFiles": [
+        "${workspaceFolder}/.worker-dev/**/*.js"
+      ],
+      "skipFiles": [
+        "<node_internals>/**",
+        "${workspaceFolder}/node_modules/**"
+      ]
+    },
+    {
       "name": "EPP: build and launch",
       "type": "node",
       "request": "launch",

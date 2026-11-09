@@ -12,6 +12,8 @@ const format = {
 };
 const entry = process.argv[2] ?? '.dev/src/server.js';
 const configFile = process.argv[3] ?? 'tsconfig.dev.json';
+const worker = configFile === 'tsconfig.worker-dev.json';
+const inspector = worker ? 9230 : 9229;
 
 let child;
 let revision = 0;
@@ -34,9 +36,11 @@ function restart(ready) {
   pending = pending.then(async () => {
     await stopServer();
     if (stopping || requested !== revision || !ready) return;
-    mkdirSync('.dev/config', { recursive: true });
-    copyFileSync('config/service.json', '.dev/config/service.json');
-    const current = spawn(process.execPath, ['--inspect=127.0.0.1:9229', '--enable-source-maps', entry], {
+    if (!worker) {
+      mkdirSync('.dev/config', { recursive: true });
+      copyFileSync('config/service.json', '.dev/config/service.json');
+    }
+    const current = spawn(process.execPath, [`--inspect=127.0.0.1:${inspector}`, '--enable-source-maps', entry, ...process.argv.slice(4)], {
       stdio: 'inherit',
     });
     child = current;
@@ -45,7 +49,7 @@ function restart(ready) {
       if (child === current) child = undefined;
       console.log(`[dev] Server exited (${signal ?? code}); waiting for changes.`);
     });
-    console.log(`[dev] Starting compiled server (pid=${current.pid}).`);
+    console.log(`[dev] Starting compiled ${worker ? 'worker' : 'server'} (pid=${current.pid}).`);
   }).catch(error => console.error('[dev]', error.message));
 }
 
@@ -67,14 +71,14 @@ host.afterProgramCreate = program => {
   restart(compiled);
 };
 const watcher = ts.createWatchProgram(host);
-const assets = ts.sys.watchFile('config/service.json', () => restart(compiled), 250);
+const assets = worker ? undefined : ts.sys.watchFile('config/service.json', () => restart(compiled), 250);
 
 async function shutdown() {
   if (stopping) return;
   stopping = true;
   revision++;
   watcher.close();
-  assets.close();
+  assets?.close();
   await pending;
   await stopServer();
 }

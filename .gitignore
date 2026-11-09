@@ -10,3 +10,5 @@ dist/
 src/generated/prisma/
 database/chapter-18/baseline-draft.sql
 database/chapter-20/recovery-history/
+
+.worker-dev/

@@ -1,0 +1,549 @@
+{
+  "info": {
+    "name": "EPP Chapter 43 Mail Worker",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "VERIFY only. Run steps individually. Start the worker after 01. Use 12 with the existing Cookie before and after delivery of the reset email, then use 08 after 07. Match the registered user ID. Keep passwords and tokens in a local unsynced environment."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3360"
+    },
+    {
+      "key": "email",
+      "value": "reader43@example.test"
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "password",
+      "value": ""
+    },
+    {
+      "key": "newPassword",
+      "value": ""
+    },
+    {
+      "key": "registrationToken",
+      "value": ""
+    },
+    {
+      "key": "resetToken",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 请求注册邮件",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/register/request",
+        "body": {
+          "mode": "raw",
+          "raw": "{{authBody}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(\"authBody\", JSON.stringify({email: pm.variables.get(\"email\")}).replaceAll('{{', '\\\\u007b\\\\u007b'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 202', () => pm.response.to.have.status(202));",
+              "pm.variables.unset(\"authBody\");"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 验证邮箱并设置密码",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/register/confirm",
+        "body": {
+          "mode": "raw",
+          "raw": "{{authBody}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(\"authBody\", JSON.stringify({token: pm.variables.get(\"registrationToken\"), newPassword: pm.variables.get(\"password\")}).replaceAll('{{', '\\\\u007b\\\\u007b'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+              "if (pm.response.code === 201) pm.collectionVariables.set('userId', pm.response.json().userId);",
+              "pm.variables.unset(\"authBody\");"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 重复消费注册令牌",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/register/confirm",
+        "body": {
+          "mode": "raw",
+          "raw": "{{authBody}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(\"authBody\", JSON.stringify({token: pm.variables.get(\"registrationToken\"), newPassword: pm.variables.get(\"password\")}).replaceAll('{{', '\\\\u007b\\\\u007b'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+              "pm.variables.unset(\"authBody\");"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 未开通账号登录",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{{authBody}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(\"authBody\", JSON.stringify({email: pm.variables.get(\"email\"), password: pm.variables.get(\"password\")}).replaceAll('{{', '\\\\u007b\\\\u007b'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 403', () => pm.response.to.have.status(403));",
+              "pm.variables.unset(\"authBody\");"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 开通后登录",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{{authBody}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(\"authBody\", JSON.stringify({email: pm.variables.get(\"email\"), password: pm.variables.get(\"password\")}).replaceAll('{{', '\\\\u007b\\\\u007b'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.variables.unset(\"authBody\");"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 请求重置邮件",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/reset/request",
+        "body": {
+          "mode": "raw",
+          "raw": "{{authBody}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(\"authBody\", JSON.stringify({email: pm.variables.get(\"email\")}).replaceAll('{{', '\\\\u007b\\\\u007b'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 202', () => pm.response.to.have.status(202));",
+              "pm.variables.unset(\"authBody\");"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 确认密码重置",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/reset/confirm",
+        "body": {
+          "mode": "raw",
+          "raw": "{{authBody}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(\"authBody\", JSON.stringify({token: pm.variables.get(\"resetToken\"), newPassword: pm.variables.get(\"newPassword\")}).replaceAll('{{', '\\\\u007b\\\\u007b'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 204', () => pm.response.to.have.status(204));",
+              "pm.variables.unset(\"authBody\");"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 用原Cookie读取身份",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/auth/me"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Old session revoked', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 旧密码登录",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{{authBody}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(\"authBody\", JSON.stringify({email: pm.variables.get(\"email\"), password: pm.variables.get(\"password\")}).replaceAll('{{', '\\\\u007b\\\\u007b'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+              "pm.variables.unset(\"authBody\");"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 新密码登录",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{{authBody}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(\"authBody\", JSON.stringify({email: pm.variables.get(\"email\"), password: pm.variables.get(\"newPassword\")}).replaceAll('{{', '\\\\u007b\\\\u007b'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.variables.unset(\"authBody\");"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 重复消费重置令牌",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/reset/confirm",
+        "body": {
+          "mode": "raw",
+          "raw": "{{authBody}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(\"authBody\", JSON.stringify({token: pm.variables.get(\"resetToken\"), newPassword: pm.variables.get(\"newPassword\")}).replaceAll('{{', '\\\\u007b\\\\u007b'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+              "pm.variables.unset(\"authBody\");"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 当前会话仍有效",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/auth/me"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Current session still belongs to registered user', () => {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().userId).to.eql(pm.collectionVariables.get('userId'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

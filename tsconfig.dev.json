@@ -2,5 +2,9 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./.dev"
-  }
+  },
+  "exclude": [
+    "src/mail-worker.ts",
+    "src/mail-worker.module.ts"
+  ]
 }

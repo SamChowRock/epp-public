@@ -10,11 +10,11 @@ export class DatabaseService {
   readonly client: PrismaClient<'query'>;
   private closing?: Promise<void>;
 
-  constructor(config: DatabaseConfig, private readonly logger: AppLogger) {
+  constructor(config: DatabaseConfig, private readonly logger: AppLogger, private readonly applicationName: 'epp-api' | 'epp-worker' = 'epp-api') {
     this.pool = new pg.Pool({
       connectionString: config.url, max: config.poolMax,
       connectionTimeoutMillis: 2000, idleTimeoutMillis: 10000,
-      statement_timeout: 3000, application_name: 'epp-api',
+      statement_timeout: 3000, application_name: applicationName,
       options: '-c TimeZone=UTC',
     });
     this.pool.on('error', error => {
@@ -33,6 +33,15 @@ export class DatabaseService {
   async onModuleInit(): Promise<void> {
     try {
       await this.client.$connect();
+      if (this.applicationName === 'epp-worker') {
+        await this.client.verificationMailControl.findUniqueOrThrow({ where: { id: 1 } });
+        await this.client.$queryRaw`SELECT id, intent_id, generation, recipient, purpose, available_at, status
+          FROM public.verification_outbox LIMIT 0`;
+        await this.client.$queryRaw`SELECT id, email, purpose, token_digest, issued_at, expires_at, consumed_at
+          FROM public.verification_intents LIMIT 0`;
+        this.logger.write('info', 'database.ready');
+        return;
+      }
       // Exercise the columns needed by the API, even when the table is empty.
       await this.client.user.findMany({ take: 1, select: { id: true, status: true, webEnabled: true } });
       await this.client.capture.findMany({ take: 1,

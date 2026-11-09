@@ -8,6 +8,7 @@ type Event = 'http.started' | 'http.completed' | 'http.aborted' | 'http.failed'
   | 'app.draining' | 'app.stopped' | 'app.stop_failed' | 'app.stop_timeout'
   | 'database.ready' | 'database.start_failed' | 'database.closed'
   | 'database.failed' | 'database.idle_error' | 'database.query'
+  | 'worker.ready' | 'worker.draining' | 'worker.result' | 'worker.closed' | 'worker.failed'
   | 'delivery.accepted' | 'delivery.failed'
   | 'resource.opened' | 'resource.closed' | 'resource.used';
 type Fields = {
