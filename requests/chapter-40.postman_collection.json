@@ -1,0 +1,131 @@
+{
+  "info": {
+    "name": "EPP 40 · 小程序确认网站登录",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "scene",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "inspect · miniToken",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{miniToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scene\":\"{{scene}}\"}"
+        },
+        "url": "{{baseUrl}}/auth/scan/inspect"
+      }
+    },
+    {
+      "name": "confirm · miniToken",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{miniToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scene\":\"{{scene}}\"}"
+        },
+        "url": "{{baseUrl}}/auth/scan/confirm"
+      }
+    },
+    {
+      "name": "confirm · otherMiniToken",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{otherMiniToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scene\":\"{{scene}}\"}"
+        },
+        "url": "{{baseUrl}}/auth/scan/confirm"
+      }
+    },
+    {
+      "name": "status · 无发起浏览器 Cookie，应拒绝",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scene\":\"{{scene}}\"}"
+        },
+        "url": "{{baseUrl}}/auth/scan/status"
+      }
+    },
+    {
+      "name": "consume · 无发起浏览器 Cookie，应拒绝",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scene\":\"{{scene}}\"}"
+        },
+        "url": "{{baseUrl}}/auth/scan/consume"
+      }
+    }
+  ]
+}

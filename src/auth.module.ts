@@ -1,3 +1,5 @@
+import { ScanController } from './scan.controller.js';
+import { ScanService } from './scan.service.js';
 import { MiniController } from './mini.controller.js';
 import { MiniService } from './mini.service.js';
 import { WechatLogin } from './wechat-login.js';
@@ -17,8 +19,8 @@ import { CURRENT_USER_ID, requireSession } from './auth-context.js';
 import type { AuthenticatedRequest } from './auth-context.js';
 
 @Module({
-  imports: [DatabaseModule], controllers: [AuthController, RecoveryController, MiniController],
-  providers: [
+  imports: [DatabaseModule], controllers: [AuthController, RecoveryController, MiniController, ScanController],
+  providers: [ScanService,
     { provide: MiniService, useFactory: (db: DatabaseService, sessions: SessionService,
       state: ApplicationState, config: AppConfig) => new MiniService(db, sessions, state, new WechatLogin(config.wechat)),
       inject: [DatabaseService, SessionService, ApplicationState, APP_CONFIG] },

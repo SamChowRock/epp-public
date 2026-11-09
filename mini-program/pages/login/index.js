@@ -50,6 +50,29 @@ Page({
   },
   login() { return this.signIn(false); },
   link() { return this.signIn(true); },
+  scanWebsite() {
+    return this.run(async () => {
+      if (!token) throw new Error('请先登录小程序');
+      const scanned = await new Promise((resolve, reject) => wx.scanCode({
+        onlyFromCamera: true, scanType: ['qrCode'], success: resolve,
+        fail: () => reject(new Error('已结束扫描，可以重新发起')),
+      }));
+      const match = /^epp:login:v1:([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/.exec(scanned.result);
+      if (!match) throw new Error('这不是 EPP 网站登录码');
+      const scene = match[1];
+      const view = await request('/auth/scan/inspect', 'POST', { scene }, true);
+      if (view.status !== 'pending') throw new Error('此码已处理，请从电脑重新发起');
+      const me = await request('/auth/me', 'GET', undefined, true);
+      const answer = await new Promise((resolve, reject) => wx.showModal({
+        title: '允许这台电脑登录？',
+        content: '网站：' + view.origin + '，识别码：' + view.displayCode + '。将使用当前账号 ' + me.userId + '。只确认自己正在操作的电脑。',
+        confirmText: '允许登录', success: resolve, fail: () => reject(new Error('确认框未完成')),
+      }));
+      if (!answer.confirm) { this.setData({ message: '未授权这台电脑。' }); return; }
+      await request('/auth/scan/confirm', 'POST', { scene }, true);
+      this.setData({ message: '已确认，请回到电脑查看登录结果。' });
+    });
+  },
   read() { return this.run(async () => {
     if (!token) throw new Error('请先登录');
     const result = await request('/captures?limit=5', 'GET', undefined, true);

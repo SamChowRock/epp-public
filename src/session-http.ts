@@ -1,3 +1,4 @@
+import { browserPaths, phonePaths, scanPagePath } from './scan-contract.js';
 import { MINI_PUBLIC_PATHS } from './mini-contract.js';
 import { RECOVERY_PATHS } from './recovery-contract.js';
 import { requireCsrf } from './browser-security.js';
@@ -18,7 +19,7 @@ export function clearSessionCookie(response: Response, config: AppConfig): void 
   response.clearCookie(sessionCookieName(config), cookieOptions(config));
 }
 
-function readCookie(header: string | undefined, name: string): string | undefined {
+export function readCookie(header: string | undefined, name: string): string | undefined {
   if (header === undefined) return undefined;
   if (header.length > 4096) throw new HttpError(400, 'Cookie header is too large', 'COOKIE_INVALID');
   const matches = header.split(';').map(part => part.trim()).filter(part => part.slice(0, part.indexOf('=')) === name);
@@ -41,6 +42,15 @@ export function sessionBoundary(service: SessionService, config: AppConfig): Req
         || (request.headers['content-length'] !== undefined && request.headers['content-length'] !== '0'))) {
         throw new HttpError(400, 'DELETE does not accept a body', 'BODY_NOT_ALLOWED');
       }
+      if (path === scanPagePath || browserPaths.includes(path ?? '')) {
+        if (request.headers.authorization) throw new HttpError(403, 'Browser transport required', 'SESSION_CHANNEL_DENIED');
+        const existing = readCookie(request.headers.cookie, sessionCookieName(config));
+        if (existing && (path === scanPagePath + '/start' || path === scanPagePath + '/consume')
+          && await service.authenticate(existing, 'web')) throw new HttpError(409, 'Sign out before switching accounts', 'WEB_ALREADY_SIGNED_IN');
+        return;
+      }
+      if (phonePaths.includes(path ?? '') && !request.headers.authorization)
+        throw new HttpError(401, 'Mini program session required', 'AUTH_REQUIRED');
       if (path === '/auth/login' || RECOVERY_PATHS.includes(path ?? '') || MINI_PUBLIC_PATHS.includes(path ?? '')) return;
       const cookie = readCookie(request.headers.cookie, sessionCookieName(config));
       const authorization = request.headers.authorization;

@@ -1,3 +1,4 @@
+import { browserActions, phoneActions, phonePaths, scanPagePath, SceneInput } from './scan-contract.js';
 import { MINI_PUBLIC_PATHS, MiniLoginSchema, MiniLinkSchema, MiniLoginResultSchema } from './mini-contract.js';
 import { RECOVERY_PATHS, RecoveryRequestSchema, RecoveryConfirmSchema, RecoveryAcceptedSchema, RegistrationSchema } from './recovery-contract.js';
 import { CsrfSchema, LoginSchema, ChangePasswordSchema, SessionIdentitySchema, SessionListSchema } from './auth-contract.js';
@@ -329,6 +330,22 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
         } };
       }
     }
+  }
+  document.paths[scanPagePath] = {get:{security:[], responses:{'200':{description:'Browser QR login page'}}}};
+  for (const action of [...browserActions, ...phoneActions]) {
+    const path = scanPagePath + '/' + action;
+    document.paths[path] = { post: {
+      summary: 'Browser login ticket: ' + action,
+      security: phonePaths.includes(path) ? [{miniBearer:[]}] : [],
+      description: phonePaths.includes(path) ? 'Verified mini session required.' : 'Except for start, the matching temporary browser cookie is required.',
+      parameters:[{in:'header',name:'X-EPP-Request',required:true,schema:{type:'string',enum:['1']}}],
+      requestBody:{required:true,content:{'application/json':{schema:schema(action==='start' ? EmptyObjectSchema : SceneInput,'input')}}},
+      responses:{[action==='start' ? '201' : '200']:{description:{
+        start:'scene and QR image; sets temporary HttpOnly cookie',status:'current ticket status',
+        inspect:'status, configured origin and displayCode',confirm:'confirmed',cancel:'cancelled',consume:'userId; sets Web session cookie'
+      }[action]},'400':problem('Invalid input'),'401':problem('Mini session required'),'403':problem('Channel, source or eligibility denied'),
+      '404':problem('Ticket unavailable'),'409':problem('Conflicting state or existing website session'),'429':problem('Rate or session limit')}
+    }};
   }
   return document;
 }

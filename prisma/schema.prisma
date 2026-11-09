@@ -17,6 +17,7 @@ model User {
   webEnabled Boolean @default(false) @map("web_enabled")
   miniEnabled Boolean @default(false) @map("mini_enabled")
   wechatIdentities WechatIdentity[]
+  browserLoginTickets BrowserLoginTicket[]
   commandReceipts CommandReceipt[]
   expressions Expression[]
   captures  Capture[]
@@ -195,4 +196,16 @@ model WechatIdentity {
   @@id([appId, openId], map: "wechat_identities_pkey")
   @@unique([appId, userId], map: "wechat_identities_app_user_key")
   @@map("wechat_identities")
+}
+
+model BrowserLoginTicket {
+  scene String @id @db.Uuid
+  browserDigest String @map("browser_digest") @db.Text
+  status String @default("pending") @db.Text
+  userId String? @map("user_id") @db.Uuid
+  miniSessionId String? @map("mini_session_id") @db.Uuid
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict)
+  @@index([expiresAt], map: "browser_login_tickets_expiry")
+  @@map("browser_login_tickets")
 }

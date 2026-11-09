@@ -1,3 +1,4 @@
+import { browserPaths, phonePaths, scanPagePath } from './scan-contract.js';
 import { MINI_PUBLIC_PATHS } from './mini-contract.js';
 import { RECOVERY_PATHS } from './recovery-contract.js';
 import type { Request, Response, NextFunction } from 'express';
@@ -27,7 +28,11 @@ export function httpBoundary(
     const discard = /^\/candidates\/([^/]+)\/(?:discard|accept)$/.exec(url.pathname);
     const learningDetail = /^\/learning-records\/([^/]+)$/.exec(url.pathname);
     const sessionDetail = /^\/auth\/sessions\/([^/]+)$/.exec(url.pathname);
-    const allowed = ['/auth/login', '/auth/logout', '/auth/password', ...RECOVERY_PATHS, ...MINI_PUBLIC_PATHS].includes(url.pathname) ? ['POST']
+    if ((url.pathname === scanPagePath || browserPaths.includes(url.pathname) || phonePaths.includes(url.pathname)) && url.search)
+      throw new HttpError(400, 'Unexpected query parameters', 'INVALID_QUERY');
+    const allowed = url.pathname === scanPagePath ? ['GET']
+      : browserPaths.includes(url.pathname) || phonePaths.includes(url.pathname) ? ['POST']
+      : ['/auth/login', '/auth/logout', '/auth/password', ...RECOVERY_PATHS, ...MINI_PUBLIC_PATHS].includes(url.pathname) ? ['POST']
       : ['/auth/me', '/auth/sessions', '/auth/csrf'].includes(url.pathname) ? ['GET'] : sessionDetail ? ['DELETE']
       : url.pathname === '/captures' ? ['GET', 'POST']
       : detail ? ['GET', 'PATCH'] : revisions || candidates ? ['GET', 'POST'] : discard ? ['POST']

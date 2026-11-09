@@ -4,6 +4,7 @@
   <input placeholder="已有账号密码，仅关联时使用" password value="{{password}}" bindinput="onPassword" />
   <button bindtap="link" disabled="{{busy}}">验证密码并关联</button>
   <button bindtap="login" disabled="{{busy}}">登录或建立新账号</button>
+  <button bindtap="scanWebsite" disabled="{{busy}}">扫码登录网站</button>
   <button bindtap="read" disabled="{{busy}}">读取我的素材</button>
   <button bindtap="logout" disabled="{{busy}}">退出</button>
   <view selectable>{{message}}</view>

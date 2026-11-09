@@ -1,5 +1,13 @@
 # EPP 配套实践代码
 
+## 第四十章 用已登录的小程序扫码确认网站登录
+
+分支 `part-05/chapter-40` 从第 37 章继续。以该章非空数据库的独立 VERIFY 副本开始，让 .env.database-verify 和 .env.test 分别提供对应的 DATABASE_URL 与 TEST_DATABASE_URL。核对库名、旧用户和具体素材，运行 `npm ci`、`npm run db:verify -- migrate deploy`、`npm run db:verify -- migrate status`、`npm run check`。本章只追加 browser_login_tickets。日常库先备份并核对副本，再单独应用迁移。
+
+使用 Node 24.22.1，从项目根运行 `node --env-file=.env.test --inspect=127.0.0.1:9470 examples/mini-login-local.mjs`。浏览器访问 http://127.0.0.1:3370/auth/scan，Postman 本地导入脚本生成的环境和[扫码集合](requests/chapter-40.postman_collection.json)，把 start 响应中的 scene 放入集合变量。先 inspect，后 confirm；在原浏览器轮询完成后查 /auth/me 和 /captures/本轮captureId。DBeaver 在同库执行[只读投影](database/chapter-40/observe.sql)。按 Return 清理样本。小程序真机使用 [mini-program](mini-program/README.md) 里的扫码按钮、合法 HTTPS 请求域名和实际 mini 会话。API 自动测试使用 `npm test`，同样需要已迁移的独立 VERIFY。
+
+日常 `npm run dev` 监听修改并可用 9229 Attach；生产 `npm run check` 后将 dist、config、两份 npm 清单复制到干净目录，`npm ci --omit=dev` 安装包括 qrcode 1.5.4 在内的运行依赖，通过进程环境提供数据库、来源、密钥和按需的平台配置，再 `npm start`。
+
 ## 第三十七章 小程序登录与独立会话
 
 分支 `part-05/chapter-37` 从第36章继续。按[本章说明](database/chapter-37/README.md)在非空VERIFY追加平台身份映射、入口资格与会话channel；旧用户、记录和Web会话保留。用[请求集合](requests/chapter-37.postman_collection.json)观察旧记录归属、两种令牌传输与撤销，真实平台入口在[最小小程序](mini-program/README.md)。本地练习只替换平台交换，不证明真实微信登录；正式应用没有Fake开关或接收OpenID的公开接口。无新增依赖。
