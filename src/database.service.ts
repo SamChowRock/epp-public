@@ -10,7 +10,7 @@ export class DatabaseService {
   readonly client: PrismaClient<'query'>;
   private closing?: Promise<void>;
 
-  constructor(config: DatabaseConfig, private readonly logger: AppLogger, private readonly applicationName: 'epp-api' | 'epp-worker' = 'epp-api') {
+  constructor(config: DatabaseConfig, private readonly logger: AppLogger, private readonly applicationName: 'epp-api' | 'epp-worker' | 'epp-notifications' = 'epp-api') {
     this.pool = new pg.Pool({
       connectionString: config.url, max: config.poolMax,
       connectionTimeoutMillis: 2000, idleTimeoutMillis: 10000,
@@ -33,6 +33,14 @@ export class DatabaseService {
   async onModuleInit(): Promise<void> {
     try {
       await this.client.$connect();
+      if (this.applicationName !== 'epp-worker') {
+        await this.client.notification.findMany({ take: 1 });
+        await this.client.notificationJob.findMany({ take: 1 });
+      }
+      if (this.applicationName === 'epp-notifications') {
+        this.logger.write('info', 'database.ready');
+        return;
+      }
       if (this.applicationName === 'epp-worker') {
         await this.client.verificationMailControl.findUniqueOrThrow({ where: { id: 1 } });
         await this.client.$queryRaw`SELECT id, intent_id, generation, recipient, purpose, available_at, status, claim_id, lease_until

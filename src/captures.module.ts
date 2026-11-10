@@ -1,3 +1,4 @@
+import { NotificationsController } from './notifications.controller.js';
 import { AuthModule } from './auth.module.js';
 import { CURRENT_USER_ID } from './auth-context.js';
 import { APP_CONFIG } from './config.js';
@@ -22,7 +23,7 @@ import { PrismaCandidateStore } from './prisma-candidate.store.js';
 
 @Module({
   imports: [DatabaseModule, AuthModule],
-  controllers: [CapturesController, CandidatesController, LearningController],
+  controllers: [CapturesController, CandidatesController, LearningController, NotificationsController],
   providers: [
     { provide: LearningQueries,
       useFactory: (database: DatabaseService, state: ApplicationState, config: AppConfig, userId: string) => new LearningQueries(database, state, config.cursorKey, userId),

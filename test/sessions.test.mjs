@@ -214,3 +214,46 @@ test('session count and login attempt limits reject new work without revoking ex
   assert(Number(limited.headers.get('retry-after')) > 0);
   assert.equal((await request('/auth/me', { cookie: a.cookie })).status, 200);
 });
+
+test('notification retries preserve read and clear, account scope, cursor scope and expiry after a lock wait', async t => {
+  const { db, app, users, request, login } = await fixture(t);
+  const { createOneNotification } = await import('../dist/src/notification-job.js');
+  const database = app.get(DatabaseService), next = () => createOneNotification(database);
+  const a = await login(), b = await login(users[1]);
+  const job = async (userId, data={}) => db.notificationJob.create({data:{id:randomUUID(),userId,kind:'registered',...data}});
+  const first = await job(users[0]), second = await job(users[0]);
+  assert.deepEqual(await Promise.all([next(),next()]),['notification-done','notification-done']);
+  const list = (cookie=a.cookie, tail='') => request('/notifications?limit=1'+tail,{cookie});
+  const page = (await list()).body;
+  const id = page.items[0].id, cursor = '&cursor='+page.nextCursor;
+  assert.ok(page.nextCursor);
+  assert.deepEqual([id,(await list(a.cookie,cursor)).body.items[0].id].sort(),[first.id,second.id].sort());
+  assert.equal((await list(b.cookie,cursor)).status,400);
+  assert.deepEqual((await list(b.cookie)).body.items,[]);
+  const read = cookie => request('/notifications/'+id+'/read',{method:'POST',body:{},cookie});
+  const clear = cookie => request('/notifications/'+id,{method:'DELETE',cookie});
+  assert.equal((await read(b.cookie)).status,204);assert.equal((await clear(b.cookie)).status,204);
+  assert.equal((await list()).body.items[0].readAt,null);
+  assert.equal((await read(a.cookie)).status,204);
+  const seen = (await list()).body.items[0].readAt; assert.ok(seen);
+  await read(a.cookie); assert.equal((await list()).body.items[0].readAt,seen);
+  await clear(a.cookie); await clear(a.cookie);
+  await db.notificationJob.update({where:{id},data:{status:'pending',createdAt:new Date(Date.now()-20000),expiresAt:new Date(Date.now()-10000)}});
+  assert.equal(await next(),'notification-done');
+  assert.notEqual((await list()).body.items[0].id,id);
+  assert.equal(await db.notification.count({where:{id,readAt:new Date(seen),clearedAt:{not:null}}}),1);
+  await db.user.update({where:{id:users[1]},data:{status:'disabled'}});
+  await job(users[1]);assert.equal(await next(),'notification-obsolete');
+  assert.equal((await list(b.cookie)).status,403);
+  // The user lock blocks the consumer past a deadline that was valid at pickup.
+  const expiring = await job(users[0],{createdAt:new Date(Date.now()-10000)});
+  const lock = await database.pool.connect();
+  try {
+    await lock.query('BEGIN');
+    await lock.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[users[0]]);
+    await db.$executeRaw`UPDATE notification_jobs SET expires_at=clock_timestamp()+interval '300 milliseconds' WHERE id=${expiring.id}::uuid`;
+    const work=next();await new Promise(done=>setTimeout(done,500));await lock.query('COMMIT');
+    assert.equal(await work,'notification-obsolete');
+  } finally { await lock.query('ROLLBACK');lock.release(); }
+  assert.equal(await db.notification.count({where:{id:expiring.id}}),0);
+});

@@ -1,3 +1,4 @@
+import { NotificationQuery, NotificationPage } from './notification-contract.js';
 import { RECOVERY_PATHS, RecoveryRequestSchema, RecoveryConfirmSchema, RecoveryAcceptedSchema, RegistrationSchema } from './recovery-contract.js';
 import { CsrfSchema, LoginSchema, ChangePasswordSchema, SessionIdentitySchema, SessionListSchema } from './auth-contract.js';
 import { LearningQuerySchema, StarMapQuerySchema, LearningListSchema, LearningDetailSchema, StarMapSchema } from './learning-contract.js';
@@ -40,7 +41,7 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
   const document: OpenAPIObject = {
     openapi: '3.0.3',
     info: {
-      title: 'EPP Capture API', version: '0.16.0',
+      title: 'EPP Capture API', version: '0.17.0',
       description: 'PostgreSQL records belonging to the authenticated session user. Errors use Problem Details. Capture creation is not idempotent; candidate acceptance supports operation identity.',
     },
     security: [{ sessionCookie: [] }],
@@ -75,6 +76,19 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
         requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/ChangePassword' } } } },
         responses: { '204': { description: 'Password changed and every session revoked; no response body' },
           '400': problem('Invalid password input'), '429': problem('Attempt or concurrency limit') },
+      } },
+      '/notifications': { get: { operationId: 'listNotifications', summary: 'Read your visible inbox, newest first',
+        parameters: Object.entries(NotificationQuery.shape).map(([name, field]) => ({ name, in: 'query', schema: schema(field.unwrap(), 'input') })),
+        responses: { '200': jsonResponse('NotificationPage', 'Live page; nextCursor is null at the end'), '400': problem('Invalid query or cursor') },
+      } },
+      '/notifications/{id}/read': { post: { operationId: 'readNotification', summary: 'Mark your visible notification read once',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+        requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/EmptyObject' } } } },
+        responses: { '204': { description: 'No body, including an absent or foreign ID' }, '400': problem('Invalid input') },
+      } },
+      '/notifications/{id}': { delete: { operationId: 'clearNotification', summary: 'Hide one owned notification without marking it read',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+        responses: { '204': { description: 'No body, including an absent or foreign ID' }, '400': problem('Invalid input or body') },
       } },
       '/learning-records': {
         get: {
@@ -245,6 +259,7 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
     },
     components: { securitySchemes: { sessionCookie: { type: 'apiKey', in: 'cookie', name: cookieName,
       description: 'Set by login; never paste a token into Swagger. Same-origin browser requests carry the HttpOnly cookie.' } }, schemas: {
+      NotificationPage: schema(NotificationPage, 'output'),
       RecoveryRequest: schema(RecoveryRequestSchema, 'input'), RecoveryConfirm: schema(RecoveryConfirmSchema, 'input'),
       RecoveryAccepted: schema(RecoveryAcceptedSchema, 'output'), Registration: schema(RegistrationSchema, 'output'),
       Csrf: schema(CsrfSchema, 'output'),

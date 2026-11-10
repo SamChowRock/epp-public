@@ -15,6 +15,8 @@ model User {
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
   status    String    @default("active") @db.Text
   webEnabled Boolean @default(false) @map("web_enabled")
+  notificationJobs NotificationJob[]
+  notifications Notification[]
   commandReceipts CommandReceipt[]
   expressions Expression[]
   captures  Capture[]
@@ -207,4 +209,30 @@ model VerificationMailControl {
   id Int @id @db.SmallInt
   pausedBy String? @map("paused_by") @db.Uuid
   @@map("verification_mail_control")
+}
+
+model NotificationJob {
+  id String @id @db.Uuid
+  action String @default("notification.create")
+  userId String @map("user_id") @db.Uuid
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  expiresAt DateTime @default(dbgenerated("(CURRENT_TIMESTAMP + '1 day'::interval)")) @map("expires_at") @db.Timestamptz(3)
+  status String @default("pending")
+  // Partial pickup index is managed in migration SQL.
+  @@index([userId], map: "notification_jobs_owner_idx")
+  @@map("notification_jobs")
+}
+
+model Notification {
+  id String @id @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  readAt DateTime? @map("read_at") @db.Timestamptz(3)
+  clearedAt DateTime? @map("cleared_at") @db.Timestamptz(3)
+  @@index([userId,createdAt(sort: Desc),id(sort: Desc)], map: "notifications_owner_page_idx")
+  @@map("notifications")
 }

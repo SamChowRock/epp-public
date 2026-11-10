@@ -7,11 +7,13 @@ import { ConfigError } from './config.js';
 import { DatabaseService } from './database.service.js';
 import { MailWorkerModule } from './mail-worker.module.js';
 import { LocalMailDelivery } from './verification-delivery.js';
+import { createOneNotification } from './notification-job.js';
 import { sendOne } from './verification-outbox.js';
 
 async function main() {
   const expected = process.argv[2];
-  if (!expected || process.argv.length !== 3) throw new ConfigError('expected_database_argument');
+  const notifications = process.argv[3] === 'notifications';
+  if (!expected || process.argv.length !== (notifications ? 4 : 3)) throw new ConfigError('expected_database_argument');
   const stop = new AbortController();
   let context: INestApplicationContext | undefined;
   let logger = new AppLogger('info');
@@ -29,16 +31,17 @@ async function main() {
   process.on('SIGINT', drain);
   process.on('SIGTERM', drain);
   try {
-    context = await NestFactory.createApplicationContext(MailWorkerModule.register(process.env),
+    context = await NestFactory.createApplicationContext(MailWorkerModule.register(process.env, notifications),
       { logger: false, abortOnError: false });
     logger = context.get(AppLogger);
     const database = context.get(DatabaseService);
-    const delivery = context.get(LocalMailDelivery);
+    const delivery = notifications ? undefined : context.get(LocalMailDelivery);
+    const nextJob = delivery ? () => sendOne(database, delivery) : () => createOneNotification(database);
     const [row] = await database.client.$queryRaw<{ name: string }[]>`SELECT current_database() AS name`;
     if (row?.name !== expected) throw new ConfigError('expected_database_argument');
     if (!stop.signal.aborted) logger.write('info', 'worker.ready');
     while (!stop.signal.aborted) {
-      const status = await sendOne(database, delivery);
+      const status = await nextJob();
       if (status === 'empty' || status === 'busy') {
         try { await sleep(1000, undefined, { signal: stop.signal }); }
         catch (error) { if (!stop.signal.aborted) throw error; }

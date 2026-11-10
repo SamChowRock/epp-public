@@ -319,3 +319,16 @@ test('a retry rechecks the exact prepared intent, including replacement during b
     assert.equal(row.attempts, replace ? 1 : 2);
   }
 });
+
+test('registration and reset confirmations enqueue once each, including a registration without Web access', async t => {
+  const { register, recovery, db, issue } = await fixture(t);
+  const user = await register();
+  const token = await issue('reset', user.email);
+  await recovery.confirm('reset', { token, newPassword: nextPassword });
+  await assert.rejects(recovery.confirm('reset', { token, newPassword: nextPassword }), invalid);
+  assert.deepEqual(await db.notificationJob.findMany({ where: { userId: user.userId }, orderBy: {kind:'asc'},
+    select: {action:true,kind:true,status:true} }), ['password-reset','registered'].map(kind => ({
+    action:'notification.create', kind, status:'pending',
+  })));
+  assert.equal(await db.notification.count({ where:{userId:user.userId} }),0);
+});

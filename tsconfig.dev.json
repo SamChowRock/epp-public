@@ -5,6 +5,7 @@
   },
   "exclude": [
     "src/mail-worker.ts",
-    "src/mail-worker.module.ts"
+    "src/mail-worker.module.ts",
+    "src/notification-job.ts"
   ]
 }

@@ -26,8 +26,14 @@ export function httpBoundary(
     const discard = /^\/candidates\/([^/]+)\/(?:discard|accept)$/.exec(url.pathname);
     const learningDetail = /^\/learning-records\/([^/]+)$/.exec(url.pathname);
     const sessionDetail = /^\/auth\/sessions\/([^/]+)$/.exec(url.pathname);
+    const notificationRead = /^\/notifications\/([^/]+)\/read$/.exec(url.pathname);
+    const notificationDetail = /^\/notifications\/([^/]+)$/.exec(url.pathname);
+    if ((notificationRead?.[1] ?? notificationDetail?.[1])?.includes('%')) {
+      throw new HttpError(404, 'Route not found', 'ROUTE_NOT_FOUND');
+    }
     const allowed = ['/auth/login', '/auth/logout', '/auth/password', ...RECOVERY_PATHS].includes(url.pathname) ? ['POST']
       : ['/auth/me', '/auth/sessions', '/auth/csrf'].includes(url.pathname) ? ['GET'] : sessionDetail ? ['DELETE']
+      : url.pathname === '/notifications' ? ['GET'] : notificationRead ? ['POST'] : notificationDetail ? ['DELETE']
       : url.pathname === '/captures' ? ['GET', 'POST']
       : detail ? ['GET', 'PATCH'] : revisions || candidates ? ['GET', 'POST'] : discard ? ['POST']
       : learningDetail || ['/learning-records', '/star-map'].includes(url.pathname) ? ['GET'] : undefined;

@@ -90,6 +90,7 @@ export class RecoveryService {
           await tx.user.create({ data: { id: userId, passwordCredential: { create: { passwordHash } },
             verifiedEmail: { create: { email: intent.email } } } });
           await tx.verificationIntent.update({ where: { id: intent.id }, data: { consumedAt: new Date() } });
+          await tx.notificationJob.create({ data: { id: randomUUID(), userId, kind: 'registered' } });
           return { userId };
         }
         if (!observed.userId) return null;
@@ -107,6 +108,7 @@ export class RecoveryService {
           data: { passwordHash, version: { increment: 1 } } });
         await tx.session.deleteMany({ where: { userId: observed.userId } });
         await tx.verificationIntent.update({ where: { id: intent.id }, data: { consumedAt: new Date() } });
+        await tx.notificationJob.create({ data: { id: randomUUID(), userId: observed.userId, kind: 'password-reset' } });
         return { userId: observed.userId };
       }, { maxWait: 2000, timeout: 5000 }));
       if (!result) throw invalid();

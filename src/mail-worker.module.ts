@@ -8,24 +8,29 @@ import { DatabaseService } from './database.service.js';
 import { LocalMailDelivery } from './verification-delivery.js';
 
 const workerEnvironment = z.object({
-  LOCAL_SMTP_PORT: mailPortSchema,
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
 });
 
 @Module({})
 export class MailWorkerModule {
-  static register(env: NodeJS.ProcessEnv): DynamicModule {
+  static register(env: NodeJS.ProcessEnv, notifications = false): DynamicModule {
     const options = workerEnvironment.safeParse(env);
     if (!options.success) throw new ConfigError(String(options.error.issues[0]?.path[0]));
-    const { LOG_LEVEL, LOCAL_SMTP_PORT } = options.data;
+    const { LOG_LEVEL } = options.data;
+    const mailProviders = [];
+    if (!notifications) {
+      const port = mailPortSchema.safeParse(env.LOCAL_SMTP_PORT);
+      if (!port.success) throw new ConfigError('LOCAL_SMTP_PORT');
+      mailProviders.push({ provide: LocalMailDelivery, useFactory: () => new LocalMailDelivery({ localSmtpPort: port.data }) });
+    }
     const database = parseDatabaseConfig(env);
     return {
       module: MailWorkerModule,
       providers: [
         { provide: AppLogger, useValue: new AppLogger(LOG_LEVEL) },
         { provide: DatabaseService, inject: [AppLogger],
-          useFactory: (logger: AppLogger) => new DatabaseService(database, logger, 'epp-worker') },
-        { provide: LocalMailDelivery, useFactory: () => new LocalMailDelivery({ localSmtpPort: LOCAL_SMTP_PORT }) },
+          useFactory: (logger: AppLogger) => new DatabaseService(database, logger, notifications ? 'epp-notifications' : 'epp-worker') },
+        ...mailProviders,
       ],
     };
   }
