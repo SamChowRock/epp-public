@@ -6,6 +6,8 @@ const log = element('log');
 let source;
 let active;
 let rerun = false;
+let retryTimer;
+let retryDelay = 1000;
 let sessionId;
 const changes = new BroadcastChannel('epp-inbox-login');
 changes.onmessage = () => showLogin('另一个实验页完成了登录，请重新登录。');
@@ -22,9 +24,13 @@ function disconnect() {
   active?.abort();
   active = undefined;
   rerun = false;
+  clearTimeout(retryTimer);
+  retryTimer = undefined;
+  retryDelay = 1000;
   element('connection').textContent = '已断开 · 保留上次查询';
   element('toggle').textContent = '重新连接';
   element('refresh').disabled = true;
+  element('error').textContent = '';
 }
 function showLogin(message) {
   disconnect();
@@ -40,14 +46,27 @@ async function matchesLogin(controller) {
   const response = await fetch('/auth/me', { signal: controller.signal, cache: 'no-store' });
   if (active !== controller) return false;
   if ([401, 403].includes(response.status)) { showLogin('会话不可用，请重新登录。'); return false; }
-  if (!response.ok) throw Error('HTTP ' + response.status);
+  if (!response.ok) throw Object.assign(Error('HTTP ' + response.status), { status: response.status });
   const identity = await response.json();
   if (active !== controller) return false;
   if (identity.sessionId === sessionId) return true;
   showLogin('浏览器会话已改变，请重新登录。');
   return false;
 }
+function retryPage(stream, reason) {
+  const delay = retryDelay;
+  retryDelay = Math.min(delay * 2, 8000);
+  const message = '查询失败（' + reason + '），' + delay / 1000 + ' 秒后重试';
+  element('error').textContent = message;
+  record(message);
+  retryTimer = setTimeout(() => {
+    if (stream !== source) return;
+    retryTimer = undefined;
+    void firstPage();
+  }, delay);
+}
 async function firstPage() {
+  if (retryTimer !== undefined) return;
   if (active) { rerun = true; return; }
   const controller = new AbortController();
   active = controller;
@@ -56,7 +75,7 @@ async function firstPage() {
     const response = await fetch('/notifications?limit=20', { signal: controller.signal, cache: 'no-store' });
     if (active !== controller) return;
     if ([401, 403].includes(response.status)) { showLogin('会话不可用，请重新登录。'); return; }
-    if (!response.ok) throw Error('HTTP ' + response.status);
+    if (!response.ok) throw Object.assign(Error('HTTP ' + response.status), { status: response.status });
     const page = await response.json();
     if (active !== controller || !await matchesLogin(controller)) return;
     items.replaceChildren(...page.items.map(item => {
@@ -68,8 +87,12 @@ async function firstPage() {
     element('query').textContent = '首页共 ' + page.items.length + ' 条' + (page.nextCursor ? '，另有下一页。' : '。');
     record('GET /notifications?limit=20 → 200 · ' + page.items.length + ' 条');
     element('error').textContent = '';
+    retryDelay = 1000;
   } catch (err) {
-    if (active === controller) element('error').textContent = '查询失败（' + err.message + '），可断开后重新连接。';
+    if (active !== controller) return;
+    const transient = err instanceof TypeError || err.status >= 500 || [408, 429].includes(err.status);
+    if (transient && source) retryPage(source, err.message);
+    else element('error').textContent = '查询失败（' + err.message + '），请检查连接或请求。';
   } finally {
     if (active === controller) {
       active = undefined;
@@ -98,11 +121,13 @@ function connect() {
     if (stream !== source) return;
     element('connection').textContent = stream.readyState === EventSource.CLOSED ? '连接已结束' : '等待浏览器重连';
     record('error · 查询当前会话的通知首页');
-    void firstPage();
     if (stream.readyState === EventSource.CLOSED) {
+      clearTimeout(retryTimer);
+      retryTimer = undefined;
       source = undefined;
       element('toggle').textContent = '重新连接';
     }
+    void firstPage();
   };
 }
 element('refresh').onclick = () => { record('手动回查首页'); void firstPage(); };
