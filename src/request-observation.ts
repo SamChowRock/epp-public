@@ -16,7 +16,8 @@ export function requestObservation(logger: AppLogger, state: ApplicationState, k
     const route = ['/auth/login', '/auth/logout', '/auth/password', '/auth/csrf', '/auth/me', '/auth/sessions', ...RECOVERY_PATHS].includes(path) ? path
       : /^\/auth\/sessions\/[^/]+$/.test(path) ? '/auth/sessions/:id'
       : knownPaths.includes(path) ? path : path === '/captures' ? '/captures'
-      : ['/notifications', '/notifications/events', '/learning-records', '/star-map'].includes(path) ? path
+      : /^\/profiles\/[^/]+$/.test(path) ? '/profiles/:userId'
+      : ['/profile/me', '/notifications', '/notifications/events', '/learning-records', '/star-map'].includes(path) ? path
       : /^\/notifications\/[^/]+\/read$/.test(path) ? '/notifications/:id/read'
       : /^\/notifications\/[^/]+$/.test(path) ? '/notifications/:id'
       : /^\/learning-records\/[^/]+$/.test(path) ? '/learning-records/:id'

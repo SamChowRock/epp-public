@@ -1,3 +1,5 @@
+import { ProfileController } from './profile.controller.js';
+import { ProfileService } from './profile.service.js';
 import { RecoveryController } from './recovery.controller.js';
 import { RecoveryService } from './recovery.service.js';
 import { Module, Scope } from '@nestjs/common';
@@ -11,8 +13,9 @@ import { CURRENT_USER_ID, requireSession } from './auth-context.js';
 import type { AuthenticatedRequest } from './auth-context.js';
 
 @Module({
-  imports: [DatabaseModule], controllers: [AuthController, RecoveryController],
+  imports: [DatabaseModule], controllers: [AuthController, RecoveryController, ProfileController],
   providers: [
+    ProfileService,
     { provide: RecoveryService, useFactory: (db: DatabaseService, sessions: SessionService,
       state: ApplicationState) =>
       new RecoveryService(db, sessions, state),

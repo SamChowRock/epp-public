@@ -1,3 +1,5 @@
+import { OwnProfile, ProfilePatch, PublicProfile } from './profile-contract.js';
+import { UserIdSchema } from './auth-contract.js';
 import { NotificationQuery, NotificationPage } from './notification-contract.js';
 import { RECOVERY_PATHS, RecoveryRequestSchema, RecoveryConfirmSchema, RecoveryAcceptedSchema, RegistrationSchema } from './recovery-contract.js';
 import { CsrfSchema, LoginSchema, ChangePasswordSchema, SessionIdentitySchema, SessionListSchema } from './auth-contract.js';
@@ -41,7 +43,7 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
   const document: OpenAPIObject = {
     openapi: '3.0.3',
     info: {
-      title: 'EPP Capture API', version: '0.17.0',
+      title: 'EPP Capture API', version: '0.18.0',
       description: 'PostgreSQL records belonging to the authenticated session user. Errors use Problem Details. Capture creation is not idempotent; candidate acceptance supports operation identity.',
     },
     security: [{ sessionCookie: [] }],
@@ -76,6 +78,21 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
         requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/ChangePassword' } } } },
         responses: { '204': { description: 'Password changed and every session revoked; no response body' },
           '400': problem('Invalid password input'), '429': problem('Attempt or concurrency limit') },
+      } },
+      '/profile/me': {
+        get: { operationId: 'readOwnProfile', summary: 'Read your nickname and its visibility setting',
+          responses: { '200': jsonResponse('OwnProfile', 'Current profile'), '400': problem('Unexpected query'),
+            '404': problem('Profile no longer available') } },
+        patch: { operationId: 'patchOwnProfile', summary: 'Update your profile fields atomically',
+          description: 'Supply nickname, nicknameVisible or both. A nickname is trimmed and NFC-normalized, must have 1 to 24 graphemes and at most 192 UTF-8 bytes, and cannot contain control characters. Each distinct change including the first name uses one of three changes per rolling 720 hours. Repeating the current normalized value or changing visibility alone is free.',
+          requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/ProfilePatch' } } } },
+          responses: { '200': jsonResponse('OwnProfile', 'Updated profile'), '400': problem('Invalid fields or query'),
+            '429': problem('Nickname change limit reached; code NICKNAME_CHANGE_LIMIT') } },
+      },
+      '/profiles/{userId}': { get: { operationId: 'readPublicProfile', summary: 'Read the visible nickname of a Web-enabled active user',
+        parameters: [{ name: 'userId', in: 'path', required: true, schema: schema(UserIdSchema, 'input') }],
+        responses: { '200': jsonResponse('PublicProfile', 'Hidden or unset nickname is null'), '400': problem('Invalid ID or query'),
+          '404': problem('No available profile; code PROFILE_NOT_FOUND') },
       } },
       '/notifications': { get: { operationId: 'listNotifications', summary: 'Read your visible inbox, newest first',
         parameters: Object.entries(NotificationQuery.shape).map(([name, field]) => ({ name, in: 'query', schema: schema(field.unwrap(), 'input') })),
@@ -265,6 +282,8 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
     },
     components: { securitySchemes: { sessionCookie: { type: 'apiKey', in: 'cookie', name: cookieName,
       description: 'Set by login; never paste a token into Swagger. Same-origin browser requests carry the HttpOnly cookie.' } }, schemas: {
+      OwnProfile: schema(OwnProfile, 'output'), PublicProfile: schema(PublicProfile, 'output'),
+      ProfilePatch: { ...schema(ProfilePatch, 'input'), minProperties: 1 },
       NotificationPage: schema(NotificationPage, 'output'),
       RecoveryRequest: schema(RecoveryRequestSchema, 'input'), RecoveryConfirm: schema(RecoveryConfirmSchema, 'input'),
       RecoveryAccepted: schema(RecoveryAcceptedSchema, 'output'), Registration: schema(RegistrationSchema, 'output'),

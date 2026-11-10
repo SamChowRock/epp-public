@@ -1,5 +1,9 @@
 # EPP 配套实践代码
 
+## 第四十九章　用户资料的业务约束与隐私
+
+第 48 章沿用第 47 章版本。第 49 章从同一账号继续，先按[本章说明](database/chapter-49/README.md)在独立库升级，再用[本章集合](requests/chapter-49.postman_collection.json)的 20～23 对照本人和其他登录者读到的资料。在一次改名和一次可见性更新后分别核对窗口内的次数。
+
 ## 第四十七章　用 SSE 传递实时更新
 
 从 `part-06/chapter-46` 的独立 VERIFY 继续，依赖与数据库结构沿用前章。按[本章浏览器实验](examples/inbox-stream/README.md)启动 API 和本机同源页面，用[第 47 章集合](requests/chapter-47.postman_collection.json)逐条发送。01～18 保留原编号，19 是需要手动取消的长连接。断开页面连接后再启动站内通知 Worker，比较离线页面、18 返回的首页与重新连接后的页面。
@@ -72,7 +76,7 @@ nvm use
 node --version
 npm ci
 npm run check
-# 先按第三十六章说明完成迁移，在 .env 配置 DATABASE_URL、APP_ORIGIN和LOCAL_SMTP_PORT。
+# 当前分支先按第 49 章说明完成迁移；日常开发另在 .env 设置相应库、APP_ORIGIN 和 LOCAL_SMTP_PORT。
 npm run dev
 ```
 
