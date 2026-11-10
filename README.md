@@ -1,5 +1,9 @@
 # EPP 配套实践代码
 
+## 第五十一章　对象存储与数据库如何协作
+
+从第 50 章的账号与预览继续。按[本章实验](database/chapter-51/README.md)启动原生 SeaweedFS，验证应用身份的权限和两秒签名，再升级 VERIFY。用[请求集合](requests/chapter-51.postman_collection.json)检查发布、本人读取、其他账号的可见性和撤回，最后按数据库中的处置记录回收旧对象。
+
 ## 第五十章　安全地接收和处理头像
 
 用第 49 章的已开通账号登录，按[本章实验](examples/avatar-preview/README.md)导入[请求集合](requests/chapter-50.postman_collection.json)。用 24 上传一张横向灯塔图，再用慢传、断开和三请求竞争核对临时文件与可用名额。

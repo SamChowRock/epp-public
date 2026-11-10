@@ -26,14 +26,17 @@ export function httpBoundary(
     const discard = /^\/candidates\/([^/]+)\/(?:discard|accept)$/.exec(url.pathname);
     const learningDetail = /^\/learning-records\/([^/]+)$/.exec(url.pathname);
     const sessionDetail = /^\/auth\/sessions\/([^/]+)$/.exec(url.pathname);
+    const publicAvatar = /^\/profiles\/([^/]+)\/avatar$/.exec(url.pathname);
     const publicProfile = /^\/profiles\/([^/]+)$/.exec(url.pathname);
     const notificationRead = /^\/notifications\/([^/]+)\/read$/.exec(url.pathname);
     const notificationDetail = /^\/notifications\/([^/]+)$/.exec(url.pathname);
-    if ((publicProfile?.[1] ?? notificationRead?.[1] ?? notificationDetail?.[1])?.includes('%')) {
+    if ((publicAvatar?.[1] ?? publicProfile?.[1] ?? notificationRead?.[1] ?? notificationDetail?.[1])?.includes('%')) {
       throw new HttpError(404, 'Route not found', 'ROUTE_NOT_FOUND');
     }
     const allowed = ['/auth/login', '/auth/logout', '/auth/password', '/profile/avatar/preview', ...RECOVERY_PATHS].includes(url.pathname) ? ['POST']
       : ['/auth/me', '/auth/sessions', '/auth/csrf'].includes(url.pathname) ? ['GET'] : sessionDetail ? ['DELETE']
+      : url.pathname === '/profile/avatar' ? ['GET', 'POST']
+      : url.pathname === '/profile/avatar/visibility' ? ['GET', 'PATCH'] : publicAvatar ? ['GET']
       : url.pathname === '/profile/me' ? ['GET', 'PATCH'] : publicProfile ? ['GET']
       : ['/notifications', '/notifications/events'].includes(url.pathname) ? ['GET'] : notificationRead ? ['POST'] : notificationDetail ? ['DELETE']
       : url.pathname === '/captures' ? ['GET', 'POST']

@@ -17,6 +17,10 @@ model User {
   webEnabled Boolean @default(false) @map("web_enabled")
   nickname String? @db.Text
   nicknameVisible Boolean @default(false) @map("nickname_visible")
+  avatarId String? @map("avatar_id") @db.Uuid
+  currentAvatar AvatarWrite? @relation("CurrentAvatar", fields: [avatarId, id], references: [id, userId], onDelete: Restrict, onUpdate: NoAction, map: "users_current_avatar_fkey")
+  avatarWrites AvatarWrite[] @relation("AvatarOwner")
+  avatarVisible Boolean @default(false) @map("avatar_visible")
   nicknameChanges NicknameChange[]
   notificationJobs NotificationJob[]
   notifications Notification[]
@@ -247,4 +251,16 @@ model NicknameChange {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   @@index([userId, changedAt], map: "nickname_changes_owner_time_idx")
   @@map("nickname_changes")
+}
+
+model AvatarWrite {
+  id String @id @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  state String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  checkAfter DateTime? @default(dbgenerated("(CURRENT_TIMESTAMP + '00:05:00'::interval)")) @map("check_after") @db.Timestamptz(3)
+  owner User @relation("AvatarOwner", fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  references User[] @relation("CurrentAvatar")
+  @@unique([id, userId])
+  @@map("avatar_writes")
 }

@@ -1,3 +1,5 @@
+import { AvatarObjects } from './avatar-objects.js';
+import { AvatarPublication } from './avatar-publication.js';
 import { AvatarController } from './avatar.controller.js';
 import { ProfileController } from './profile.controller.js';
 import { ProfileService } from './profile.service.js';
@@ -16,7 +18,7 @@ import type { AuthenticatedRequest } from './auth-context.js';
 @Module({
   imports: [DatabaseModule], controllers: [AuthController, RecoveryController, ProfileController, AvatarController],
   providers: [
-    ProfileService,
+    AvatarObjects, AvatarPublication, ProfileService,
     { provide: RecoveryService, useFactory: (db: DatabaseService, sessions: SessionService,
       state: ApplicationState) =>
       new RecoveryService(db, sessions, state),

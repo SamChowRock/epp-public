@@ -13,3 +13,5 @@ database/chapter-20/recovery-history/
 
 .worker-dev/
 .avatar-tmp/
+.chapter51-store/
+.chapter51-tools/

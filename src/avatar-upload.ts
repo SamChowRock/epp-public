@@ -56,12 +56,13 @@ async function receive(request: IncomingMessage, filename: string, drain?: Abort
   }
 }
 
+type ReceiveFile = <T>(processFile: (filename: string, format: 'png' | 'jpeg') => Promise<T>) => Promise<T>;
+
 export async function withAvatarUpload<T>(
   request: IncomingMessage,
-  processFile: (filename: string, format: 'png' | 'jpeg') => Promise<T>,
-  sendResult: (result: T) => Promise<void>,
+  work: (receiveFile: ReceiveFile) => Promise<T>,
   drain?: AbortSignal,
-): Promise<void> {
+): Promise<T> {
   const type = request.headers['content-type']?.toLowerCase();
   if ((type !== 'image/jpeg' && type !== 'image/png')
     || (request.headers['content-encoding'] ?? 'identity').toLowerCase() !== 'identity') {
@@ -71,16 +72,16 @@ export async function withAvatarUpload<T>(
   if (activeUploads >= 2) throw new HttpError(429, 'Avatar processor is busy', 'AVATAR_BUSY');
   activeUploads++;
   try {
-    let result: T;
-    const directory = await privateDirectory();
-    try {
-      const filename = join(directory, 'input');
-      await receive(request, filename, drain);
-      result = await processFile(filename, type === 'image/png' ? 'png' : 'jpeg');
-    } finally {
-      await rm(directory, { recursive: true, force: true });
-    }
-    await sendResult(result);
+    return await work(async processFile => {
+      const directory = await privateDirectory();
+      try {
+        const filename = join(directory, 'input');
+        await receive(request, filename, drain);
+        return await processFile(filename, type === 'image/png' ? 'png' : 'jpeg');
+      } finally {
+        await rm(directory, { recursive: true, force: true });
+      }
+    });
   } finally {
     activeUploads--;
   }

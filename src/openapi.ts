@@ -1,3 +1,4 @@
+import { AvatarLink, AvatarVisibility, PublishedAvatar } from './avatar-contract.js';
 import { OwnProfile, ProfilePatch, PublicProfile } from './profile-contract.js';
 import { UserIdSchema } from './auth-contract.js';
 import { NotificationQuery, NotificationPage } from './notification-contract.js';
@@ -40,10 +41,14 @@ const notModified: ResponseObject = {
 };
 
 export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject {
+  const avatarBody = { required: true, content: {
+    'image/jpeg': { schema: { type: 'string', format: 'binary' } },
+    'image/png': { schema: { type: 'string', format: 'binary' } },
+  } };
   const document: OpenAPIObject = {
     openapi: '3.0.3',
     info: {
-      title: 'EPP Capture API', version: '0.19.0',
+      title: 'EPP Capture API', version: '0.20.0',
       description: 'PostgreSQL records belonging to the authenticated session user. Errors use Problem Details. Capture creation is not idempotent; candidate acceptance supports operation identity.',
     },
     security: [{ sessionCookie: [] }],
@@ -82,10 +87,7 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
       '/profile/avatar/preview': { post: {
         operationId: 'previewAvatar', summary: 'Create a private, temporary 256×256 WebP preview',
         description: 'No query. Send a single raw JPEG or PNG, up to 2 MiB, 12 million pixels and 8192 pixels per edge. No content encoding. This operation does not save an avatar.',
-        requestBody: { required: true, content: {
-          'image/jpeg': { schema: { type: 'string', format: 'binary' } },
-          'image/png': { schema: { type: 'string', format: 'binary' } },
-        } },
+        requestBody: avatarBody,
         responses: {
           '200': { description: 'Metadata-stripped WebP', content: { 'image/webp': { schema: { type: 'string', format: 'binary' } } } },
           '400': problem('Unexpected query or interrupted upload'), '408': problem('UPLOAD_TIMEOUT'),
@@ -93,6 +95,33 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
           '422': problem('AVATAR_UNPROCESSABLE'), '429': problem('AVATAR_BUSY'),
           '500': problem('Internal failure'),
         },
+      } },
+      '/profile/avatar': {
+        post: { operationId: 'publishAvatar', summary: 'Publish a processed private WebP',
+          description: 'Same raw image and resource limits as preview. A newer reservation supersedes an older pending upload. After a lost response, read your current avatar before retrying.',
+          requestBody: avatarBody,
+          responses: { '200': jsonResponse('PublishedAvatar', 'Current pointer replaced'),
+            '400': problem('Unexpected query or interrupted upload'), '408': problem('UPLOAD_TIMEOUT'),
+            '409': problem('AVATAR_SUPERSEDED'), '413': problem('AVATAR_TOO_LARGE'),
+            '415': problem('AVATAR_MEDIA_TYPE or AVATAR_FORMAT'), '422': problem('AVATAR_UNPROCESSABLE'),
+            '429': problem('AVATAR_BUSY'), '503': problem('Service draining, database or avatar storage unavailable') } },
+        get: { operationId: 'readOwnAvatar', summary: 'Get a signed link to your avatar',
+          responses: { '200': jsonResponse('AvatarLink', 'Private GET link valid for 30 seconds from signing time'),
+            '400': problem('Unexpected query'), '404': problem('AVATAR_NOT_FOUND'),
+            '503': problem('Service draining, database or avatar storage unavailable') } },
+      },
+      '/profile/avatar/visibility': {
+        get: { operationId: 'getAvatarVisibility', summary: 'Read your avatar visibility setting even before uploading',
+          responses: { '200': jsonResponse('AvatarVisibility', 'Stored visibility setting'), '400': problem('Unexpected query') } },
+        patch: { operationId: 'setAvatarVisibility', summary: 'Set avatar visibility for other Web users',
+        requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/AvatarVisibility' } } } },
+        responses: { '200': jsonResponse('AvatarVisibility', 'Visibility setting saved'), '400': problem('Invalid body or query') },
+      } },
+      '/profiles/{userId}/avatar': { get: { operationId: 'readPublicAvatar', summary: 'Get a signed link to an available and visible avatar',
+        parameters: [{ name: 'userId', in: 'path', required: true, schema: schema(UserIdSchema, 'input') }],
+        responses: { '200': jsonResponse('AvatarLink', 'Private GET link valid for 30 seconds from signing time'),
+          '400': problem('Invalid ID or query'), '404': problem('AVATAR_NOT_FOUND'),
+          '503': problem('Service draining, database or avatar storage unavailable') },
       } },
       '/profile/me': {
         get: { operationId: 'readOwnProfile', summary: 'Read your nickname and its visibility setting',
@@ -297,6 +326,8 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
     },
     components: { securitySchemes: { sessionCookie: { type: 'apiKey', in: 'cookie', name: cookieName,
       description: 'Set by login; never paste a token into Swagger. Same-origin browser requests carry the HttpOnly cookie.' } }, schemas: {
+      PublishedAvatar: schema(PublishedAvatar, 'output'), AvatarLink: schema(AvatarLink, 'output'),
+      AvatarVisibility: schema(AvatarVisibility, 'input'),
       OwnProfile: schema(OwnProfile, 'output'), PublicProfile: schema(PublicProfile, 'output'),
       ProfilePatch: { ...schema(ProfilePatch, 'input'), minProperties: 1 },
       NotificationPage: schema(NotificationPage, 'output'),
@@ -354,7 +385,7 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
         operation.responses['403'] = problem('Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED or WEB_ACCESS_DENIED');
       }
       if (RECOVERY_PATHS.includes(pathname)) operation.responses['403'] = problem('Origin or explicit request header rejected');
-      operation.responses['503'] = problem('Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots.');
+      operation.responses['503'] ??= problem('Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots.');
       if (operation.responses['429'] && !('$ref' in operation.responses['429'])) {
         operation.responses['429'].headers = { 'Retry-After': { schema: { type: 'string' }, description: 'Seconds for AUTH_RATE_LIMIT only; other limits require their own recovery.' } };
       }

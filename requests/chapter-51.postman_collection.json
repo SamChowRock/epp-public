@@ -1,0 +1,1122 @@
+{
+  "info": {
+    "name": "EPP Chapter 51 Private Avatars",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "在独立 VERIFY 中逐项使用；25 会发布一张新头像。26、28 的响应含当前请求的短期读取凭证。"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3360"
+    },
+    {
+      "key": "email",
+      "value": "reader47@example.test"
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "password",
+      "value": ""
+    },
+    {
+      "key": "newPassword",
+      "value": ""
+    },
+    {
+      "key": "registrationToken",
+      "value": ""
+    },
+    {
+      "key": "resetToken",
+      "value": ""
+    },
+    {
+      "key": "profileTargetId",
+      "value": ""
+    },
+    {
+      "key": "nickname",
+      "value": "海风"
+    },
+    {
+      "key": "nicknameVisible",
+      "value": "false"
+    },
+    {
+      "key": "expectedRenameStatus",
+      "value": "200"
+    },
+    {
+      "key": "avatarVisible",
+      "value": "false"
+    },
+    {
+      "key": "expectedAvatarStatus",
+      "value": "200"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 请求注册邮件",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/register/request",
+        "body": {
+          "mode": "raw",
+          "raw": "{{authBody}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(\"authBody\", JSON.stringify({email: pm.variables.get(\"email\")}).replaceAll('{{', '\\\\u007b\\\\u007b'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 202', () => pm.response.to.have.status(202));",
+              "pm.variables.unset(\"authBody\");"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 验证邮箱并设置密码",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/register/confirm",
+        "body": {
+          "mode": "raw",
+          "raw": "{{authBody}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(\"authBody\", JSON.stringify({token: pm.variables.get(\"registrationToken\"), newPassword: pm.variables.get(\"password\")}).replaceAll('{{', '\\\\u007b\\\\u007b'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+              "if (pm.response.code === 201) pm.collectionVariables.set('userId', pm.response.json().userId);",
+              "pm.variables.unset(\"authBody\");"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 重复消费注册令牌",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/register/confirm",
+        "body": {
+          "mode": "raw",
+          "raw": "{{authBody}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(\"authBody\", JSON.stringify({token: pm.variables.get(\"registrationToken\"), newPassword: pm.variables.get(\"password\")}).replaceAll('{{', '\\\\u007b\\\\u007b'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+              "pm.variables.unset(\"authBody\");"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 未开通账号登录",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{{authBody}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(\"authBody\", JSON.stringify({email: pm.variables.get(\"email\"), password: pm.variables.get(\"password\")}).replaceAll('{{', '\\\\u007b\\\\u007b'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 403', () => pm.response.to.have.status(403));",
+              "pm.variables.unset(\"authBody\");"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 开通后登录",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{{authBody}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(\"authBody\", JSON.stringify({email: pm.variables.get(\"email\"), password: pm.variables.get(\"password\")}).replaceAll('{{', '\\\\u007b\\\\u007b'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.variables.unset(\"authBody\");"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 请求重置邮件",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/reset/request",
+        "body": {
+          "mode": "raw",
+          "raw": "{{authBody}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(\"authBody\", JSON.stringify({email: pm.variables.get(\"email\")}).replaceAll('{{', '\\\\u007b\\\\u007b'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 202', () => pm.response.to.have.status(202));",
+              "pm.variables.unset(\"authBody\");"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 确认密码重置",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/reset/confirm",
+        "body": {
+          "mode": "raw",
+          "raw": "{{authBody}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(\"authBody\", JSON.stringify({token: pm.variables.get(\"resetToken\"), newPassword: pm.variables.get(\"newPassword\")}).replaceAll('{{', '\\\\u007b\\\\u007b'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 204', () => pm.response.to.have.status(204));",
+              "pm.variables.unset(\"authBody\");"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 用原Cookie读取身份",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/auth/me"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Old session revoked', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 旧密码登录",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{{authBody}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(\"authBody\", JSON.stringify({email: pm.variables.get(\"email\"), password: pm.variables.get(\"password\")}).replaceAll('{{', '\\\\u007b\\\\u007b'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+              "pm.variables.unset(\"authBody\");"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 新密码登录",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{{authBody}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(\"authBody\", JSON.stringify({email: pm.variables.get(\"email\"), password: pm.variables.get(\"newPassword\")}).replaceAll('{{', '\\\\u007b\\\\u007b'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.variables.unset(\"authBody\");"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 重复消费重置令牌",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/reset/confirm",
+        "body": {
+          "mode": "raw",
+          "raw": "{{authBody}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(\"authBody\", JSON.stringify({token: pm.variables.get(\"resetToken\"), newPassword: pm.variables.get(\"newPassword\")}).replaceAll('{{', '\\\\u007b\\\\u007b'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+              "pm.variables.unset(\"authBody\");"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 当前会话仍有效",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/auth/me"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Current session still belongs to registered user', () => {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().userId).to.eql(pm.collectionVariables.get('userId'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 查询通知首页",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/notifications?limit=1",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "const page = pm.response.json();",
+              "pm.collectionVariables.set('notificationId', page.items[0]?.id || '');",
+              "pm.collectionVariables.set('notificationCursor', page.nextCursor || '');"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "14 查询下一页（首页有游标时）",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/notifications?limit=1&cursor={{notificationCursor}}",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "15 取得当前会话写入令牌",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/auth/csrf",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.environment.set('csrfToken', pm.response.json().csrfToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "16 标记首页通知已读",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/notifications/{{notificationId}}/read",
+        "header": [
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 204', () => pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "17 清除同一通知",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/notifications/{{notificationId}}",
+        "header": [
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 204', () => pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "18 重新查询（保留操作目标）",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/notifications?limit=20",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "19 打开当前账号的收件箱事件流（单发，观察后取消）",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "text/event-stream"
+          }
+        ],
+        "url": "{{baseUrl}}/notifications/events",
+        "description": "Use the current local cookie. Keep this request open to observe inbox events. Cancel to release the connection."
+      }
+    },
+    {
+      "name": "20 读取当前账号自己的资料",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/profile/me"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('本人资料使用三个字段', () => {",
+              "  pm.response.to.have.status(200);",
+              "  const data = pm.response.json();",
+              "  pm.expect(data).to.have.all.keys('userId', 'nickname', 'nicknameVisible');",
+              "  pm.expect(data.nicknameVisible).to.be.a('boolean');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "21 修改当前账号的昵称",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/profile/me",
+        "header": [
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{{profileBody}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const nickname = pm.variables.get('nickname');",
+              "pm.variables.set('profileBody', JSON.stringify({nickname}).replaceAll('{{', '\\\\u007b\\\\u007b'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('本次改名符合预期', () => {",
+              "  const expected = Number(pm.variables.get('expectedRenameStatus'));",
+              "  pm.expect([200, 429]).to.include(expected);",
+              "  pm.response.to.have.status(expected);",
+              "  const data = pm.response.json();",
+              "  if (expected === 429) {",
+              "    pm.expect(data.code).to.eql('NICKNAME_CHANGE_LIMIT');",
+              "    return;",
+              "  }",
+              "  pm.expect(data).to.have.all.keys('userId', 'nickname', 'nicknameVisible');",
+              "  pm.expect(data.nickname).to.eql(pm.variables.get('nickname').normalize('NFC').trim());",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "22 修改当前账号的昵称可见性",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/profile/me",
+        "header": [
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{{profileBody}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const setting = String(pm.variables.get('nicknameVisible'));",
+              "if (!['true', 'false'].includes(setting)) throw new Error('nicknameVisible 请填 true 或 false');",
+              "pm.variables.set('profileBody', JSON.stringify({nicknameVisible: setting === 'true'}));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('本人读到刚保存的可见性', () => {",
+              "  pm.response.to.have.status(200);",
+              "  const data = pm.response.json();",
+              "  pm.expect(data).to.have.all.keys('userId', 'nickname', 'nicknameVisible');",
+              "  pm.expect(data.nicknameVisible).to.eql(String(pm.variables.get('nicknameVisible')) === 'true');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "23 查看指定账号的资料卡",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/profiles/{{profileTargetId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('资料卡只含指定账号的 ID 和可空昵称', () => {",
+              "  pm.response.to.have.status(200);",
+              "  const data = pm.response.json();",
+              "  pm.expect(data).to.have.all.keys('userId', 'nickname');",
+              "  pm.expect(data.userId).to.eql(pm.variables.get('profileTargetId'));",
+              "  pm.expect(data.nickname === null || typeof data.nickname === 'string').to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "24 上传头像并查看临时预览",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/profile/avatar/preview",
+        "header": [
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "image/png"
+          }
+        ],
+        "body": {
+          "mode": "file",
+          "file": {
+            "src": "examples/avatar-preview/harbor.png"
+          }
+        },
+        "description": "在 Body → binary 选择本机 harbor.png。换用 harbor.jpg 时同步将 Content-Type 改为 image/jpeg。"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('返回一次 WebP 预览', () => {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.headers.get('Content-Type')).to.match(/^image\\/webp(?:;|$)/i);",
+              "  pm.expect(pm.response.headers.get('Cache-Control')).to.include('no-store');",
+              "  const bytes = pm.response.stream;",
+              "  pm.expect(Array.from(bytes.slice(0, 4))).to.eql([82, 73, 70, 70]);",
+              "  pm.expect(Array.from(bytes.slice(8, 12))).to.eql([87, 69, 66, 80]);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "25 发布本人的新头像",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/profile/avatar",
+        "header": [
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "image/png"
+          }
+        ],
+        "body": {
+          "mode": "file",
+          "file": {
+            "src": "examples/avatar-preview/harbor.png"
+          }
+        },
+        "description": "选择本地 PNG/JPEG，Content-Type 与文件匹配。成功时会替换此账号当前头像。"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('发布成功并返回版本 ID', () => {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().avatarId).to.match(/^[0-9a-f-]{36}$/);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "26 取得本人当前头像的短期读地址",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/profile/avatar"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('当前身份的头像读取结果符合实验预期', () => {",
+              "  const expected = Number(pm.variables.get('expectedAvatarStatus'));",
+              "  pm.expect([200, 404]).to.include(expected);",
+              "  pm.response.to.have.status(expected);",
+              "  const data = pm.response.json();",
+              "  if (expected === 404) {",
+              "    pm.expect(data.code).to.eql('AVATAR_NOT_FOUND');",
+              "    return;",
+              "  }",
+              "  pm.expect(typeof data.url === 'string' && data.url.includes('X-Amz-Signature=')).to.eql(true);",
+              "  pm.expect(data.expiresIn).to.eql(30);",
+              "  pm.expect(data.avatarId).to.match(/^[0-9a-f-]{36}$/);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "27 设置本人的头像是否展示",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/profile/avatar/visibility",
+        "header": [
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{{profileBody}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const setting = String(pm.variables.get('avatarVisible'));",
+              "if (!['true', 'false'].includes(setting)) throw new Error('avatarVisible 请填 true 或 false');",
+              "pm.variables.set('profileBody', JSON.stringify({visible: setting === 'true'}));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('本人读到刚保存的可见性', () => {",
+              "  pm.response.to.have.status(200);",
+              "  const data = pm.response.json();",
+              "  pm.expect(data.visible).to.eql(String(pm.variables.get('avatarVisible')) === 'true');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "28 以访客身份取得指定账号头像",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/profiles/{{profileTargetId}}/avatar"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('当前身份的头像读取结果符合实验预期', () => {",
+              "  const expected = Number(pm.variables.get('expectedAvatarStatus'));",
+              "  pm.expect([200, 404]).to.include(expected);",
+              "  pm.response.to.have.status(expected);",
+              "  const data = pm.response.json();",
+              "  if (expected === 404) {",
+              "    pm.expect(data.code).to.eql('AVATAR_NOT_FOUND');",
+              "    return;",
+              "  }",
+              "  pm.expect(typeof data.url === 'string' && data.url.includes('X-Amz-Signature=')).to.eql(true);",
+              "  pm.expect(data.expiresIn).to.eql(30);",
+              "  pm.expect(data.avatarId).to.match(/^[0-9a-f-]{36}$/);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "29 回查本人的头像可见性",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/profile/avatar/visibility"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('回读头像开关', () => {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().visible).to.be.a('boolean');",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
