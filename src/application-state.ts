@@ -1,5 +1,16 @@
 export class ApplicationState {
-  draining = false;
+  private stopping = false;
+  private readonly drainListeners = new Set<() => void>();
+  get draining(): boolean { return this.stopping; }
+  beginDrain(): void {
+    this.stopping = true;
+    for (const close of this.drainListeners) close();
+    this.drainListeners.clear();
+  }
+  onDrain(close: () => void): () => void {
+    this.drainListeners.add(close);
+    return () => { this.drainListeners.delete(close); };
+  }
   private pending = 0;
   private readonly waiters = new Set<() => void>();
   get active(): number { return this.pending; }

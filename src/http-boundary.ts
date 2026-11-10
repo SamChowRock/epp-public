@@ -33,7 +33,7 @@ export function httpBoundary(
     }
     const allowed = ['/auth/login', '/auth/logout', '/auth/password', ...RECOVERY_PATHS].includes(url.pathname) ? ['POST']
       : ['/auth/me', '/auth/sessions', '/auth/csrf'].includes(url.pathname) ? ['GET'] : sessionDetail ? ['DELETE']
-      : url.pathname === '/notifications' ? ['GET'] : notificationRead ? ['POST'] : notificationDetail ? ['DELETE']
+      : ['/notifications', '/notifications/events'].includes(url.pathname) ? ['GET'] : notificationRead ? ['POST'] : notificationDetail ? ['DELETE']
       : url.pathname === '/captures' ? ['GET', 'POST']
       : detail ? ['GET', 'PATCH'] : revisions || candidates ? ['GET', 'POST'] : discard ? ['POST']
       : learningDetail || ['/learning-records', '/star-map'].includes(url.pathname) ? ['GET'] : undefined;

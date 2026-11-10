@@ -1,7 +1,10 @@
-import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Query, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Query, Req, Res, UseInterceptors } from '@nestjs/common';
 import { z } from 'zod';
 import { ApplicationState } from './application-state.js';
-import { CURRENT_USER_ID } from './auth-context.js';
+import { NotificationEvents } from './notification-events.js';
+import type { Response } from 'express';
+import { HttpError } from './http.js';
+import { CURRENT_USER_ID, requireSession, type AuthenticatedRequest } from './auth-context.js';
 import { APP_CONFIG, type AppConfig } from './config.js';
 import { DatabaseService } from './database.service.js';
 import { EmptyObjectSchema } from './candidate-contract.js';
@@ -13,7 +16,20 @@ import { SchemaPipe } from './schema.pipe.js';
 @Controller('notifications')
 export class NotificationsController {
   constructor(private readonly database: DatabaseService, private readonly state: ApplicationState,
+    private readonly streams: NotificationEvents,
     @Inject(CURRENT_USER_ID) private readonly userId: string, @Inject(APP_CONFIG) private readonly config: AppConfig) {}
+
+  @Get('events')
+  events(@Req() request: AuthenticatedRequest, @Res() response: Response,
+    @Query(new SchemaPipe(EmptyObjectSchema)) _query: object): void {
+    const origin = request.headers.origin;
+    const site = request.headers['sec-fetch-site'];
+    if ((origin !== undefined && origin !== this.config.appOrigin)
+      || (site !== undefined && site !== 'same-origin' && site !== 'none')) {
+      throw new HttpError(403, 'Request origin is not allowed', 'ORIGIN_REJECTED');
+    }
+    this.streams.open(requireSession(request), response);
+  }
 
   @Get()
   @UseInterceptors(new ResponseSchemaInterceptor(NotificationPage))

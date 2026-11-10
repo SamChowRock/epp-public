@@ -16,7 +16,7 @@ export async function serve(
   const stop = (signal: string): Promise<void> => {
     if (closing) return closing;
     stopping = true;
-    if (app) app.get(ApplicationState).draining = true;
+    if (app) app.get(ApplicationState).beginDrain();
     logger.write('info', 'app.draining', { signal });
     const deadline = setTimeout(() => {
       logger.write('error', 'app.stop_timeout', { active: app?.get(ApplicationState).active });
@@ -28,7 +28,7 @@ export async function serve(
       await boot.catch(() => {});
       if (app) {
         const state = app.get(ApplicationState);
-        state.draining = true;
+        state.beginDrain();
         const server = app.getHttpServer() as Server;
         await new Promise<void>((resolve, reject) => {
           server.close(error => {

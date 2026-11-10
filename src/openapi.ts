@@ -81,6 +81,12 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
         parameters: Object.entries(NotificationQuery.shape).map(([name, field]) => ({ name, in: 'query', schema: schema(field.unwrap(), 'input') })),
         responses: { '200': jsonResponse('NotificationPage', 'Live page; nextCursor is null at the end'), '400': problem('Invalid query or cursor') },
       } },
+      '/notifications/events': { get: { operationId: 'streamInboxHints', summary: 'Subscribe to inbox refresh hints',
+        description: 'Same-origin EventSource with the session cookie; no query parameters. On connection and changes to the newest 20 visible items or availability of a next page, inbox events carry only refresh. Read GET /notifications for current data. Heartbeat comments carry no data. Hints have no ID or replay history.',
+        responses: { '200': { description: 'Live event stream', content: { 'text/event-stream': { schema: { type: 'string' } } } },
+          '400': problem('Unexpected query'), '401': problem('Live session required'), '403': problem('Origin or account denied'),
+          '429': problem('Too many open streams') },
+      } },
       '/notifications/{id}/read': { post: { operationId: 'readNotification', summary: 'Mark your visible notification read once',
         parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
         requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/EmptyObject' } } } },
@@ -303,7 +309,7 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
       if (!operation?.responses) continue;
       if (!RECOVERY_PATHS.includes(pathname)) operation.responses['401'] ??= problem('Missing, expired or revoked session; code AUTH_REQUIRED');
       if (!['/auth/logout', '/auth/csrf'].includes(pathname)) {
-        operation.responses['403'] = problem('Account disabled or Web access denied; code ACCOUNT_DISABLED or WEB_ACCESS_DENIED. Write requests may also reject the Origin.');
+        operation.responses['403'] ??= problem('Account disabled or Web access denied; code ACCOUNT_DISABLED or WEB_ACCESS_DENIED. Write requests may also reject the Origin.');
       } else if (pathname === '/auth/logout') {
         operation.responses['403'] = problem('Request origin is not allowed; code ORIGIN_REJECTED');
       }

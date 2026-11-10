@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EPP 通知收件箱</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script></head>
+<body><main>
+<h1>通知收件箱</h1>
+<form id="login" method="post"><label>已开通的邮箱<input name="email" type="email" required autocomplete="username"></label>
+<label>密码<input name="password" type="password" required autocomplete="current-password"></label>
+<button>登录</button></form>
+<section id="panel" hidden>
+<div class="actions"><strong id="connection"></strong><button id="refresh">查询首页</button><button id="toggle"></button><button id="switchAccount">切换登录</button></div>
+<h2>通知首页</h2><p id="query" aria-live="polite"></p><ul id="items"></ul>
+<h2>本页观察记录</h2><ol id="log" aria-live="polite"></ol>
+</section><p id="error" role="alert"></p>
+</main></body></html>

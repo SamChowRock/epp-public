@@ -1,5 +1,9 @@
 # EPP 配套实践代码
 
+## 第四十七章　用 SSE 传递实时更新
+
+从 `part-06/chapter-46` 的独立 VERIFY 继续，依赖与数据库结构沿用前章。按[本章浏览器实验](examples/inbox-stream/README.md)启动 API 和本机同源页面，用[第 47 章集合](requests/chapter-47.postman_collection.json)逐条发送。01～18 保留原编号，19 是需要手动取消的长连接。断开页面连接后再启动站内通知 Worker，比较离线页面、18 返回的首页与重新连接后的页面。
+
 ## 第四十六章　先让通知成为可查询的数据
 
 从第45章继续，按[站内通知联调说明](database/chapter-46/README.md)升级 VERIFY。从注册、重置的确认事务留下通知意图，分别启动寄信与通知角色，用[第46章集合](requests/chapter-46.postman_collection.json)按当前会话查询、标记已读和清除。
