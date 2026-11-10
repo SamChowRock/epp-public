@@ -17,7 +17,7 @@ export function requestObservation(logger: AppLogger, state: ApplicationState, k
       : /^\/auth\/sessions\/[^/]+$/.test(path) ? '/auth/sessions/:id'
       : knownPaths.includes(path) ? path : path === '/captures' ? '/captures'
       : /^\/profiles\/[^/]+$/.test(path) ? '/profiles/:userId'
-      : ['/profile/me', '/notifications', '/notifications/events', '/learning-records', '/star-map'].includes(path) ? path
+      : ['/profile/avatar/preview', '/profile/me', '/notifications', '/notifications/events', '/learning-records', '/star-map'].includes(path) ? path
       : /^\/notifications\/[^/]+\/read$/.test(path) ? '/notifications/:id/read'
       : /^\/notifications\/[^/]+$/.test(path) ? '/notifications/:id'
       : /^\/learning-records\/[^/]+$/.test(path) ? '/learning-records/:id'

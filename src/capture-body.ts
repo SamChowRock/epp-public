@@ -7,7 +7,7 @@ export function captureBody(
   next: NextFunction,
 ): void {
   // httpBoundary has already accepted the path and method.
-  if (request.method !== 'POST' && request.method !== 'PATCH') {
+  if (request.path === '/profile/avatar/preview' || (request.method !== 'POST' && request.method !== 'PATCH')) {
     next();
     return;
   }

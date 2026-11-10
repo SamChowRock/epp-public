@@ -32,7 +32,7 @@ export function httpBoundary(
     if ((publicProfile?.[1] ?? notificationRead?.[1] ?? notificationDetail?.[1])?.includes('%')) {
       throw new HttpError(404, 'Route not found', 'ROUTE_NOT_FOUND');
     }
-    const allowed = ['/auth/login', '/auth/logout', '/auth/password', ...RECOVERY_PATHS].includes(url.pathname) ? ['POST']
+    const allowed = ['/auth/login', '/auth/logout', '/auth/password', '/profile/avatar/preview', ...RECOVERY_PATHS].includes(url.pathname) ? ['POST']
       : ['/auth/me', '/auth/sessions', '/auth/csrf'].includes(url.pathname) ? ['GET'] : sessionDetail ? ['DELETE']
       : url.pathname === '/profile/me' ? ['GET', 'PATCH'] : publicProfile ? ['GET']
       : ['/notifications', '/notifications/events'].includes(url.pathname) ? ['GET'] : notificationRead ? ['POST'] : notificationDetail ? ['DELETE']

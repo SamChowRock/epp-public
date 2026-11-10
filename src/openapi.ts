@@ -43,7 +43,7 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
   const document: OpenAPIObject = {
     openapi: '3.0.3',
     info: {
-      title: 'EPP Capture API', version: '0.18.0',
+      title: 'EPP Capture API', version: '0.19.0',
       description: 'PostgreSQL records belonging to the authenticated session user. Errors use Problem Details. Capture creation is not idempotent; candidate acceptance supports operation identity.',
     },
     security: [{ sessionCookie: [] }],
@@ -78,6 +78,21 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
         requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/ChangePassword' } } } },
         responses: { '204': { description: 'Password changed and every session revoked; no response body' },
           '400': problem('Invalid password input'), '429': problem('Attempt or concurrency limit') },
+      } },
+      '/profile/avatar/preview': { post: {
+        operationId: 'previewAvatar', summary: 'Create a private, temporary 256×256 WebP preview',
+        description: 'No query. Send a single raw JPEG or PNG, up to 2 MiB, 12 million pixels and 8192 pixels per edge. No content encoding. This operation does not save an avatar.',
+        requestBody: { required: true, content: {
+          'image/jpeg': { schema: { type: 'string', format: 'binary' } },
+          'image/png': { schema: { type: 'string', format: 'binary' } },
+        } },
+        responses: {
+          '200': { description: 'Metadata-stripped WebP', content: { 'image/webp': { schema: { type: 'string', format: 'binary' } } } },
+          '400': problem('Unexpected query or interrupted upload'), '408': problem('UPLOAD_TIMEOUT'),
+          '413': problem('AVATAR_TOO_LARGE'), '415': problem('AVATAR_MEDIA_TYPE or AVATAR_FORMAT'),
+          '422': problem('AVATAR_UNPROCESSABLE'), '429': problem('AVATAR_BUSY'),
+          '500': problem('Internal failure'),
+        },
       } },
       '/profile/me': {
         get: { operationId: 'readOwnProfile', summary: 'Read your nickname and its visibility setting',

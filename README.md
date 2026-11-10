@@ -1,5 +1,9 @@
 # EPP 配套实践代码
 
+## 第五十章　安全地接收和处理头像
+
+用第 49 章的已开通账号登录，按[本章实验](examples/avatar-preview/README.md)导入[请求集合](requests/chapter-50.postman_collection.json)。用 24 上传一张横向灯塔图，再用慢传、断开和三请求竞争核对临时文件与可用名额。
+
 ## 第四十九章　用户资料的业务约束与隐私
 
 第 48 章沿用第 47 章版本。第 49 章从同一账号继续，先按[本章说明](database/chapter-49/README.md)在独立库升级，再用[本章集合](requests/chapter-49.postman_collection.json)的 20～23 对照本人和其他登录者读到的资料。在一次改名和一次可见性更新后分别核对窗口内的次数。
