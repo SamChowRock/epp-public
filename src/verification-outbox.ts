@@ -4,7 +4,9 @@ import type { VerificationDelivery } from './verification-delivery.js';
 import { issueToken, tokenDigest } from './token.js';
 import { channelState, claimOne, type Claim } from './verification-claim.js';
 
-type Job = { id: string; intent_id: string; generation: string; recipient: string; purpose: RecoveryPurpose };
+import { classifyMailFailure } from './mail-failure.js';
+
+type Job = { id: string; intent_id: string; expected_digest: string; attempts: number; recipient: string; purpose: RecoveryPurpose };
 
 async function prepare(database: DatabaseService, claim: Claim) {
   return database.client.$transaction(async tx => {
@@ -19,7 +21,7 @@ async function prepare(database: DatabaseService, claim: Claim) {
         WHERE id=${claim.id}::uuid AND status='pending' AND claim_id=${claim.claim_id}::uuid AND lease_until > clock_timestamp()`;
       return state;
     }
-    const [job] = await tx.$queryRaw<Job[]>`SELECT id,intent_id,generation,recipient,purpose
+    const [job] = await tx.$queryRaw<Job[]>`SELECT id,intent_id,COALESCE(retry_digest,generation) AS expected_digest,attempts,recipient,purpose
       FROM public.verification_outbox WHERE id=${claim.id}::uuid AND status='pending'
         AND claim_id=${claim.claim_id}::uuid FOR UPDATE`;
     if (!job) return 'stale';
@@ -32,36 +34,49 @@ async function prepare(database: DatabaseService, claim: Claim) {
     const token = issueToken();
     const [window] = await tx.$queryRaw<{ issued_at: Date; expires_at: Date }[]>`
       UPDATE public.verification_intents SET token_digest=${tokenDigest(token)}
-      WHERE id=${job.intent_id}::uuid AND token_digest=${job.generation}
+      WHERE id=${job.intent_id}::uuid AND token_digest=${job.expected_digest}
         AND email=${job.recipient} AND purpose=${job.purpose}
         AND consumed_at IS NULL AND expires_at > clock_timestamp() RETURNING issued_at, expires_at
     `;
     if (!window) {
-      await tx.verificationOutbox.update({ where: { id: job.id },
-        data: { status: 'obsolete', claimId: null, leaseUntil: null } });
+      await tx.$executeRaw`UPDATE public.verification_outbox SET status='obsolete',
+        retain_from=clock_timestamp(), retry_digest=NULL, claim_id=NULL, lease_until=NULL WHERE id=${job.id}::uuid`;
       return 'obsolete';
     }
+    await tx.$executeRaw`UPDATE public.verification_outbox SET attempts=attempts+1, retry_digest=NULL WHERE id=${job.id}::uuid`;
     await tx.verificationMailControl.update({ where: { id: 1 }, data: { pausedBy: job.id } });
     return { job, token, window };
   }, { maxWait: 2000, timeout: 5000 });
 }
 
-async function finish(database: DatabaseService, claim: Claim, result: 'accepted' | 'unknown') {
+type Outcome = 'accepted' | ReturnType<typeof classifyMailFailure>;
+
+async function finish(database: DatabaseService, claim: Claim, outcome: Outcome, attempt: number, digest: string) {
   return database.client.$transaction(async tx => {
     const [channel] = await tx.$queryRaw<{ paused_by: string | null }[]>`
       SELECT paused_by FROM public.verification_mail_control WHERE id=1 FOR UPDATE`;
     if (channel?.paused_by !== claim.id) return 'lost-after-send';
     // Lock first: a wall-clock predicate evaluated before a lock wait is insufficient.
     await tx.$queryRaw`SELECT id FROM public.verification_outbox WHERE id=${claim.id}::uuid FOR UPDATE`;
+    let status: 'accepted' | 'unknown' | 'pending' | 'dead';
+    if (outcome === 'accepted') status = 'accepted';
+    else if (outcome === 'unconfirmed') status = 'unknown';
+    else if (outcome === 'recipient-refused' || attempt >= 3) status = 'dead';
+    else status = 'pending';
+    const retry = status === 'pending';
+    const delaySeconds = retry ? 5 * 2 ** (attempt - 1) + Math.random() * 2 : 0;
     const count = await tx.$executeRaw`UPDATE public.verification_outbox
-      SET status=${result}, claim_id=NULL, lease_until=NULL
+      SET status=${status}, claim_id=NULL, lease_until=NULL,
+        available_at=CASE WHEN ${retry} THEN clock_timestamp() + ${delaySeconds} * interval '1 second' ELSE available_at END,
+        retry_digest=${retry ? digest : null}, last_failure=${outcome === 'accepted' ? null : outcome},
+        retain_from=CASE WHEN ${status} IN ('accepted','dead') THEN clock_timestamp() ELSE NULL END
       WHERE id=${claim.id}::uuid AND status='attempting'
         AND claim_id=${claim.claim_id}::uuid AND lease_until > clock_timestamp()`;
     if (count !== 1) return 'lost-after-send';
-    if (result === 'accepted') {
+    if (status !== 'unknown') {
       await tx.verificationMailControl.update({ where: { id: 1 }, data: { pausedBy: null } });
     }
-    return result;
+    return retry ? 'retry-scheduled' : status;
   });
 }
 
@@ -69,10 +84,10 @@ export async function deliverClaim(database: DatabaseService, delivery: Verifica
   const prepared = await prepare(database, claim);
   if (typeof prepared === 'string') return prepared;
   const { job, token, window } = prepared;
-  let outcome: 'accepted' | 'unknown' = 'accepted';
+  let outcome: Outcome = 'accepted';
   try { await delivery.send(job.recipient, job.purpose, token, window.issued_at, window.expires_at); }
-  catch { outcome = 'unknown'; }
-  return finish(database, claim, outcome);
+  catch (error) { outcome = classifyMailFailure(error); }
+  return finish(database, claim, outcome, job.attempts + 1, tokenDigest(token));
 }
 
 export async function sendOne(database: DatabaseService, delivery: VerificationDelivery, messageId?: string) {

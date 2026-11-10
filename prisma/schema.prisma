@@ -191,7 +191,11 @@ model VerificationOutbox {
   recipient String @db.Text
   status String @default("pending") @db.Text
   availableAt DateTime @default(now()) @map("available_at") @db.Timestamptz(3)
-  // Partial expression index verification_outbox_pick_idx is managed in migration SQL.
+  attempts Int @default(0)
+  retryDigest String? @map("retry_digest") @db.Text
+  lastFailure String? @map("last_failure") @db.Text
+  retainFrom DateTime? @map("retain_from") @db.Timestamptz(3)
+  // Partial retention index and partial expression index are managed in SQL.
   claimId String? @map("claim_id") @db.Uuid
   leaseUntil DateTime? @map("lease_until") @db.Timestamptz(3)
   @@index([status, availableAt, id], map: "verification_outbox_ready_idx")

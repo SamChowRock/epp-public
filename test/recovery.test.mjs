@@ -291,3 +291,31 @@ test('parallel reservations release only their own job when the SMTP channel bec
   assert.equal(wrongSend,0);
   assert.equal(await sendOne(database,other,b.id),'accepted'); assert.equal(wrongSend,1);
 });
+
+test('a retry rechecks the exact prepared intent, including replacement during backoff', async t => {
+  let fail = true;
+  const tokens = [];
+  const deferred = Object.assign(new Error(), { code: 'EENVELOPE', command: 'RCPT TO', responseCode: 450 });
+  const { recovery, db, address, dispatch } = await fixture(t, { async send(email, purpose, token) {
+    if (fail) throw deferred;
+    tokens.push(token);
+  } });
+  for (const replace of [false, true]) {
+    fail = true;
+    const recipient = address();
+    await recovery.request('register', recipient);
+    const { id, intentId } = await db.verificationOutbox.findFirstOrThrow({ where: { recipient } });
+    assert.equal(await dispatch(id), 'retry-scheduled');
+    assert.equal(await dispatch(id), 'empty');
+    if (replace) {
+      await db.verificationIntent.update({ where: { id: intentId }, data: { issuedAt: new Date(Date.now()-61000) } });
+      await recovery.request('register', recipient);
+    }
+    await db.verificationOutbox.update({ where: { id }, data: { availableAt: new Date(0) } });
+    fail = false;
+    assert.equal(await dispatch(id), replace ? 'obsolete' : 'accepted');
+    if (!replace) await recovery.confirm('register', { token: tokens[0], newPassword: password });
+    const row = await db.verificationOutbox.findUniqueOrThrow({ where: { id } });
+    assert.equal(row.attempts, replace ? 1 : 2);
+  }
+});
