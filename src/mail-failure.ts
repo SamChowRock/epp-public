@@ -5,11 +5,12 @@ export function classifyMailFailure(error: unknown) {
   };
   if (smtp.command === 'CONN' && smtp.code === 'ESOCKET' &&
       smtp.originalCode === 'ECONNREFUSED' && smtp.syscall === 'connect') return 'connect-refused';
-  if (smtp.code === 'EENVELOPE' && smtp.command === 'RCPT TO') {
-    switch (smtp.responseCode) {
-      case 450: case 451: case 452: return 'recipient-deferred';
-      case 550: case 551: case 553: return 'recipient-refused';
-    }
+  // The delivery adapter sends to exactly one envelope recipient.
+  const reply = smtp.responseCode;
+  if (smtp.code === 'EENVELOPE' && smtp.command === 'RCPT TO' &&
+      typeof reply === 'number' && Number.isInteger(reply)) {
+    if (reply >= 400 && reply < 500) return 'recipient-deferred';
+    if (reply >= 500 && reply < 600) return 'recipient-refused';
   }
   return 'unconfirmed';
 }
