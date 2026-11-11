@@ -15,11 +15,18 @@ function parse(argv: string[]) {
     action = { kind, operationId: value };
   } else if (kind === 'preview' && argv.length === 4 && (value === 'on' || value === 'off')) {
     action = { kind, enabled: value === 'on' };
-  } else if (kind === 'apply' && argv.length === 5 && (value === 'on' || value === 'off')
-      && id && uuid.safeParse(id).success) {
+  } else if (
+    kind === 'apply' &&
+    argv.length === 5 &&
+    (value === 'on' || value === 'off') &&
+    id &&
+    uuid.safeParse(id).success
+  ) {
     action = { kind, enabled: value === 'on', operationId: id };
   } else {
-    throw new CommandRefused('Usage: DB preview USER on|off / DB apply USER on|off OP / DB receipt USER OP');
+    throw new CommandRefused(
+      'Usage: DB preview USER on|off / DB apply USER on|off OP / DB receipt USER OP',
+    );
   }
   if (!expected?.trim() || !userId || !uuid.safeParse(userId).success) {
     throw new CommandRefused('Expected database name and user UUID');
@@ -33,14 +40,23 @@ class AccountAdminModule {}
 async function main() {
   const { expected, userId, action } = parse(process.argv.slice(2));
   const config = parseDatabaseConfig(process.env);
-  const context = await NestFactory.createApplicationContext({
-    module: AccountAdminModule,
-    providers: [
-      { provide: DatabaseService, useFactory: () => new DatabaseService(config, new AppLogger('error'), 'epp-admin') },
-      { provide: ManageWebAccess, inject: [DatabaseService],
-        useFactory: (db: DatabaseService) => new ManageWebAccess(db) },
-    ],
-  }, { logger: false, abortOnError: false });
+  const context = await NestFactory.createApplicationContext(
+    {
+      module: AccountAdminModule,
+      providers: [
+        {
+          provide: DatabaseService,
+          useFactory: () => new DatabaseService(config, new AppLogger('error'), 'epp-admin'),
+        },
+        {
+          provide: ManageWebAccess,
+          inject: [DatabaseService],
+          useFactory: (db: DatabaseService) => new ManageWebAccess(db),
+        },
+      ],
+    },
+    { logger: false, abortOnError: false },
+  );
   try {
     const response = await context.get(ManageWebAccess).run(expected, userId, action);
     console.log(JSON.stringify(response));
@@ -49,8 +65,12 @@ async function main() {
   }
 }
 
-main().catch(error => {
+main().catch((error) => {
   const refused = error instanceof CommandRefused;
-  console.error(refused ? error.message : 'Command failed. Check configuration and database. For apply, query the receipt.');
+  console.error(
+    refused
+      ? error.message
+      : 'Command failed. Check configuration and database. For apply, query the receipt.',
+  );
   process.exitCode = refused ? 2 : 1;
 });

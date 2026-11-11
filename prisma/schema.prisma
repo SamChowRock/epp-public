@@ -6,6 +6,11 @@ generator client {
   importFileExtension    = "js"
 }
 
+generator erd {
+  provider = "node ./scripts/generate-erd.mjs"
+  output   = "../dist/ERD.md"
+}
+
 datasource db {
   provider = "postgresql"
 }

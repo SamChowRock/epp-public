@@ -1,0 +1,39 @@
+name: Build and verify
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: epp_ci
+          POSTGRES_PASSWORD: local_ci_only
+          POSTGRES_DB: epp_ci
+        ports:
+          - 5432/tcp
+        options: >-
+          --health-cmd "pg_isready -U epp_ci -d epp_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run ci:check
+      - name: Run production entries against a new database
+        env:
+          DATABASE_URL: postgresql://epp_ci:local_ci_only@127.0.0.1:${{ job.services.postgres.ports[5432] }}/epp_ci
+        run: sh scripts/check-delivery.sh epp_ci
+      - name: Run the existing regression suite
+        env:
+          NODE_ENV: test
+          TEST_DATABASE_URL: postgresql://epp_ci:local_ci_only@127.0.0.1:${{ job.services.postgres.ports[5432] }}/epp_ci
+        run: node --test --test-concurrency=1 test/*.test.mjs

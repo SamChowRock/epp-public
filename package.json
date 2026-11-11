@@ -10,7 +10,7 @@
     "prisma": "node node_modules/prisma/build/index.js",
     "db": "node --env-file=.env.database node_modules/prisma/build/index.js",
     "db:verify": "node --env-file=.env.database-verify node_modules/prisma/build/index.js",
-    "prisma:generate": "npm run prisma -- generate",
+    "prisma:generate": "npm run prisma -- generate --generator client",
     "predev": "npm run prisma:generate",
     "pretypecheck": "npm run prisma:generate",
     "prebuild": "npm run prisma:generate",
@@ -27,9 +27,17 @@
     "dev:express": "NODE_ENV=development node --env-file-if-exists=.env --watch --watch-preserve-output --inspect=127.0.0.1:9229 examples/express-pipeline.js",
     "dev:responses": "NODE_ENV=development node --env-file-if-exists=.env scripts/dev.mjs .dev/examples/controller-responses/main.js examples/controller-responses/tsconfig.dev.json",
     "dev:worker": "NODE_ENV=development node --env-file=.env.worker scripts/dev.mjs .worker-dev/src/mail-worker.js tsconfig.worker-dev.json",
-    "start:worker": "NODE_ENV=production node --enable-source-maps dist/src/mail-worker.js"
+    "start:worker": "NODE_ENV=production node --enable-source-maps dist/src/mail-worker.js",
+    "format:check": "biome format biome.json package.json config/service.json src/account-admin.ts src/manage-web-access.ts scripts/contract-files.mjs scripts/check-runtime.mjs scripts/generate-erd.mjs",
+    "lint": "biome lint src scripts test",
+    "contracts:emit": "npm run build && npm run prisma -- generate --generator erd && node scripts/export-openapi.mjs",
+    "contracts:update": "npm run contracts:emit && node scripts/contract-files.mjs update",
+    "contracts:check": "npm run contracts:emit && node scripts/contract-files.mjs check",
+    "ci:check": "npm run format:check && npm run lint && npm run typecheck && npm run contracts:check"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.6.6",
+    "@prisma/generator-helper": "7.10.1",
     "@types/express": "5.0.6",
     "@types/node": "24.13.3",
     "@types/pg": "8.16.0",
