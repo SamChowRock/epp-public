@@ -24,6 +24,7 @@ model User {
   nicknameChanges NicknameChange[]
   notificationJobs NotificationJob[]
   notifications Notification[]
+  webAccessReceipts WebAccessReceipt[]
   commandReceipts CommandReceipt[]
   expressions Expression[]
   captures  Capture[]
@@ -263,4 +264,18 @@ model AvatarWrite {
   references User[] @relation("CurrentAvatar")
   @@unique([id, userId])
   @@map("avatar_writes")
+}
+
+model WebAccessReceipt {
+  userId String @map("user_id") @db.Uuid
+  operationId String @map("operation_id") @db.Uuid
+  beforeEnabled Boolean @map("before_enabled")
+  requestedEnabled Boolean @map("requested_enabled")
+  accountStatus String @map("account_status") @db.Text
+  dbActor String @default(dbgenerated("SESSION_USER")) @map("db_actor") @db.Text
+  recordedAt DateTime @default(dbgenerated("clock_timestamp()")) @map("recorded_at") @db.Timestamptz(3)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@id([userId, operationId])
+  @@map("web_access_receipts")
 }
