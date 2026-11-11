@@ -55,8 +55,27 @@
 - [第 38 章　先理解 OAuth，再接入 OIDC 外部登录](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-38)
 - [第 39 章　微信网站扫码登录](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-39)
 - [第 40 章　用已登录的小程序扫码确认网站登录](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-40)
+- [第 41 章　第五篇回顾（沿用第 36 章代码）](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-36)
 
 ## 第六篇
 
 - [第 42 章　Transactional Outbox](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-42)
 - [第 43 章　为什么需要独立 Worker](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-43)
+- [第 44 章　安全领取任务与识别过期执行者](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-44)
+- [第 45 章　失败、重试与未知结果](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-45)
+- [第 46 章　先让通知成为可查询的数据](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-46)
+- [第 47 章　用 SSE 传递实时更新](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-47)
+- [第 48 章　第六篇回顾（沿用第 47 章代码）](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-47)
+
+## 第七篇
+
+- [第 49 章　用户资料的业务约束与隐私](https://github.com/SamChowRock/epp-public/tree/part-07/chapter-49)
+- [第 50 章　安全地接收和处理头像](https://github.com/SamChowRock/epp-public/tree/part-07/chapter-50)
+- [第 51 章　对象存储与数据库如何协作](https://github.com/SamChowRock/epp-public/tree/part-07/chapter-51)
+- [第 52 章　第七篇回顾（沿用第 51 章代码）](https://github.com/SamChowRock/epp-public/tree/part-07/chapter-51)
+
+## 第八篇
+
+- [第 53 章　为后台操作提供可靠的管理命令](https://github.com/SamChowRock/epp-public/tree/part-08/chapter-53)
+- [第 54 章　构建与持续集成](https://github.com/SamChowRock/epp-public/tree/part-08/chapter-54)
+- [第 55 章　调试性能与资源问题](https://github.com/SamChowRock/epp-public/tree/part-08/chapter-55)
