@@ -1,5 +1,9 @@
 # EPP 配套实践代码
 
+## 第五十五章　调试性能与资源问题
+
+按[本章实验](examples/performance/README.md)对照两次慢登录，采集 CPU 与堆快照，在请求结束前区分连接池排队和数据库等锁，再用受限并发验证判断。
+
 ## 第五十四章　构建与持续集成
 
 按[本章运行说明](database/chapter-54/README.md)从干净目录构建，在一次性数据库上验证 API、Worker 与账号 CLI，比较 ERD 和 OpenAPI 快照，并把同样的命令接入持续集成。

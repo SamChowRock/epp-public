@@ -15,3 +15,7 @@ database/chapter-20/recovery-history/
 .avatar-tmp/
 .chapter51-store/
 .chapter51-tools/
+
+# Local diagnostic recordings can include paths and private runtime data.
+*.cpuprofile
+*.heapsnapshot
