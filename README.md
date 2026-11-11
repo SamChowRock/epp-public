@@ -96,7 +96,7 @@ Prisma CLI、Client 与 adapter-pg 固定 7.10.1，pg 为 8.16.3；本章连接�
 
 沿用第十一章的 Zod `4.6.6` 与 @nestjs/swagger `11.4.8`，后者提供 Swagger UI 及其静态资源。其他运行依赖为 Nest `11.2.5`（common、core、platform-express）、reflect-metadata `0.2.2` 与 rxjs `7.8.2`；沿用的独立支线示例显式依赖 Express `5.2.1`，适配器也使用 Express 5，overrides 固定其间接依赖 Multer `2.5.0`。开发依赖保留 TypeScript `5.9.3`、tsx `4.23.15`、`@types/node` `24.13.3`，以及 `@types/express` `5.0.6`。`npm ci` 按锁文件安装完整依赖；`npm run build` 先清理 `dist/`，编译业务源码，再复制默认配置；`npm start` 只运行产物。服务默认监听 `http://127.0.0.1:3000`。默认端口来自 `config/service.json`，启动时由 `src/config.ts`（产物为 `dist/src/config.js`）相对于模块读取，不依赖调用者的工作目录。
 
-以下生产命令要求先配置 CURSOR_HMAC_KEY、DATABASE_URL 和 APP_ORIGIN；本机3001端口可用 APP_ORIGIN=http://127.0.0.1:3001，实际HTTPS入口使用其完整origin，不附路径或末尾斜杠。可以为一次启动覆盖端口：
+以下生产命令要求先配置 CURSOR_HMAC_KEY、DATABASE_URL 和 APP_ORIGIN；本机3001端口可用 `APP_ORIGIN=http://127.0.0.1:3001`，实际HTTPS入口使用其完整origin，不附路径或末尾斜杠。可以为一次启动覆盖端口：
 
 ```bash
 NODE_ENV=production APP_ORIGIN=http://127.0.0.1:3001 PORT=3001 node --enable-source-maps dist/src/server.js
@@ -243,7 +243,7 @@ curl -sS http://127.0.0.1:3000/captures
 NODE_ENV=development node --watch --watch-preserve-output --inspect=127.0.0.1:9229 examples/event-loop-server.js
 ```
 
-在 Postman 导入 [requests/event-loop.postman_collection.json](requests/event-loop.postman_collection.json)，集合变量 experimentBaseUrl 为 http://127.0.0.1:3002，与主线集合分开。四条 GET 请求分别观察 /quick、/wait、/block、/slice，逐条 Send；集合不自动运行或重放请求。Chrome 的 chrome://inspect 可连接实验；观察处理分支时使用断点，测量并发和耗时时先禁用断点并恢复执行。
+在 Postman 导入 [requests/event-loop.postman_collection.json](requests/event-loop.postman_collection.json)，集合变量 experimentBaseUrl 为 `http://127.0.0.1:3002`，与主线集合分开。四条 GET 请求分别观察 /quick、/wait、/block、/slice，逐条 Send；集合不自动运行或重放请求。Chrome 的 `chrome://inspect` 可连接实验；观察处理分支时使用断点，测量并发和耗时时先禁用断点并恢复执行。
 
 保存源码后 Node 会重启实验进程，待监听日志重新出现再发请求；语法或启动错误时先读终端错误，修复保存后确认监听，不能拿旧结果页当作已恢复。运行中途停止后，下次使用同一命令和已保存的请求继续。
 
@@ -348,7 +348,7 @@ node examples/modules/consumer.js require
 
 前两次成功；后三次分别刻意触发包子路径未导出、缺少扩展名、ESM 中裸 require 不存在，均返回非零状态。包自引用依赖 `examples/modules/package.json` 的名称与公开入口，不是全局安装。
 
-完成服务构建后，在独立目录核对运行单元。先停止上一轮占用 3001 的产物服务；Postman 使用集合副本，将 baseUrl 设为 http://127.0.0.1:3001：
+完成服务构建后，在独立目录核对运行单元。先停止上一轮占用 3001 的产物服务；Postman 使用集合副本，将 baseUrl 设为 `http://127.0.0.1:3001`：
 
 ```bash
 npm run build &&
@@ -612,7 +612,7 @@ ESM 默认输出 A，eager 在初始化前读取类而失败。双向类程序 l
 
 学习和日常修改默认使用 `npm run dev`。scripts/dev.mjs 使用项目锁定的 TypeScript watch 与 tsconfig.dev.json 编译到 .dev，成功后复制配置并启动开启本机 Inspector 的服务；保存源码、修改 tsconfig.json 或 config/service.json 后自动重启。类型错误时停止旧服务，修复保存后恢复；终端的 Build succeeded 只表示编译成功，还要看到服务监听日志。重启保留数据库记录，浏览器页面不会自动刷新，需要重新发请求。
 
-先在终端运行 dev，再在 VS Code 选择 `EPP: attach to npm run dev`；`restart: true` 会在服务重启后尝试重连，断点保留。Chrome 可从 chrome://inspect 连接，但重启后可能需要重新选择目标。只有排查启动第一行才使用 `npm run build` 和 `npm run debug`；dev与debug不要同时占用9229或业务端口。dev 使用 .dev，build/clean 使用 dist，二者不会相互清理；并行检查不会自动重启开发服务。依赖、package.json、开发脚本及环境变量改变后手动重启dev。此时的自动重启不保留进程内状态。
+先在终端运行 dev，再在 VS Code 选择 `EPP: attach to npm run dev`；`restart: true` 会在服务重启后尝试重连，断点保留。Chrome 可从 `chrome://inspect` 连接，但重启后可能需要重新选择目标。只有排查启动第一行才使用 `npm run build` 和 `npm run debug`；dev与debug不要同时占用9229或业务端口。dev 使用 .dev，build/clean 使用 dist，二者不会相互清理；并行检查不会自动重启开发服务。依赖、package.json、开发脚本及环境变量改变后手动重启dev。此时的自动重启不保留进程内状态。
 
 生产方式先 `npm ci`、`npm run build`，再按第五章准备运行目录，仅安装运行依赖（`npm ci --omit=dev`），执行 `npm start`。start只运行构建产物，不开启Inspector或文件监听；生产环境不运行dev/debug。配置已复制进dist，修改源配置不会自动更新生产产物。环境变量按部署目标提供；NODE_ENV=production本身不会替代构建或自动关闭调试。完整进程托管、HTTPS与发布恢复在部署篇展开。
 
@@ -691,7 +691,7 @@ npm test
 
 第三章起可将 `.env.example` 复制为 `.env`，填写开发 PORT。dev/debug 通过 Node 的 --env-file-if-exists 加载它，已存在的进程环境变量优先；NODE_ENV 由对应脚本明确指定。`.env` 不进入版本控制或交付目录，生产进程由启动环境提供 DATABASE_URL、CURSOR_HMAC_KEY、APP_ORIGIN、PORT 等配置，npm start 不自动读取开发文件。修改 .env 后手动重新启动 dev；复制示例不会自动改变已经运行的进程。
 
-`npm run check` 是本章的静态检查入口。检查代码后，仍需用已保存的 Postman 请求核对合法创建、错误拒绝、列表与详情；静态检查不能证明 HTTP 可用。生产模式核对请使用另外的端口和请求集合副本，避免把请求发到开发进程。采用第五章构建布局后，在独立运行目录执行 npm ci --omit=dev，再用 PORT=3001 npm start 启动产物，Postman 中将该集合副本的 baseUrl 设为 http://127.0.0.1:3001；核对依赖、配置、正常与失败响应，最后停止该进程。
+`npm run check` 是本章的静态检查入口。检查代码后，仍需用已保存的 Postman 请求核对合法创建、错误拒绝、列表与详情；静态检查不能证明 HTTP 可用。生产模式核对请使用另外的端口和请求集合副本，避免把请求发到开发进程。采用第五章构建布局后，在独立运行目录执行 npm ci --omit=dev，再用 PORT=3001 npm start 启动产物，Postman 中将该集合副本的 baseUrl 设为 `http://127.0.0.1:3001`；核对依赖、配置、正常与失败响应，最后停止该进程。
 
 
 第十一章起，Swagger 在 development 默认开启，在 test/production 默认关闭。NODE_ENV 只接受 development/test/production；DOCS_ENABLED 只接受 true/false，非法值在创建应用前失败。确需开启文档时由目标环境显式提供 DOCS_ENABLED=true；开放文档是一项有意的入口配置，不代表已有访问权限控制。生产关闭时 /docs 和 /openapi.json 返回路由不存在，业务接口照常可用；静态契约仍可用 scripts/export-openapi.mjs 导出。

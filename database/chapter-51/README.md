@@ -27,7 +27,7 @@ node database/chapter-51/store-probe.mjs write
 
 应只出现十个 127.0.0.1 地址。18630～18634 依次属于 Master、Volume、Filer、S3、Admin，28630～28634 是对应的 gRPC 端口。Master 跟踪卷的位置，Volume 保存内容，Filer 记录名字到内容的对应。应用只访问 S3 的 18633。关闭 Admin UI 后内部服务仍需监听。本章依赖单用户开发机的回环隔离；共享主机上其他本机用户仍可直连内部端口。私有日志在 .chapter51-store/weed.log，只在本机查看。停止前保留整个 data 目录，包括 filerldb2 与卷文件。[固定版本的 mini 参数](https://github.com/seaweedfs/seaweedfs/blob/4.52/weed/command/mini.go)
 
-**浏览器操作。** 存储运行且已建桶时，用 Chrome 访客窗口打开[本机 SeaweedFS Filer](http://127.0.0.1:18632/)，点 `buckets → avatars`。点 **New Folder** 创建一个名字未被占用的练习目录，进入后用 **Upload** 分别上传 `examples/avatar-preview/harbor.png` 和 `harbor.jpg`。点文件名预览，返回列表，将鼠标移到 PNG 行，点垃圾桶，确认路径后删除。刷新并打开留下的 JPEG。发布真实练习头像后，在桶里的 `avatars/` 目录按 avatarId 查看 WebP。这个界面直通底层存储，业务头像只在这里查看；发布用 Postman，回收用本章按 ID 核验的清理命令。
+**浏览器操作。** 存储运行且已建桶时，用 Chrome 访客窗口打开本机 SeaweedFS Filer（`http://127.0.0.1:18632/`），点 `buckets → avatars`。点 **New Folder** 创建一个名字未被占用的练习目录，进入后用 **Upload** 分别上传 `examples/avatar-preview/harbor.png` 和 `harbor.jpg`。点文件名预览，返回列表，将鼠标移到 PNG 行，点垃圾桶，确认路径后删除。刷新并打开留下的 JPEG。发布真实练习头像后，在桶里的 `avatars/` 目录按 avatarId 查看 WebP。这个界面直通底层存储，业务头像只在这里查看；发布用 Postman，回收用本章按 ID 核验的清理命令。
 
 buckets 用管理身份建 avatars 和对照桶 chapter51-private-control。write 只读 app.env，向 avatars 的 probe/ 下写入两个随机命名的相邻对象。输出应依次说明 HEAD 类型与长度、GET 内容一致，匿名 GET、列举 avatars、跨桶 PUT 均为 403。探测在内存里生成一个两秒 GET URL，立即读取为 200，实际等 3.5 秒后重用同一个 URL 为 403。完整地址含持有者可用的签名；脚本只输出结果。
 
@@ -66,7 +66,7 @@ process.env.DB_QUERY_DEBUG = "false";
 await import("./scripts/dev.mjs");' epp_ch51_verify
 ```
 
-Postman 导入[本章集合](../../requests/chapter-51.postman_collection.json)，确认 baseUrl 为 http://127.0.0.1:3360，先用同一 Cookie 发 20 核对旧账号，过期时重新用 05 登录。只有旧用户 ID 的账号可按[第 49 章说明](../chapter-49/README.md)在 05 的本地副本用 userId 登录。用未同步的本地环境填写密码。清除环境里遮住同名集合变量的旧值，15 按当前 Cookie 取写令牌。
+Postman 导入[本章集合](../../requests/chapter-51.postman_collection.json)，确认 baseUrl 为 `http://127.0.0.1:3360`，先用同一 Cookie 发 20 核对旧账号，过期时重新用 05 登录。只有旧用户 ID 的账号可按[第 49 章说明](../chapter-49/README.md)在 05 的本地副本用 userId 登录。用未同步的本地环境填写密码。清除环境里遮住同名集合变量的旧值，15 按当前 Cookie 取写令牌。
 
 1. A 发 20，把 ID 固定在 profileTargetId，发 15；在 24 的 binary 请求体选择 examples/avatar-preview/harbor.png，先核对原有预览。25 的 binary 也单独选择该文件，200 返回 avatarId。设置 expectedAvatarStatus 为 200，发 26 取得本人的 30 秒短期地址。只比较返回 ID。用 SQL 查到同一 current_id 和 live 行。桶名是 avatars，正式对象的 Key 是 avatars/版本UUID.webp。path-style 地址里连续出现两次 avatars，前一个标识桶，后一个是 Key 的首段。
 2. A 将 avatarVisible 设置为 false，发 27、29 核对设置和回查结果。B 发 05、20 确认切换；profileTargetId 保持 A 的 ID，expectedAvatarStatus 设为 404，发 28。再切回 A，05、20、15，设 true 发 27、29。B 重新登录并发 20，将 expectedAvatarStatus 改回 200，再发 28。它可以得到 A 的当前头像；签发 URL 的响应和对象均不应保存到共享日志或截图中。
