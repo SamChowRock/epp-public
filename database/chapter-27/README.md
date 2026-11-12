@@ -5,7 +5,7 @@
 ## 保留旧数据升级
 
 1. 在 DBeaver 核对 DEV／VERIFY 连接，执行 [历史审核](02-history-audit.sql) 的第一条查询。正常前章数据应返回零行。先停止包括旧产物在内的全部写入者，再按[第25章备份与独立恢复](../chapter-22/backup-restore.md)为本次目标库生成新归档、在全新库恢复核对。替换为本次源库与恢复库名，不使用第24章旧归档或样本脚本。除基础核对外，逐表比较下面第4步所列全部旧字段、学习来源与回执JSON。
-2. 在 Prisma 模型增加 Expression 的 userId、normalizedMeaning、可空 semanticKey，以及 ExpressionForm.normalizedText、expressionId 索引；追加 `20261104160000_expression_identity` 迁移，不修改已应用迁移。同时完成正文27.3的采纳存储与启动检查修改，再运行下一步check；生成客户端不执行迁移。
+2. 在 Prisma 模型增加 Expression 的 userId、normalizedMeaning、可空 semanticKey，以及 ExpressionForm.normalizedText、expressionId 索引；追加 `20261104160000_expression_identity` 迁移，不修改已应用迁移。同时完成正文31.3的采纳存储与启动检查修改，再运行下一步check；生成客户端不执行迁移。
 3. 在项目根目录，先对独立校验库运行：
 
 ```bash

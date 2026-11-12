@@ -1,6 +1,6 @@
 # EPP 配套实践代码
 
-本章检出命令为 `git switch part-05/chapter-45`。命令、迁移目录和请求集合沿用项目中的实际文件名。
+第 45 章「先理解 OAuth，再接入 OIDC 外部登录」使用 `git switch part-05/chapter-45`。迁移目录和请求集合请按下面的实际文件名打开。
 
 ## 第四十五章 先理解 OAuth，再接入 OIDC 外部登录
 
