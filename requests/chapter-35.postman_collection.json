@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "EPP Chapter 35 Browser Boundary",
+    "name": "EPP Chapter 40 Browser Boundary",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "description": "仅对独立VERIFY逐项操作；password与csrfToken仅保存在本地，不分享或导出。选择一个空白本地Environment供02写入Token；不要在其他范围设置同名变量。Postman不执行浏览器CORS与SameSite策略。"
   },
