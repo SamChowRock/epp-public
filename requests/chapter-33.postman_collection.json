@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "EPP 第33章 会话与旧数据",
+    "name": "EPP 第38章 会话与旧数据",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "description": "仅对已升级的独立 VERIFY 操作。使用客户端 Cookie jar，不复制令牌到集合。密码变量只存本机；不要导出其值，不运行整个集合。改密后全部会话失效。"
   },

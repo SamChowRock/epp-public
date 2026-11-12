@@ -29,7 +29,7 @@ export const privateResponses: RequestHandler = (_request, response, next) => {
 };
 
 export function sessionBoundary(service: SessionService, config: AppConfig): RequestHandler {
-  // shortcut: per-process limits for the loopback chapter; shared/proxy-aware controls belong to chapter 35.
+  // shortcut: per-process limits for the loopback chapter; chapter 40 covers browser boundaries; chapter 41 covers shared instance quotas.
   const attempts = new Map<string, { until: number; count: number }>();
   return (request: AuthenticatedRequest, response, next) => {
     void (async () => {
