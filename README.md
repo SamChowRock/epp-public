@@ -1,6 +1,6 @@
 # EPP 配套实践代码
 
-本章检出命令为 `git switch part-03/chapter-23`。命令、迁移目录和请求集合沿用项目中的实际文件名。
+第 23 章「Migration：给已有记录增加中文意图」使用 `git switch part-03/chapter-23`。迁移目录和请求集合请按下面的实际文件名打开。
 
 当前对应第三篇第 23 章，代码分支 `part-03/chapter-23`，从 `part-03/chapter-22` 继续。保留原记录追加可空中文意图，创建和读取返回 chineseIntent，并新增 `PATCH /captures/:id` 修改或清空意图。运行前先完成[环境准备](database/chapter-15/README.md)、[表与数据](database/chapter-16/README.md)、[迁移基线](database/chapter-18/README.md)与[持久化接入](database/chapter-19/README.md)，再按[第二十三章说明](database/chapter-20/README.md)应用追加迁移、联调并完成隔离恢复实验。
 
