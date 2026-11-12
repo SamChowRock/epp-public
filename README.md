@@ -1,6 +1,11 @@
-# EPP 配套实践代码
+# 第 42 章 从一封验证邮件建立账号
 
-第 40 章「保护基于浏览器的服务入口」使用 `git switch part-05/chapter-40`。迁移目录和请求集合请按下面的实际文件名打开。
+检出 `git switch part-05/chapter-42`。从旧库升级后，先完成注册、收信、确认和第一次登录。保留 VERIFY 及旧会话供下一章验证密码恢复。
+
+
+## 第42章 从一封验证邮件建立账号
+
+本章分支实现公开注册。按[本章说明](database/chapter-36/README.md)升级非空VERIFY，保留旧用户与密码；用[请求集合](requests/chapter-36.postman_collection.json)和本地Mailpit走完注册、资格检查与邮箱登录。新增Nodemailer 10.3.1、邮箱与意图两表及凭据版本。两个匿名注册动作仍有来源／固定头／JSON／限流保护；旧ID登录保留，已验证邮箱也可登录。发送同步等待，202不保证送达，第六篇继续可靠投递。
 
 ## 第四十章 保护浏览器入口
 
@@ -46,7 +51,7 @@ nvm use
 node --version
 npm ci
 npm run check
-# 先按第三十四章说明核对账号资格迁移，在 .env 配置 DATABASE_URL 和 APP_ORIGIN。
+# 先按第三十六章说明完成迁移，在 .env 配置 DATABASE_URL、APP_ORIGIN和LOCAL_SMTP_PORT。
 npm run dev
 ```
 

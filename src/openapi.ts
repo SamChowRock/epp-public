@@ -1,3 +1,4 @@
+import { RECOVERY_PATHS, RecoveryRequestSchema, RecoveryConfirmSchema, RecoveryAcceptedSchema, RegistrationSchema } from './recovery-contract.js';
 import { CsrfSchema, LoginSchema, ChangePasswordSchema, SessionIdentitySchema, SessionListSchema } from './auth-contract.js';
 import { LearningQuerySchema, StarMapQuerySchema, LearningListSchema, LearningDetailSchema, StarMapSchema } from './learning-contract.js';
 import { z } from 'zod';
@@ -39,13 +40,13 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
   const document: OpenAPIObject = {
     openapi: '3.0.3',
     info: {
-      title: 'EPP Capture API', version: '0.15.0',
+      title: 'EPP Capture API', version: '0.16.0',
       description: 'PostgreSQL records belonging to the authenticated session user. Errors use Problem Details. Capture creation is not idempotent; candidate acceptance supports operation identity.',
     },
     security: [{ sessionCookie: [] }],
     paths: {
       '/auth/login': { post: {
-        operationId: 'login', summary: 'Use an existing user ID and password to create a session', security: [],
+        operationId: 'login', summary: 'Use a verified email or existing user ID and password to create a session', security: [],
         description: 'A new random token is set only in an HttpOnly SameSite=Strict cookie. The database stores its SHA-256 digest. Absolute lifetime 8 hours; maximum 20 sessions per user. Labels are user supplied, not verified device identities. JSON only; no query parameters. Wrong and absent credentials share 401. Public origins require HTTPS. A lost response can leave an unused session; inspect the session list after signing in again.',
         requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/Login' } } } },
         responses: { '200': jsonResponse('SessionIdentity', 'Session created; browser stores Set-Cookie'),
@@ -244,6 +245,8 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
     },
     components: { securitySchemes: { sessionCookie: { type: 'apiKey', in: 'cookie', name: cookieName,
       description: 'Set by login; never paste a token into Swagger. Same-origin browser requests carry the HttpOnly cookie.' } }, schemas: {
+      RecoveryRequest: schema(RecoveryRequestSchema, 'input'), RecoveryConfirm: schema(RecoveryConfirmSchema, 'input'),
+      RecoveryAccepted: schema(RecoveryAcceptedSchema, 'output'), Registration: schema(RegistrationSchema, 'output'),
       Csrf: schema(CsrfSchema, 'output'),
       Login: schema(LoginSchema, 'input'), ChangePassword: schema(ChangePasswordSchema, 'input'),
       SessionIdentity: schema(SessionIdentitySchema, 'output'), SessionList: schema(SessionListSchema, 'output'),
@@ -266,10 +269,24 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
       Problem: schema(ProblemSchema, 'output'),
     } },
   };
+  for (const path of RECOVERY_PATHS) {
+    const request = path.endsWith('/request');
+    document.paths[path] = { post: {
+      operationId: path.slice(1).replaceAll('/', '_'), security: [],
+      summary: request ? 'Request a verification email' : 'Consume a verification token once',
+      description: request ? 'Always the same 202 for existing and absent accounts, cooldown, and unconfirmed SMTP delivery. Both receive local mail when not throttled. 15 minute expiry, one minute address cooldown. No durable delivery guarantee.'
+        : 'An unconsumed registration token creates one account with webEnabled=false; it does not log in.',
+      requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/' + (request ? 'RecoveryRequest' : 'RecoveryConfirm') } } } },
+      responses: { [request ? '202' : '201']: request ? jsonResponse('RecoveryAccepted', 'Request handled; not proof of delivery')
+        : jsonResponse('Registration', 'Verified account created without a session'),
+        '400': problem('Invalid input or VERIFICATION_INVALID; expired, replaced, consumed, wrong purpose or ineligible token'),
+        '429': problem('AUTH_RATE_LIMIT, AUTH_BUSY or DELIVERY_BUSY'), '500': problem('Internal failure; result may be unknown') },
+    } };
+  }
   for (const [pathname, path] of Object.entries(document.paths)) {
     for (const operation of [path.get, path.post, path.patch, path.delete]) {
       if (!operation?.responses) continue;
-      operation.responses['401'] ??= problem('Missing, expired or revoked session; code AUTH_REQUIRED');
+      if (!RECOVERY_PATHS.includes(pathname)) operation.responses['401'] ??= problem('Missing, expired or revoked session; code AUTH_REQUIRED');
       if (!['/auth/logout', '/auth/csrf'].includes(pathname)) {
         operation.responses['403'] = problem('Account disabled or Web access denied; code ACCOUNT_DISABLED or WEB_ACCESS_DENIED. Write requests may also reject the Origin.');
       } else if (pathname === '/auth/logout') {
@@ -278,9 +295,10 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
       if (operation === path.post || operation === path.patch || operation === path.delete) {
         operation.parameters = [...(operation.parameters ?? []),
           { name: 'X-EPP-Request', in: 'header', required: true, schema: { type: 'string', enum: ['1'] } },
-          ...(pathname === '/auth/login' ? [] : [{ name: 'X-CSRF-Token', in: 'header' as const, required: pathname !== '/auth/logout', schema: { type: 'string' }, description: 'From GET /auth/csrf for this session. Logout requires it when a live session exists.' }])];
+          ...(pathname === '/auth/login' || RECOVERY_PATHS.includes(pathname) ? [] : [{ name: 'X-CSRF-Token', in: 'header' as const, required: pathname !== '/auth/logout', schema: { type: 'string' }, description: 'From GET /auth/csrf for this session. Logout requires it when a live session exists.' }])];
         operation.responses['403'] = problem('Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED or WEB_ACCESS_DENIED');
       }
+      if (RECOVERY_PATHS.includes(pathname)) operation.responses['403'] = problem('Origin or explicit request header rejected');
       operation.responses['503'] = problem('Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots.');
       if (operation.responses['429'] && !('$ref' in operation.responses['429'])) {
         operation.responses['429'].headers = { 'Retry-After': { schema: { type: 'string' }, description: 'Seconds for AUTH_RATE_LIMIT only; other limits require their own recovery.' } };

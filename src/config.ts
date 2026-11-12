@@ -5,6 +5,7 @@ import { z } from 'zod';
 
 export const APP_CONFIG = Symbol('APP_CONFIG');
 export type AppConfig = Readonly<{
+  localSmtpPort: number;
   trustedProxyIps: readonly string[];
   cursorKey: string;
   appOrigin: string;
@@ -21,6 +22,7 @@ const DefaultsSchema = z.object({ port: z.number().int().min(1).max(65535) });
 const decimal = (max: number) => z.string().regex(/^[0-9]+$/)
   .transform(Number).pipe(z.number().int().min(1).max(max));
 const EnvironmentSchema = z.object({
+  LOCAL_SMTP_PORT: decimal(65535).default(1025),
   APP_ORIGIN: z.string().optional(),
   TRUST_PROXY_IPS: z.string().optional(),
   CURSOR_HMAC_KEY: z.string().regex(/^[0-9a-f]{64}$/).optional(),
@@ -54,6 +56,7 @@ export function parseConfig(defaults: unknown, env: NodeJS.ProcessEnv): AppConfi
   const trustedProxyIps = value.TRUST_PROXY_IPS === undefined ? [] : value.TRUST_PROXY_IPS.split(',');
   if (trustedProxyIps.length > 10 || trustedProxyIps.some(ip => !isIP(ip))) throw new ConfigError('TRUST_PROXY_IPS');
   return Object.freeze({
+    localSmtpPort: value.LOCAL_SMTP_PORT,
     trustedProxyIps: Object.freeze(trustedProxyIps),
     appOrigin,
     cursorKey: value.CURSOR_HMAC_KEY ?? randomBytes(32).toString('hex'),

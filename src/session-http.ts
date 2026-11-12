@@ -1,3 +1,4 @@
+import { RECOVERY_PATHS } from './recovery-contract.js';
 import { requireCsrf } from './browser-security.js';
 import type { RequestHandler, Response } from 'express';
 import type { AppConfig } from './config.js';
@@ -38,7 +39,7 @@ export function sessionBoundary(service: SessionService, config: AppConfig): Req
         || (request.headers['content-length'] !== undefined && request.headers['content-length'] !== '0'))) {
         throw new HttpError(400, 'DELETE does not accept a body', 'BODY_NOT_ALLOWED');
       }
-      if (path === '/auth/login') return;
+      if (path === '/auth/login' || RECOVERY_PATHS.includes(path ?? '')) return;
       const token = readCookie(request.headers.cookie, sessionCookieName(config));
       const identity = token === undefined ? undefined : await service.authenticate(token);
       if (identity) {

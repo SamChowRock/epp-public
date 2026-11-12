@@ -1,3 +1,4 @@
+import { RECOVERY_PATHS } from './recovery-contract.js';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import type { RequestHandler } from 'express';
 import type { AppConfig } from './config.js';
@@ -44,7 +45,7 @@ export function authRateLimit(): RequestHandler {
   // shortcut: bounded per-process buckets; use a shared atomic store before multiple API instances.
   const attempts = new Map<string, { until: number; count: number }>();
   return (request, response, next) => {
-    if (request.method !== 'POST' || !['/auth/login', '/auth/password'].includes(request.path)) { next(); return; }
+    if (request.method !== 'POST' || !['/auth/login', '/auth/password', ...RECOVERY_PATHS].includes(request.path)) { next(); return; }
     const now = performance.now();
     for (const [key, value] of attempts) if (value.until <= now) attempts.delete(key);
     const key = request.ip ?? request.socket.remoteAddress ?? 'unknown';
