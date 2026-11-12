@@ -1,6 +1,6 @@
 # EPP 配套实践代码
 
-本章检出命令为 `git switch part-02/chapter-11`。命令、迁移目录和请求集合沿用项目中的实际文件名。
+第 11 章「Module 建立清楚的业务边界」使用 `git switch part-02/chapter-11`。迁移目录和请求集合请按下面的实际文件名打开。
 
 当前对应第二篇第 11 章，代码分支 `part-02/chapter-11`，从 `part-02/chapter-10` 继续演进。记录的 Controller、Service 工厂与存储登记移入 CapturesModule，AppModule 导入该模块；只公开 CapturesService，CAPTURE_STORE 保留在模块内部。三个 HTTP 接口、q／limit 规则和 Promise 存储契约继续保持；记录仍只保存在当前进程内存，停止进程后丢失，仅供本机实践。
 
