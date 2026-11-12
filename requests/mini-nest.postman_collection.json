@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "EPP 第七章最小 Nest 实验",
+    "name": "EPP 第八章最小 Nest 实验",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "description": "本机独立实验；逐条手动 Send，不自动重放。挂起请求约两秒后 Cancel；断点暂停时不要用短超时判断服务故障。"
   },
