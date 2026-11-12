@@ -10,9 +10,13 @@
 
 分支 `part-05/chapter-44` 从第43章继续。按[本章说明](database/chapter-37/README.md)在非空VERIFY追加平台身份映射、入口资格与会话channel；旧用户、记录和Web会话保留。用[请求集合](requests/chapter-37.postman_collection.json)观察旧记录归属、两种令牌传输与撤销，真实平台入口在[最小小程序](mini-program/README.md)。本地练习只替换平台交换，不证明真实微信登录；正式应用没有Fake开关或接收OpenID的公开接口。无新增依赖。
 
-## 第四十三章 注册、验证与密码重置
+## 第四十三章 恢复已有账号并撤销旧会话
 
-分支 `part-05/chapter-43` 从第40章继续。按[本章说明](database/chapter-36/README.md)升级非空VERIFY，保留旧用户与密码；用[请求集合](requests/chapter-36.postman_collection.json)和本地Mailpit走完注册、资格检查与密码恢复。新增Nodemailer 10.3.1、邮箱与意图两表及凭据版本。四个匿名动作仍有来源／固定头／JSON／限流保护；旧ID登录保留，已验证邮箱也可登录。发送同步等待，202不保证送达，第六篇继续可靠投递。
+分支 `part-05/chapter-43` 从第 42 章的注册快照继续。使用同一份 VERIFY、已验证邮箱和登录会话，切换到本章代码后核对原会话仍可用，再请求恢复邮件、确认新密码、用旧 Cookie 验证撤销。注册与恢复请求均在[完整集合](requests/chapter-36.postman_collection.json)中，具体步骤见[配套说明](database/chapter-36/README.md)。本章沿用第 42 章的表、迁移和本地 SMTP 适配器。
+
+## 第四十二章 从一封验证邮件建立账号
+
+分支 `part-05/chapter-42` 提供注册的两个公开端点。在隔离副本应用邮箱验证所需的迁移，发送邮件、确认邮箱并选择密码，再通过邮箱登录。已有用户、原凭据和业务记录继续保留。
 
 ## 第四十章 保护浏览器入口
 
@@ -58,7 +62,7 @@ nvm use
 node --version
 npm ci
 npm run check
-# 先按第三十八章说明完成迁移；.env 中 DATABASE_URL 指向已迁移库。
+# 先按第 45 章说明完成迁移；.env 中 DATABASE_URL 指向已迁移库。
 npm run dev
 ```
 
@@ -348,7 +352,7 @@ cp -R dist "$release_dir/dist" &&
 ```bash
 main_dir=$(pwd)
 git clone --single-branch --branch part-01/chapter-07 \
-  https://github.com/SamChowRock/epp-book-code.git ../epp-chapter-06-materials
+  https://github.com/SamChowRock/epp-public.git ../epp-chapter-06-materials
 cd ../epp-chapter-06-materials
 git fetch origin refs/heads/part-01/chapter-06:refs/remotes/origin/part-01/chapter-06
 git worktree add -b practice/chapter-06-source ../epp-chapter-06-source origin/part-01/chapter-06
@@ -715,7 +719,7 @@ node examples/request-context.mjs
 
 ```bash
 git clone --single-branch --branch part-02/chapter-15 \
-  https://github.com/SamChowRock/epp-book-code.git ../epp-chapter-14-materials
+  https://github.com/SamChowRock/epp-public.git ../epp-chapter-14-materials
 ```
 
 克隆成功后继续；失败或目录已存在时先处理原因，不继续下一条。已有练习按下文恢复，不重新应用补丁。
@@ -741,7 +745,7 @@ PORT=3008 LOG_LEVEL=debug npm run dev
 
 从第十五章资料目录导入 [requests/review.postman_collection.json](requests/review.postman_collection.json)，集合默认 baseUrl 为 `http://127.0.0.1:3008`。逐条 Send：普通输入、1200 单元、600 个表情成功；1201 单元、601 个表情及纯空白返回400且不写入。普通输入的首尾空格保留。成功响应 id 手动填入集合 captureId，核对详情、Location 与 X-Request-Id。集合不自动发请求；第十四章基线本身仍允许 1201 单元。
 
-需运行参考时，保留自己的实现，在另一个 worktree 使用 [examples/chapter-15-review.patch](examples/chapter-15-review.patch)：
+需运行参考时，保留自己的实现，在另一个 worktree 使用 [examples/chapter-14-review.patch](examples/chapter-14-review.patch)：
 
 ```bash
 cd "$review_root"
@@ -752,8 +756,8 @@ git worktree add -b practice/chapter-14-reference ../epp-chapter-14-reference or
 
 ```bash
 cd ../epp-chapter-14-reference
-git apply --check "$review_root/examples/chapter-15-review.patch" &&
-git apply "$review_root/examples/chapter-15-review.patch"
+git apply --check "$review_root/examples/chapter-14-review.patch" &&
+git apply "$review_root/examples/chapter-14-review.patch"
 nvm use
 npm ci
 npm run check
