@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "第4章执行实验",
+    "name": "第5章执行实验",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "description": "先按README启动独立实验服务，逐条手动Send。测量时禁用断点；并发对照使用正文终端命令。无凭据、无脚本、不自动重放。"
   },
