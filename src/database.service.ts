@@ -39,6 +39,7 @@ export class DatabaseService {
         await this.client.notificationJob.findMany({ take: 1 });
       }
       if (this.applicationName === 'epp-notifications') {
+        await this.client.$queryRaw`SELECT id, status FROM public.notification_recipients LIMIT 0`;
         this.logger.write('info', 'database.ready');
         return;
       }

@@ -1,0 +1,23 @@
+[Unit]
+Description=EPP api
+After=network.target
+
+[Service]
+Type=exec
+User=epp-api
+Group=epp-api
+StateDirectory=epp72-api
+StateDirectoryMode=0700
+WorkingDirectory=/var/lib/epp72-api
+ExecStart=/opt/epp72/node/bin/node --env-file=/etc/epp72/api.env /opt/epp72/release/dist/src/server.js
+UMask=0077
+ProtectSystem=strict
+ProtectHome=yes
+NoNewPrivileges=yes
+PrivateTmp=yes
+Restart=on-failure
+RestartSec=10s
+TimeoutStopSec=40s
+
+[Install]
+WantedBy=multi-user.target
