@@ -1,4 +1,4 @@
--- First SELECT emitted for the chapter-29 learning list. Subsequent relation reads run separately.
+-- First SELECT emitted for the chapter 33 learning list. Subsequent relation reads run separately.
 -- Use one VERIFY editor. Four rows = limit 3 plus its lookahead.
 PREPARE chapter30_list(uuid, uuid, uuid, bigint, bigint) AS
 SELECT "public"."learning_records"."id", "public"."learning_records"."created_at", "public"."learning_records"."expression_id", "public"."learning_records"."candidate_id" FROM "public"."learning_records"

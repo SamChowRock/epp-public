@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "EPP 第34章 账号资格与资源归属",
+    "name": "EPP 第39章 账号资格与资源归属",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "description": "先按正文升级独立VERIFY。每次只发送一条；账号A/B共享当前Postman Cookie jar，登录B会替换当前Cookie。权限在DBeaver中按已保存用户ID调整，修改后重发同一请求。不要运行整个集合；密码仅留本地，不导出。"
   },
