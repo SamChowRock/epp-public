@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "EPP 第29章 分页与时间",
+    "name": "EPP 第33章 分页与时间",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "description": "本机独立实践。01至11新建演示样本；12以后读取或采纳D。先读本章步骤，不要整组盲跑。游标有30分钟期限，过期重取首页。",
     "_postman_id": "f60a58fa-3caa-4464-90c3-2f75b8f6c124"
