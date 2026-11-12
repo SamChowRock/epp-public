@@ -6,10 +6,12 @@ import { z } from 'zod';
 export const APP_CONFIG = Symbol('APP_CONFIG');
 export type AppConfig = Readonly<{
   localSmtpPort: number;
+  localSmtpHost: string;
   trustedProxyIps: readonly string[];
   cursorKey: string;
   appOrigin: string;
   port: number;
+  listenHost: string;
   mode: 'development' | 'test' | 'production';
   docsEnabled: boolean;
   logLevel: 'debug' | 'info' | 'warn' | 'error';
@@ -21,8 +23,11 @@ export class ConfigError extends Error {
 const DefaultsSchema = z.object({ port: z.number().int().min(1).max(65535) });
 const decimal = (max: number) => z.string().regex(/^[0-9]+$/)
   .transform(Number).pipe(z.number().int().min(1).max(max));
+export const mailHostSchema = z.union([z.hostname(), z.ipv4(), z.ipv6()]).default('127.0.0.1');
 export const mailPortSchema = decimal(65535).default(1025);
 const EnvironmentSchema = z.object({
+  LISTEN_HOST: z.string().refine(host => isIP(host) !== 0).default('127.0.0.1'),
+  LOCAL_SMTP_HOST: mailHostSchema,
   LOCAL_SMTP_PORT: mailPortSchema,
   APP_ORIGIN: z.string().optional(),
   TRUST_PROXY_IPS: z.string().optional(),
@@ -58,9 +63,11 @@ export function parseConfig(defaults: unknown, env: NodeJS.ProcessEnv): AppConfi
   if (trustedProxyIps.length > 10 || trustedProxyIps.some(ip => !isIP(ip))) throw new ConfigError('TRUST_PROXY_IPS');
   return Object.freeze({
     localSmtpPort: value.LOCAL_SMTP_PORT,
+    localSmtpHost: value.LOCAL_SMTP_HOST,
     trustedProxyIps: Object.freeze(trustedProxyIps),
     appOrigin,
     cursorKey: value.CURSOR_HMAC_KEY ?? randomBytes(32).toString('hex'),
+    listenHost: value.LISTEN_HOST,
     port: value.PORT ?? file.data.port,
     mode: value.NODE_ENV,
     docsEnabled: value.DOCS_ENABLED === undefined

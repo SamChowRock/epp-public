@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import type { DynamicModule } from '@nestjs/common';
 import { z } from 'zod';
 import { AppLogger } from './app-logger.js';
-import { ConfigError, mailPortSchema } from './config.js';
+import { ConfigError, mailHostSchema, mailPortSchema } from './config.js';
 import { parseDatabaseConfig } from './database-config.js';
 import { DatabaseService } from './database.service.js';
 import { LocalMailDelivery } from './verification-delivery.js';
@@ -21,7 +21,12 @@ export class MailWorkerModule {
     if (!notifications) {
       const port = mailPortSchema.safeParse(env.LOCAL_SMTP_PORT);
       if (!port.success) throw new ConfigError('LOCAL_SMTP_PORT');
-      mailProviders.push({ provide: LocalMailDelivery, useFactory: () => new LocalMailDelivery({ localSmtpPort: port.data }) });
+      const host = mailHostSchema.safeParse(env.LOCAL_SMTP_HOST);
+      if (!host.success) throw new ConfigError('LOCAL_SMTP_HOST');
+      mailProviders.push({
+        provide: LocalMailDelivery,
+        useFactory: () => new LocalMailDelivery({ localSmtpPort: port.data, localSmtpHost: host.data }),
+      });
     }
     const database = parseDatabaseConfig(env);
     return {

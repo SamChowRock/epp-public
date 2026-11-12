@@ -61,7 +61,7 @@ export async function serve(
     if (stopping) return;
     await app.init();
     if (stopping) return;
-    await app.listen(config.port, '127.0.0.1');
+    await app.listen(config.port, config.listenHost);
     if (!stopping) logger.write('info', 'app.ready', { port: config.port });
   })();
   try { await boot; }
