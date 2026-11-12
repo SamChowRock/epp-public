@@ -1,7 +1,7 @@
 -- Manual experiments, NOT an initialization or migration script.
 -- Select ONE BEGIN + failing statement in psql/DBeaver, observe the error,
 -- then execute its ROLLBACK separately even if the client stopped on error.
--- Use the chapter-16 development schema and seed. No experiment is committed.
+-- Use the chapter 18 development schema and seed. No experiment is committed.
 
 -- 23503: a well-formed UUID does not mean the referenced user exists.
 BEGIN;

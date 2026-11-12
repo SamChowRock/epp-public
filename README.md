@@ -2,7 +2,7 @@
 
 第 22 章「管理连接池、等待与服务关闭」使用 `git switch part-03/chapter-22`。迁移目录和请求集合请按下面的实际文件名打开。
 
-当前对应第三篇第 22 章，代码分支 `part-03/chapter-22`，从 `part-03/chapter-20` 继续。三个接口通过 Prisma 使用 PostgreSQL 中的固定开发用户与已有记录；本章不修改模型和迁移。运行前先完成[环境准备](database/chapter-15/README.md)、[表与数据](database/chapter-16/README.md)及[迁移基线](database/chapter-18/README.md)，再按[第二十二章联调说明](database/chapter-19/README.md)配置运行连接、观察字段与真实时间点、制造连接等待并恢复。
+第 22 章沿用 `part-03/chapter-21` 的数据库实现及已保存的 ID，在同一数据库上观察连接、锁等待、重启与排空。两章共用[联调说明](database/chapter-19/README.md)。环境、原始数据与迁移基线分别见[实例准备](database/chapter-15/README.md)、[表与数据](database/chapter-16/README.md)、[基线登记](database/chapter-18/README.md)。
 
 第十五章的 1200 单元新建限制、旧记录读取兼容与数组存储属于隔离练习，参考补丁和图形请求仍保留在下方“第十五章综合实践”，不作为当前主服务行为。
 
@@ -304,7 +304,7 @@ cp -R dist "$release_dir/dist" &&
 ```bash
 main_dir=$(pwd)
 git clone --single-branch --branch part-01/chapter-07 \
-  https://github.com/SamChowRock/epp-book-code.git ../epp-chapter-06-materials
+  https://github.com/SamChowRock/epp-public.git ../epp-chapter-06-materials
 cd ../epp-chapter-06-materials
 git fetch origin refs/heads/part-01/chapter-06:refs/remotes/origin/part-01/chapter-06
 git worktree add -b practice/chapter-06-source ../epp-chapter-06-source origin/part-01/chapter-06
@@ -671,7 +671,7 @@ node examples/request-context.mjs
 
 ```bash
 git clone --single-branch --branch part-02/chapter-15 \
-  https://github.com/SamChowRock/epp-book-code.git ../epp-chapter-14-materials
+  https://github.com/SamChowRock/epp-public.git ../epp-chapter-14-materials
 ```
 
 克隆成功后继续；失败或目录已存在时先处理原因，不继续下一条。已有练习按下文恢复，不重新应用补丁。
@@ -697,7 +697,7 @@ PORT=3008 LOG_LEVEL=debug npm run dev
 
 从第十五章资料目录导入 [requests/review.postman_collection.json](requests/review.postman_collection.json)，集合默认 baseUrl 为 `http://127.0.0.1:3008`。逐条 Send：普通输入、1200 单元、600 个表情成功；1201 单元、601 个表情及纯空白返回400且不写入。普通输入的首尾空格保留。成功响应 id 手动填入集合 captureId，核对详情、Location 与 X-Request-Id。集合不自动发请求；第十四章基线本身仍允许 1201 单元。
 
-需运行参考时，保留自己的实现，在另一个 worktree 使用 [examples/chapter-15-review.patch](examples/chapter-15-review.patch)：
+需运行参考时，保留自己的实现，在另一个 worktree 使用 [examples/chapter-14-review.patch](examples/chapter-14-review.patch)：
 
 ```bash
 cd "$review_root"
@@ -708,8 +708,8 @@ git worktree add -b practice/chapter-14-reference ../epp-chapter-14-reference or
 
 ```bash
 cd ../epp-chapter-14-reference
-git apply --check "$review_root/examples/chapter-15-review.patch" &&
-git apply "$review_root/examples/chapter-15-review.patch"
+git apply --check "$review_root/examples/chapter-14-review.patch" &&
+git apply "$review_root/examples/chapter-14-review.patch"
 nvm use
 npm ci
 npm run check
