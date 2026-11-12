@@ -1,12 +1,12 @@
-# 第三十六章：注册、验证与密码重置
+# 第四十三章：注册、验证与密码重置
 
-起点 `part-05/chapter-35`，完成分支 `part-05/chapter-36`。新增Nodemailer 10.3.1（自带类型）、已验证邮箱、当前验证意图和凭据版本；旧用户、密码、会话与业务记录保留。邮箱是ASCII全小写产品政策，不删除点号或加号；不支持本地部分区分大小写的邮箱。手机号与真实供应商仅在正文讨论。
+起点 `part-05/chapter-40`，完成分支 `part-05/chapter-43`。新增Nodemailer 10.3.1（自带类型）、已验证邮箱、当前验证意图和凭据版本；旧用户、密码、会话与业务记录保留。邮箱是ASCII全小写产品政策，不删除点号或加号；不支持本地部分区分大小写的邮箱。手机号与真实供应商仅在正文讨论。
 
 ## 迁移与启动
 
-先按第22章备份并独立恢复非空VERIFY，停该库写入并保存旧账号与具体业务记录。核对 `.env.database-verify`，清除旧shell的DATABASE_URL、SHADOW_DATABASE_URL、DB_QUERY_DEBUG覆盖，运行 `npm run db:verify -- migrate status`、`node --env-file=.env.database-verify scripts/deploy-verify.mjs deploy epp_ch36_verify`、`npm run db:verify -- migrate status`。追加迁移只建两表并给旧凭据补version=1，不重置密码，也不为旧用户捏造邮箱。旧ID登录继续可用。DBeaver先运行[安全投影](01-observe.sql)确认当前库与新表。
+先按第25章备份并独立恢复非空VERIFY，停该库写入并保存旧账号与具体业务记录。核对 `.env.database-verify`，清除旧shell的DATABASE_URL、SHADOW_DATABASE_URL、DB_QUERY_DEBUG覆盖，运行 `npm run db:verify -- migrate status`、`node --env-file=.env.database-verify scripts/deploy-verify.mjs deploy epp_ch36_verify`、`npm run db:verify -- migrate status`。追加迁移只建两表并给旧凭据补version=1，不重置密码，也不为旧用户捏造邮箱。旧ID登录继续可用。DBeaver先运行[安全投影](01-observe.sql)确认当前库与新表。
 
-从当前分支初始化专用空库时，先运行 `npm ci`，设置 `.env.database-verify`，清除 shell 的 `DATABASE_URL` 和 `SHADOW_DATABASE_URL` 后运行 `node --env-file=.env.database-verify scripts/deploy-verify.mjs bootstrap epp_ch36_verify`，最后运行 `npm run db:verify -- migrate status`。命令末尾都换成建库或恢复时确定的库名。脚本在实际连接查询 current_database()，一致才部署。bootstrap 先复制第 35 章迁移原件建立基线，再部署当前完整目录；已有前章历史用 deploy。非空副本另做旧数据对照。
+从当前分支初始化专用空库时，先运行 `npm ci`，设置 `.env.database-verify`，清除 shell 的 `DATABASE_URL` 和 `SHADOW_DATABASE_URL` 后运行 `node --env-file=.env.database-verify scripts/deploy-verify.mjs bootstrap epp_ch36_verify`，最后运行 `npm run db:verify -- migrate status`。命令末尾都换成建库或恢复时确定的库名。脚本在实际连接查询 current_database()，一致才部署。bootstrap 先复制第 40 章迁移原件建立基线，再部署当前完整目录；已有前章历史用 deploy。非空副本另做旧数据对照。
 
 Node24.22.1下 `npm ci`、`npm run check`。Mailpit 1.33.0从[官方发行](https://github.com/axllent/mailpit/releases/tag/v1.33.0)下载对应macOS架构，解压后在工具目录前台运行：
 

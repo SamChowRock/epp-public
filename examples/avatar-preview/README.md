@@ -1,6 +1,6 @@
-# 第 50 章　安全地接收和处理头像
+# 第 59 章　安全地接收和处理头像
 
-在代码仓库根目录运行本章命令。沿用第 49 章已完成迁移的独立 VERIFY，记下实际库名及一个已开通 Web 的账号。新建空库时按[第 49 章的 bootstrap、注册与开通步骤](../../database/chapter-49/README.md)准备一个账号。第 50 章无新增迁移。
+在代码仓库根目录运行本章命令。沿用第 58 章已完成迁移的独立 VERIFY，记下实际库名及一个已开通 Web 的账号。新建空库时按[第 58 章的 bootstrap、注册与开通步骤](../../database/chapter-49/README.md)准备一个账号。第 59 章无新增迁移。
 
 ```bash
 nvm use
@@ -8,11 +8,11 @@ npm ci
 npm run check
 ```
 
-按[同一 VERIFY 的 API 启动命令](../../database/chapter-49/README.md#准备隔离库和-api)运行开发入口，核对命令末尾的预期库名。使用当前分支的锁文件安装 Sharp 及与本机平台相符的可选原生依赖。生产方式在独立运行目录复制 dist、package.json、package-lock.json 与 .npmrc，执行 `npm ci --omit=dev` 后按第 49 章提供数据库、Origin、HMAC 及邮件配置并运行 `npm start`。API 的工作目录应由本进程使用、可写，以便在其中管理 .avatar-tmp。把运行目录移到另一平台时，需在目标平台重新安装依赖。
+按[同一 VERIFY 的 API 启动命令](../../database/chapter-49/README.md#准备隔离库和-api)运行开发入口，核对命令末尾的预期库名。使用当前分支的锁文件安装 Sharp 及与本机平台相符的可选原生依赖。生产方式在独立运行目录复制 dist、package.json、package-lock.json 与 .npmrc，执行 `npm ci --omit=dev` 后按第 58 章提供数据库、Origin、HMAC 及邮件配置并运行 `npm start`。API 的工作目录应由本进程使用、可写，以便在其中管理 .avatar-tmp。把运行目录移到另一平台时，需在目标平台重新安装依赖。
 
 ## 用一张灯塔图查看裁切
 
-导入[第 50 章集合](../../requests/chapter-50.postman_collection.json)，核对 baseUrl。用本地环境填写本轮账号的 email、password。按 05 登录、20 查看本人资料，再发 15 保存当前 Cookie 对应的 csrfToken。仅有旧用户 ID 的账号，按第 49 章改用 05 的本地副本登录。24 沿用这个 Cookie、固定头和写入令牌；另开会话或切换账号之后重发 15。
+导入[第 59 章集合](../../requests/chapter-50.postman_collection.json)，核对 baseUrl。用本地环境填写本轮账号的 email、password。按 05 登录、20 查看本人资料，再发 15 保存当前 Cookie 对应的 csrfToken。仅有旧用户 ID 的账号，按第 58 章改用 05 的本地副本登录。24 沿用这个 Cookie、固定头和写入令牌；另开会话或切换账号之后重发 15。
 
 单发 24。进入 Body → binary，选择本机的 [harbor.png](harbor.png)，检查 Headers 中 Content-Type 为 image/png。Postman 显示文件找不到时，重新选择本地文件。收到 200 后查看响应类型 image/webp 和预览图，核对中央灯塔及左右两侧裁掉的太阳和帆船。复制 24 做格式对照。保留 image/png，把文件换成 [harbor.jpg](harbor.jpg)，查看 415 响应与 AVATAR_FORMAT；副本继承的成功断言此时会标红。把头改成 image/jpeg 再发，200 和预览断言都应恢复。重新发送 20，与刚才读取的本人资料逐字段比较。01～23 与前章相同，19 是需要手动取消的长连接。以上步骤均逐项单发。
 
@@ -50,4 +50,4 @@ unset avatar_password AVATAR_EMAIL AVATAR_USER_ID AVATAR_BASE_URL
 unset -f avatar_upload
 ```
 
-完整回归按[第 49 章的独立测试库与固定用户步骤](../../database/chapter-49/README.md)准备；使用第 50 章分支重新构建后执行该命令中的全部 test/*.test.mjs。联调和回归分别指定库名与配置文件。
+完整回归按[第 58 章的独立测试库与固定用户步骤](../../database/chapter-49/README.md)准备；使用第 59 章分支重新构建后执行该命令中的全部 test/*.test.mjs。联调和回归分别指定库名与配置文件。
