@@ -295,7 +295,7 @@ cp -R dist "$release_dir/dist" &&
 ```bash
 main_dir=$(pwd)
 git clone --single-branch --branch part-01/chapter-07 \
-  https://github.com/SamChowRock/epp-book-code.git ../epp-chapter-06-materials
+  https://github.com/SamChowRock/epp-public.git ../epp-chapter-06-materials
 cd ../epp-chapter-06-materials
 git fetch origin refs/heads/part-01/chapter-06:refs/remotes/origin/part-01/chapter-06
 git worktree add -b practice/chapter-06-source ../epp-chapter-06-source origin/part-01/chapter-06
