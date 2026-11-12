@@ -5,7 +5,7 @@
 需要直接运行参考时，保留原项目，另取资料目录。每条命令成功后才继续；目录已存在时保留并恢复已有进度，或为新一轮另选目录名。
 
 ```bash
-git clone --single-branch --branch part-02/chapter-14 https://github.com/SamChowRock/epp-book-code.git ../epp-chapter-13-materials
+git clone --single-branch --branch part-02/chapter-14 https://github.com/SamChowRock/epp-public.git ../epp-chapter-13-materials
 cd ../epp-chapter-13-materials
 stage_materials=$(pwd)
 git fetch origin refs/heads/part-02/chapter-13:refs/remotes/origin/part-02/chapter-13

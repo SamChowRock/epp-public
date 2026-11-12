@@ -50,7 +50,7 @@ pg_restore -h 127.0.0.1 -p 55432 -U epp_owner -W \
 
 ```bash
 git clone --single-branch --branch part-03/chapter-24 \
-  https://github.com/SamChowRock/epp-book-code.git ../epp-ch21-replay
+  https://github.com/SamChowRock/epp-public.git ../epp-ch21-replay
 cd ../epp-ch21-replay
 nvm use
 npm ci
