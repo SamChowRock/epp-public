@@ -2,7 +2,7 @@
   "info": {
     "name": "EPP 本机接口调试",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "第二章起通用的手动调试请求。先 npm run dev，再逐条 Send；不需要 Runner 或脚本。无凭据，不自动传递 id。第八章起可在列表 Params 中添加 q、limit，第十一章可使用 Swagger /docs 对照契约。"
+    "description": "第三章起通用的手动调试请求。先 npm run dev，再逐条 Send；不需要 Runner 或脚本。无凭据，不自动传递 id。第九章起可在列表 Params 中添加 q、limit，第十二章可使用 Swagger /docs 对照契约。"
   },
   "variable": [
     {

@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "EPP 第26章 幂等与审计",
+    "name": "EPP 第29章 幂等与审计",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "description": "按01～04准备样本；03成功后仅生成并保存一次operationId，05和06必须保留它。不要为了重试重发03或把动态guid放到采纳Body。无自动重发。响应丢失实验：新样本完成01～04后，把baseUrl改为3010，发送05两次，再改回3000。"
   },
