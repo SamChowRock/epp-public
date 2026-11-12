@@ -1,6 +1,6 @@
-# 第 54 章　构建与持续集成
+# 第 64 章　构建与持续集成
 
-起点是第 53 章，沿用原迁移、API、两个 Worker 角色和管理 CLI。构建使用 .nvmrc 中的 Node 24.22.1 和随附 npm。以下命令在项目根目录运行。第一次安装需要取得锁文件列出的包以及本机所需的原生组件。
+起点是第 63 章，沿用原迁移、API、两个 Worker 角色和管理 CLI。构建使用 .nvmrc 中的 Node 24.22.1 和随附 npm。以下命令在项目根目录运行。第一次安装需要取得锁文件列出的包以及本机所需的原生组件。
 
 ```bash
 nvm use
@@ -28,13 +28,13 @@ node --env-file=.env.delivery --input-type=module -e '
 
 [交付脚本](../../scripts/check-delivery.sh)在临时目录复制 dist、清单、锁文件和 .npmrc，执行 npm ci --omit=dev。本轮的[运行检查](../../scripts/check-runtime.mjs)只向各角色传入所需配置；本机邮件和头像服务在这个空队列实验中无需启动。API 应打印 app.ready 后正常退出，邮件与 notifications 角色分别出现 worker.ready，CLI 预览固定练习账号后数据库仍为 true。临时目录随脚本退出清理；数据库保留。已有业务库和已做过这轮练习的库都不能作为下一次 bootstrap 的目标。若安装、迁移或运行中途失败，先保留第一处报错；public 已有结构时，修复后另建空库再跑完整交付。
 
-专用交付库已经有固定用户。要在本轮专用库接着跑已有回归，沿用第 49 章的 .env.test-regression，将 TEST_DATABASE_URL 填为此次交付库的连接，在源码根目录执行以下命令。保留旧资料的 VERIFY 用于联调与查收据。
+专用交付库已经有固定用户。要在本轮专用库接着跑已有回归，沿用第 58 章的 .env.test-regression，将 TEST_DATABASE_URL 填为此次交付库的连接，在源码根目录执行以下命令。保留旧资料的 VERIFY 用于联调与查收据。
 
 ```bash
 unset DATABASE_URL TEST_DATABASE_URL DB_QUERY_DEBUG DOCS_ENABLED
 NODE_ENV=test node --env-file=.env.test-regression --test --test-concurrency=1 test/*.test.mjs
 ```
 
-实际交付保留第 53 章运行配置、业务数据库与原来的角色入口。CLI 对旧收据仍可按原库名、用户和操作 ID 执行 receipt。若需要接口联调，开发 API 和[第 51 章 Postman 集合](../../requests/chapter-51.postman_collection.json)沿用；[账号操作](../chapter-53/README.md)仍应在独立练习库进行。
+实际交付保留第 63 章运行配置、业务数据库与原来的角色入口。CLI 对旧收据仍可按原库名、用户和操作 ID 执行 receipt。若需要接口联调，开发 API 和[第 60 章 Postman 集合](../../requests/chapter-51.postman_collection.json)沿用；[账号操作](../chapter-53/README.md)仍应在独立练习库进行。
 
 [GitHub Actions 工作流](../../.github/workflows/build.yml)在 Ubuntu 托管 runner 上按相同顺序运行，PostgreSQL 服务跟随 job 建立与销毁。在自己的 GitHub 仓库启用 Actions 并提交到一个练习分支，打开该次提交的 Checks，展开第一个失败步骤；修正后应查看新提交对应的运行。单机跟做可以直接使用上面的命令。
