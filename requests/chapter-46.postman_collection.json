@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "EPP Chapter 46 Notification Inbox",
+    "name": "EPP Chapter 55 Notification Inbox",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "description": "Local VERIFY only. Use 01/02, grant access, 05; 06/07, then 10. Run 13–18 individually after starting the notification worker. Use an unsynced local environment."
   },

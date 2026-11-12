@@ -1,8 +1,8 @@
-# 第二十二章：把已有记录接到 HTTP
+# 第21～22章 旧记录接入与连接资源
 
-从 `part-03/chapter-20` 继续，完成代码分支为 `part-03/chapter-22`。先完成基线登记，保留 `epp_dev` 的开发用户与原文；本章不改 Schema／迁移，也不重跑 seed。三个接口改用 PostgreSQL，使用固定开发用户，尚无登录，不用于开放多用户服务。
+第 21 章从 `part-03/chapter-20` 的原记录继续，完成快照为 `part-03/chapter-21`。第 22 章沿用相同的数据库实现，在 `part-03/chapter-22` 观察连接等待及关闭。先完成基线登记，保留 `epp_dev` 的开发用户与原文；本章不改 Schema／迁移，也不重跑 seed。三个接口改用 PostgreSQL，使用固定开发用户，尚无登录，不用于开放多用户服务。
 
-## 日常入口
+## 第21章　读取原有记录，再验证写入
 
 1. 在 DBeaver 日常连接运行 `01-inspect-api-data.sql` 的身份与列表部分，确认 `127.0.0.1:55432 / epp_dev / epp_owner` 和前章原文。
 2. 使用 Node 24.22.1，`npm ci`、`npm run check`。按根目录 `.env.example` 补齐已有 `.env`，保留自己的其他配置；填写已编码密码的 DATABASE_URL。API 不加载 `.env.database`。不要打印或提交 URL。
@@ -20,7 +20,7 @@ Prisma Client、CLI、adapter-pg 固定 7.10.1；pg 为 8.16.3，@types/pg 为 8
 - 非规范小写 UUID 的详情路径仍为 404；合法但不存在或不属于固定用户也为 404。数据库故障不转成空列表／404。
 - 临时连接／容量／超时失败返回 503/STORAGE_UNAVAILABLE；结构错误及当前不应发生的约束失败返回 500/INTERNAL_ERROR。POST 的失败响应不证明没写入，不自动重试。
 
-## 图形排错
+## 第22章　定位查询、连接与等待
 
 `DB_QUERY_DEBUG=true` 仅允许明确的 development 模式。重启 dev，在 `database.service.ts` 的 query 回调处打断点，使用虚构输入检查 event.query、event.params、event.duration。日志仅写耗时；不打印 SQL／参数。把查询意图带回 `01-inspect-api-data.sql` 的 PREPARE／EXECUTE，对比输入、类型、排序与结果。结束后设回 false 并重启。
 
