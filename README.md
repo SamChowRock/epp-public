@@ -1,6 +1,6 @@
 # EPP 配套实践代码
 
-本章检出命令为 `git switch part-02/chapter-13`。命令、迁移目录和请求集合沿用项目中的实际文件名。
+第 13 章「请求经过 Nest 时发生了什么」使用 `git switch part-02/chapter-13`。迁移目录和请求集合请按下面的实际文件名打开。
 
 当前对应第二篇第 13 章，代码分支 `part-02/chapter-13`，从 `part-02/chapter-12` 继续演进。输入校验由 Pipe 执行，公开响应由 Interceptor 按 Schema 投影与检查，错误统一交给 ProblemFilter。三个业务接口、成功字段、查询规则与 Problem 契约保持；`/docs` 和 `/openapi.json` 在开发模式默认可用。记录仍只保存在当前进程的内存，停止进程后丢失，仅供本机实践。
 
