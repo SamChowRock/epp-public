@@ -1,6 +1,6 @@
 # EPP 配套实践代码
 
-本章检出命令为 `git switch part-02/chapter-14`。命令、迁移目录和请求集合沿用项目中的实际文件名。
+第 14 章「配置与生命周期：让应用可靠地启动和退出」使用 `git switch part-02/chapter-14`。迁移目录和请求集合请按下面的实际文件名打开。
 
 当前对应第二篇第 14 章，代码分支 `part-02/chapter-14`，从 `part-02/chapter-13` 继续演进。集中解析启动配置，提供结构化日志与服务端 X-Request-Id；SIGINT/SIGTERM 先停止接收，再等待已有工作并释放资源。三个业务接口、成功字段与 Problem 契约保持，关闭期间明确拒绝的新请求使用 503／SERVICE_DRAINING。Swagger 开发默认开启，生产默认关闭。数据仍只在 Map 中，退出会丢失，仅供本机实践。
 
