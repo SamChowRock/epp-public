@@ -1,6 +1,6 @@
 # EPP 配套实践代码
 
-本章检出命令为 `git switch part-03/chapter-20`。命令、迁移目录和请求集合沿用项目中的实际文件名。
+第 20 章「Prisma：将已有表纳入 Schema 与迁移管理」使用 `git switch part-03/chapter-20`。迁移目录和请求集合请按下面的实际文件名打开。
 
 当前对应第三篇第 20 章，代码分支 `part-03/chapter-20`，从 `part-03/chapter-19` 继续。主服务仍是第十四章的接口、2000 单元创建规则与 Map 存储；环境准备见 [database/chapter-15](database/chapter-15/README.md)，已有表与开发数据见 [database/chapter-16](database/chapter-16/README.md)，SQL 实验见 [database/chapter-17](database/chapter-17/README.md)。本章 [Prisma 模型与迁移基线](database/chapter-18/README.md)固定使用 Prisma 7.10.1，通过 DBeaver 核对结构与数据，先在独立空库重放，再登记日常库基线；第二十二章才替换 Nest 存储。配套设计实验另对照映射改名、物理列操作与索引漂移，帮助判断差异应恢复还是纳入演进。
 
