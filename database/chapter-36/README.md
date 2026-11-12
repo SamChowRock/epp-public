@@ -1,8 +1,10 @@
-# 第四十三章：注册、验证与密码重置
+# 第42～43章 注册验证与已有账号恢复
 
-起点 `part-05/chapter-40`，完成分支 `part-05/chapter-43`。新增Nodemailer 10.3.1（自带类型）、已验证邮箱、当前验证意图和凭据版本；旧用户、密码、会话与业务记录保留。邮箱是ASCII全小写产品政策，不删除点号或加号；不支持本地部分区分大小写的邮箱。手机号与真实供应商仅在正文讨论。
+第 42 章的注册分支是 `part-05/chapter-42`，第 43 章的恢复分支是 `part-05/chapter-43`。第 42 章新增Nodemailer 10.3.1（自带类型）、已验证邮箱、当前验证意图和凭据版本；旧用户、密码、会话与业务记录保留。邮箱是ASCII全小写产品政策，不删除点号或加号；不支持本地部分区分大小写的邮箱。手机号与真实供应商仅在正文讨论。
 
 ## 迁移与启动
+
+已经完成第 42 章时，沿用同一份 VERIFY。在 DBeaver 核对库名、已验证邮箱和用户 ID，确认迁移状态后直接启动第 43 章程序。下段供首次从注册前的旧库升级使用。
 
 先按第25章备份并独立恢复非空VERIFY，停该库写入并保存旧账号与具体业务记录。核对 `.env.database-verify`，清除旧shell的DATABASE_URL、SHADOW_DATABASE_URL、DB_QUERY_DEBUG覆盖，运行 `npm run db:verify -- migrate status`、`node --env-file=.env.database-verify scripts/deploy-verify.mjs deploy epp_ch36_verify`、`npm run db:verify -- migrate status`。追加迁移只建两表并给旧凭据补version=1，不重置密码，也不为旧用户捏造邮箱。旧ID登录继续可用。DBeaver先运行[安全投影](01-observe.sql)确认当前库与新表。
 
@@ -37,6 +39,8 @@ await import("./scripts/dev.mjs");
 沿用自动编译、重启及127.0.0.1 Inspector。新增入口与旧业务一起受来源、固定请求头、JSON／字节限制保护；这四个匿名动作不依赖Cookie／CSRF，但已有主动改密仍需要会话证明。每IP每分钟10次POST与登录共用，密码计算共用两名额，签发／投递另有两名额，同一用途／地址60秒冷却。
 
 ## 逐项操作
+
+已在第 42 章完成注册和开通时，保留旧账号，不再发送 01～04。先用 05 建立会话，再做 06～11 的恢复实验。
 
 导入[Postman集合](../../requests/chapter-36.postman_collection.json)，逐条发送，不用Runner。秘密只放未同步的本地Environment，集合内默认留空；不要分享或导出填过的令牌／密码。两份不同密码满足原策略。已有reader36@example.test时先查归属，新建练习换另一虚构地址并同步SQL筛选。
 

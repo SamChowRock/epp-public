@@ -1,4 +1,4 @@
--- 迁移前执行。正常章节26历史：每个表达恰好一个形式、一个归属用户。
+-- 迁移前执行。正常第29章的历史：每个表达恰好一个形式、一个归属用户。
 SELECT e.id,
   (SELECT count(*) FROM public.expression_forms f WHERE f.expression_id=e.id) AS forms,
   (SELECT count(DISTINCT l.user_id) FROM public.learning_records l WHERE l.expression_id=e.id) AS owners

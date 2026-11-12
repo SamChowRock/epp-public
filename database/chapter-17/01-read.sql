@@ -1,4 +1,4 @@
--- Read-only. Keep the chapter-16 schema and fixtures.
+-- Read-only. Keep the chapter 18 schema and fixtures.
 SELECT current_database(), current_user, inet_server_addr(), inet_server_port(),
        pg_backend_pid(), current_setting('transaction_isolation');
 

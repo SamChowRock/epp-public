@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "EPP Chapter 47 Inbox Stream",
+    "name": "EPP Chapter 56 Inbox Stream",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "description": "Use the numbered requests individually on local VERIFY. 19 opens an authenticated event stream. Use Cancel to close it before your next experiment."
   },
