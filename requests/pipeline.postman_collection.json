@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "EPP 第十二章请求顺序实验",
+    "name": "EPP 第十三章请求顺序实验",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "description": "先停止主线 dev，运行 npm run dev:pipeline。逐条 Send，结合终端和断点观察。演示头仅控制实验分支，不是身份认证。"
   },
