@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "EPP Chapter 43 Mail Worker",
+    "name": "EPP Chapter 51 Mail Worker",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "description": "VERIFY only. Run steps individually. Start the worker after 01. Use 12 with the existing Cookie before and after delivery of the reset email, then use 08 after 07. Match the registered user ID. Keep passwords and tokens in a local unsynced environment."
   },
