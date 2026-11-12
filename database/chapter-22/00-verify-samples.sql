@@ -1,4 +1,4 @@
--- Only in the independent VERIFY database, after chapter 21 and before chapter 22.
+-- Only in the independent VERIFY database, after chapter 24 and before chapter 25.
 -- Run the identity query separately and confirm the connection before continuing.
 SELECT current_database(), current_user, inet_server_addr(), inet_server_port();
 

@@ -26,7 +26,7 @@ nvm use
 node --version
 npm ci
 npm run check
-# 先按第三十章说明核对索引迁移，并在 .env 配置运行连接，再启动。
+# 先按第 35 章说明核对索引迁移，并在 .env 配置运行连接，再启动。
 npm run dev
 ```
 
@@ -314,7 +314,7 @@ cp -R dist "$release_dir/dist" &&
 ```bash
 main_dir=$(pwd)
 git clone --single-branch --branch part-01/chapter-07 \
-  https://github.com/SamChowRock/epp-book-code.git ../epp-chapter-06-materials
+  https://github.com/SamChowRock/epp-public.git ../epp-chapter-06-materials
 cd ../epp-chapter-06-materials
 git fetch origin refs/heads/part-01/chapter-06:refs/remotes/origin/part-01/chapter-06
 git worktree add -b practice/chapter-06-source ../epp-chapter-06-source origin/part-01/chapter-06
@@ -681,7 +681,7 @@ node examples/request-context.mjs
 
 ```bash
 git clone --single-branch --branch part-02/chapter-15 \
-  https://github.com/SamChowRock/epp-book-code.git ../epp-chapter-14-materials
+  https://github.com/SamChowRock/epp-public.git ../epp-chapter-14-materials
 ```
 
 克隆成功后继续；失败或目录已存在时先处理原因，不继续下一条。已有练习按下文恢复，不重新应用补丁。
@@ -707,7 +707,7 @@ PORT=3008 LOG_LEVEL=debug npm run dev
 
 从第十五章资料目录导入 [requests/review.postman_collection.json](requests/review.postman_collection.json)，集合默认 baseUrl 为 `http://127.0.0.1:3008`。逐条 Send：普通输入、1200 单元、600 个表情成功；1201 单元、601 个表情及纯空白返回400且不写入。普通输入的首尾空格保留。成功响应 id 手动填入集合 captureId，核对详情、Location 与 X-Request-Id。集合不自动发请求；第十四章基线本身仍允许 1201 单元。
 
-需运行参考时，保留自己的实现，在另一个 worktree 使用 [examples/chapter-15-review.patch](examples/chapter-15-review.patch)：
+需运行参考时，保留自己的实现，在另一个 worktree 使用 [examples/chapter-14-review.patch](examples/chapter-14-review.patch)：
 
 ```bash
 cd "$review_root"
@@ -718,8 +718,8 @@ git worktree add -b practice/chapter-14-reference ../epp-chapter-14-reference or
 
 ```bash
 cd ../epp-chapter-14-reference
-git apply --check "$review_root/examples/chapter-15-review.patch" &&
-git apply "$review_root/examples/chapter-15-review.patch"
+git apply --check "$review_root/examples/chapter-14-review.patch" &&
+git apply "$review_root/examples/chapter-14-review.patch"
 nvm use
 npm ci
 npm run check
