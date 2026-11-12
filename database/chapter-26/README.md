@@ -1,6 +1,6 @@
-# 第二十六章 幂等与审计
+# 第二十九章 幂等与审计
 
-从 `part-04/chapter-25` 继续到 `part-04/chapter-26`。沿用Node 24.22.1、Prisma 7.10.1、PostgreSQL 18、本机DEV／VERIFY／SHADOW与固定开发用户；本章只给采纳接口增加操作身份，不改变原文创建、候选创建、追加修订或放弃的重试语义。
+从 `part-04/chapter-28` 继续到 `part-04/chapter-29`。沿用Node 24.22.1、Prisma 7.10.1、PostgreSQL 18、本机DEV／VERIFY／SHADOW与固定开发用户；本章只给采纳接口增加操作身份，不改变原文创建、候选创建、追加修订或放弃的重试语义。
 
 ## 升级与旧数据
 
@@ -20,9 +20,9 @@ npm run check
 npm run dev
 ```
 
-从前章自行编码时按第18章create-only步骤生成迁移，审查后再首次应用；成品分支直接使用 `20261104120000_command_receipts`。迁移包含事务和锁／语句超时，不改旧迁移。失败先检查真实结构和_prisma_migrations，确认整笔回滚并修复首因，才resolve --rolled-back这个迁移并重新deploy，不能用reset清空旧数据。启动检查读取新列并核对指定复合主键；缺失时不就绪。
+从前章自行编码时按第20章create-only步骤生成迁移，审查后再首次应用；成品分支直接使用 `20261104120000_command_receipts`。迁移包含事务和锁／语句超时，不改旧迁移。失败先检查真实结构和_prisma_migrations，确认整笔回滚并修复首因，才resolve --rolled-back这个迁移并重新deploy，不能用reset清空旧数据。启动检查读取新列并核对指定复合主键；缺失时不就绪。
 
-采纳Body从 `{}` 改为 `{"operationId":"小写UUID"}`；旧请求返回400。接口响应结构仍为Acceptance，首次与重放都201，字段值相同，JSON键顺序及HTTP requestId等传输信息不承诺相同。恢复第25章程序虽然仍能操作原表，却会绕开回执，不是保留幂等承诺的安全回退；应保留新契约修复版本或停写排错。
+采纳Body从 `{}` 改为 `{"operationId":"小写UUID"}`；旧请求返回400。接口响应结构仍为Acceptance，首次与重放都201，字段值相同，JSON键顺序及HTTP requestId等传输信息不承诺相同。恢复第28章程序虽然仍能操作原表，却会绕开回执，不是保留幂等承诺的安全回退；应保留新契约修复版本或停写排错。
 
 ## Postman与数据库对照
 

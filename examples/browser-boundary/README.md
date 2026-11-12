@@ -1,6 +1,6 @@
-# 第35章浏览器入口实验
+# 第40章浏览器入口实验
 
-从第34章已迁移的非空VERIFY继续，无新迁移，不初始化或覆盖已有密码。测试连接与日常DEV分开。主服务入口变化：所有POST/PATCH/DELETE带`X-EPP-Request: 1`；有效会话的写请求还要带`GET /auth/csrf`取得的`X-CSRF-Token`。登录尚无新会话，不要求Token；无有效会话的重复退出也不要求Token。
+从第39章已迁移的非空VERIFY继续，无新迁移，不初始化或覆盖已有密码。测试连接与日常DEV分开。主服务入口变化：所有POST/PATCH/DELETE带`X-EPP-Request: 1`；有效会话的写请求还要带`GET /auth/csrf`取得的`X-CSRF-Token`。登录尚无新会话，不要求Token；无有效会话的重复退出也不要求Token。
 
 先`npm run check`。在交互式zsh中读取已确认的独立测试连接，不打印值：
 

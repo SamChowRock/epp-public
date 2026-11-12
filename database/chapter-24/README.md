@@ -1,6 +1,6 @@
-# 第二十四章 事务与采纳
+# 第二十七章 事务与采纳
 
-从 `part-04/chapter-23` 继续，完成分支 `part-04/chapter-24`。Node 24.22.1、Prisma 7.10.1、PostgreSQL 18及DEV／VERIFY／SHADOW配置沿用前章。采纳确认具体candidateId，允许历史修订；不接受本次请求替换内容，不调用模型。
+从 `part-04/chapter-26` 继续，完成分支 `part-04/chapter-27`。Node 24.22.1、Prisma 7.10.1、PostgreSQL 18及DEV／VERIFY／SHADOW配置沿用前章。采纳确认具体candidateId，允许历史修订；不接受本次请求替换内容，不调用模型。
 
 ## 迁移与启动
 
@@ -42,6 +42,6 @@ VS Code连接npm run dev的本机Inspector，在PrismaCandidateStore.accept的le
 
 ## 独立产物
 
-沿用第十九章：构建dist，复制dist、package.json、package-lock.json和.npmrc到独立目录，`npm ci --omit=dev`，运行环境提供DATABASE_URL后 `npm start`。不复制开发.env，不开Inspector或监听，docs默认404。先迁移再启动，缺新表／列拒绝就绪。重启后按同一revisionId核对accepted及关联事实。
+沿用第二十二章：构建dist，复制dist、package.json、package-lock.json和.npmrc到独立目录，`npm ci --omit=dev`，运行环境提供DATABASE_URL后 `npm start`。不复制开发.env，不开Inspector或监听，docs默认404。先迁移再启动，缺新表／列拒绝就绪。重启后按同一revisionId核对accepted及关联事实。
 
-出现accepted行后，23章旧输出Schema不能识别它，直接回退可能导致列表500。保留数据库事实，修复前进或准备兼容读取、关闭新写入的恢复版本；不改回pending、不删除采纳数据、不重写迁移。中断前结束SQL事务并保存相关ID，下次先GET。
+出现accepted行后，26章旧输出Schema不能识别它，直接回退可能导致列表500。保留数据库事实，修复前进或准备兼容读取、关闭新写入的恢复版本；不改回pending、不删除采纳数据、不重写迁移。中断前结束SQL事务并保存相关ID，下次先GET。
