@@ -1,6 +1,6 @@
 # EPP 配套实践代码
 
-本章检出命令为 `git switch part-03/chapter-17`。命令、迁移目录和请求集合沿用项目中的实际文件名。
+第 17 章「PostgreSQL 运行环境：安装、连接与实例管理」使用 `git switch part-03/chapter-17`。迁移目录和请求集合请按下面的实际文件名打开。
 
 当前对应第三篇第 17 章，代码分支 `part-03/chapter-17`，从 `part-02/chapter-15` 的主线继续。主服务仍是第十四章的接口、2000 单元创建规则与 Map 存储；新增的 PostgreSQL 环境准备、psql 文件与共用诊断 SQL 见 [database/chapter-15](database/chapter-15/README.md)。本章先建立独立数据库环境，第十八章建业务表，第二十二章才替换 Nest 存储。
 
