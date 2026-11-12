@@ -1,81 +1,59 @@
 # EPP 配套实践代码
 
-选择正在阅读的章节，打开该章代码。每个分支首页的 README 提供本章的运行步骤。
+从下表选取正在跟做的章节。检出分支后，按该版本的 README 安装、启动和验证。迁移目录、集合与实验文件的名称沿用项目内的实际路径。
 
-## 第一篇
-
-- [第 2 章　原生 Node.js HTTP 服务](https://github.com/SamChowRock/epp-public/tree/part-01/chapter-02)
-- [第 3 章　端口配置与运行环境](https://github.com/SamChowRock/epp-public/tree/part-01/chapter-03)
-- [第 4 章　事件循环、线程池与 Worker](https://github.com/SamChowRock/epp-public/tree/part-01/chapter-04)
-- [第 5 章　用 TypeScript 构建和运行服务](https://github.com/SamChowRock/epp-public/tree/part-01/chapter-05)
-- [第 6 章　来源标签练习](https://github.com/SamChowRock/epp-public/tree/part-01/chapter-06)
-
-## 第二篇
-
-- [第 7 章　将 HTTP 接口迁入 Nest](https://github.com/SamChowRock/epp-public/tree/part-02/chapter-07)
-- [第 8 章　路由参数与列表查询](https://github.com/SamChowRock/epp-public/tree/part-02/chapter-08)
-- [第 9 章　依赖注入与内存存储](https://github.com/SamChowRock/epp-public/tree/part-02/chapter-09)
-- [第 10 章　用模块组织记录业务](https://github.com/SamChowRock/epp-public/tree/part-02/chapter-10)
-- [第 11 章　输入校验、错误响应与 OpenAPI](https://github.com/SamChowRock/epp-public/tree/part-02/chapter-11)
-- [第 12 章　Pipe、Interceptor 与异常过滤器](https://github.com/SamChowRock/epp-public/tree/part-02/chapter-12)
-- [第 13 章　请求日志与优雅停机](https://github.com/SamChowRock/epp-public/tree/part-02/chapter-13)
-- [第 14 章　创建限制与旧记录兼容练习](https://github.com/SamChowRock/epp-public/tree/part-02/chapter-14)
-
-## 第三篇
-
-- [第 15 章　准备 PostgreSQL 环境](https://github.com/SamChowRock/epp-public/tree/part-03/chapter-15)
-- [第 16 章　表、约束与时间](https://github.com/SamChowRock/epp-public/tree/part-03/chapter-16)
-- [第 17 章　事务与会话可见性](https://github.com/SamChowRock/epp-public/tree/part-03/chapter-17)
-- [第 18 章　建立 Prisma 迁移基线](https://github.com/SamChowRock/epp-public/tree/part-03/chapter-18)
-- [第 19 章　用 Prisma 读写 PostgreSQL](https://github.com/SamChowRock/epp-public/tree/part-03/chapter-19)
-- [第 20 章　为已有记录添加中文意图](https://github.com/SamChowRock/epp-public/tree/part-03/chapter-20)
-- [第 21 章　字段扩容、兼容发布与回退](https://github.com/SamChowRock/epp-public/tree/part-03/chapter-21)
-
-## 第四篇
-
-- [第 22 章　保存修订与查询历史](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-22)
-- [第 23 章　候选状态与关系](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-23)
-- [第 24 章　事务与采纳](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-24)
-- [第 25 章　并发控制](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-25)
-- [第 26 章　幂等与审计](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-26)
-- [第 27 章　一致性整合](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-27)
-- [第 28 章　查询接口](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-28)
-- [第 29 章　分页与时间](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-29)
-- [第 30 章　索引与执行计划](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-30)
-- [第 31 章　第四篇回顾](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-31)
-
-## 第五篇
-
-- [第 32 章　安全地保存密码与秘密](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-32)
-- [第 33 章　Session 与 Cookie](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-33)
-- [第 34 章　鉴权与授权](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-34)
-- [第 35 章　保护浏览器入口](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-35)
-- [第 36 章　注册、验证与密码重置](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-36)
-- [第 37 章　小程序登录与独立会话](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-37)
-- [第 38 章　先理解 OAuth，再接入 OIDC 外部登录](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-38)
-- [第 39 章　微信网站扫码登录](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-39)
-- [第 40 章　用已登录的小程序扫码确认网站登录](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-40)
-- [第 41 章　第五篇回顾（沿用第 36 章代码）](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-36)
-
-## 第六篇
-
-- [第 42 章　Transactional Outbox](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-42)
-- [第 43 章　为什么需要独立 Worker](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-43)
-- [第 44 章　安全领取任务与识别过期执行者](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-44)
-- [第 45 章　失败、重试与未知结果](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-45)
-- [第 46 章　先让通知成为可查询的数据](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-46)
-- [第 47 章　用 SSE 传递实时更新](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-47)
-- [第 48 章　第六篇回顾（沿用第 47 章代码）](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-47)
-
-## 第七篇
-
-- [第 49 章　用户资料的业务约束与隐私](https://github.com/SamChowRock/epp-public/tree/part-07/chapter-49)
-- [第 50 章　安全地接收和处理头像](https://github.com/SamChowRock/epp-public/tree/part-07/chapter-50)
-- [第 51 章　对象存储与数据库如何协作](https://github.com/SamChowRock/epp-public/tree/part-07/chapter-51)
-- [第 52 章　第七篇回顾（沿用第 51 章代码）](https://github.com/SamChowRock/epp-public/tree/part-07/chapter-51)
-
-## 第八篇
-
-- [第 53 章　为后台操作提供可靠的管理命令](https://github.com/SamChowRock/epp-public/tree/part-08/chapter-53)
-- [第 54 章　构建与持续集成](https://github.com/SamChowRock/epp-public/tree/part-08/chapter-54)
-- [第 55 章　调试性能与资源问题](https://github.com/SamChowRock/epp-public/tree/part-08/chapter-55)
+- [第 2 章　第一次 HTTP 往返](https://github.com/SamChowRock/epp-public/tree/part-01/chapter-02)
+- [第 3 章　可靠地接收并保存请求正文](https://github.com/SamChowRock/epp-public/tree/part-01/chapter-03)
+- [第 4 章　Node.js 程序究竟运行在哪里](https://github.com/SamChowRock/epp-public/tree/part-01/chapter-04)
+- [第 5 章　事件循环如何影响服务的响应能力](https://github.com/SamChowRock/epp-public/tree/part-01/chapter-05)
+- [第 6 章　TypeScript 如何变成可运行的服务](https://github.com/SamChowRock/epp-public/tree/part-01/chapter-06)
+- [第 7 章　第一篇回顾：把服务搬离开发目录](https://github.com/SamChowRock/epp-public/tree/part-01/chapter-07)
+- [第 8 章　从手写服务走向 Nest](https://github.com/SamChowRock/epp-public/tree/part-02/chapter-08)
+- [第 9 章　Controller 定义系统的 HTTP 入口](https://github.com/SamChowRock/epp-public/tree/part-02/chapter-09)
+- [第 10 章　Provider 与依赖注入：把组件组装交给容器](https://github.com/SamChowRock/epp-public/tree/part-02/chapter-10)
+- [第 11 章　Module 建立清楚的业务边界](https://github.com/SamChowRock/epp-public/tree/part-02/chapter-11)
+- [第 12 章　建立可信的输入与错误边界](https://github.com/SamChowRock/epp-public/tree/part-02/chapter-12)
+- [第 13 章　请求经过 Nest 时发生了什么](https://github.com/SamChowRock/epp-public/tree/part-02/chapter-13)
+- [第 14 章　配置与生命周期：让应用可靠地启动和退出](https://github.com/SamChowRock/epp-public/tree/part-02/chapter-14)
+- [第 15 章　第二篇回顾：沿一次请求解释职责与生命周期](https://github.com/SamChowRock/epp-public/tree/part-02/chapter-15)
+- [第 17 章　PostgreSQL 运行环境：安装、连接与实例管理](https://github.com/SamChowRock/epp-public/tree/part-03/chapter-17)
+- [第 18 章　关系建模：为已有记录设计第一组表](https://github.com/SamChowRock/epp-public/tree/part-03/chapter-18)
+- [第 19 章　SQL：查询、筛选和修改自己的记录](https://github.com/SamChowRock/epp-public/tree/part-03/chapter-19)
+- [第 20 章　Prisma：将已有表纳入 Schema 与迁移管理](https://github.com/SamChowRock/epp-public/tree/part-03/chapter-20)
+- [第 21 章　把旧记录接进 API](https://github.com/SamChowRock/epp-public/tree/part-03/chapter-21)
+- [第 22 章　连接是一种有限资源](https://github.com/SamChowRock/epp-public/tree/part-03/chapter-22)
+- [第 23 章　Migration：给已有记录增加中文意图](https://github.com/SamChowRock/epp-public/tree/part-03/chapter-23)
+- [第 24 章　第三篇回顾：带着旧记录完成一次结构演进](https://github.com/SamChowRock/epp-public/tree/part-03/chapter-24)
+- [第 25 章　关系演进：从覆盖输入到保留修订历史](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-25)
+- [第 26 章　状态机与关系建模：修订如何进入候选确认](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-26)
+- [第 27 章　事务：让多次修改成为一次业务动作](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-27)
+- [第 28 章　并发控制：两个请求同时到来怎么办](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-28)
+- [第 29 章　幂等与审计：响应丢失后如何安全重试](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-29)
+- [第 31 章　一致性整合：完成可靠的候选采纳](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-31)
+- [第 32 章　构建可供客户端使用的查询接口](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-32)
+- [第 33 章　分页与时间：下一页从哪里继续](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-33)
+- [第 35 章　索引与执行计划：查询为什么变慢](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-35)
+- [第 36 章　第四篇回顾：让采纳经得起竞争与重试](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-36)
+- [第 37 章　安全地保存密码与秘密](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-37)
+- [第 38 章　Session 与 Cookie 登录状态从哪里来](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-38)
+- [第 39 章　鉴权与授权 登录了也不代表能操作](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-39)
+- [第 40 章　保护基于浏览器的服务入口](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-40)
+- [第 42 章　注册并验证邮箱](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-42)
+- [第 43 章　已有账号怎样恢复密码](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-43)
+- [第 44 章　小程序登录与独立会话](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-44)
+- [第 45 章　先理解 OAuth，再接入 OIDC 外部登录](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-45)
+- [第 46 章　微信网站扫码登录](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-46)
+- [第 47 章　用已登录的小程序扫码确认网站登录](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-47)
+- [第 49 章　Transactional Outbox：业务和消息如何一起提交](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-49)
+- [第 51 章　为什么需要独立 Worker](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-51)
+- [第 52 章　安全领取任务与识别过期执行者](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-52)
+- [第 53 章　失败、重试与未知结果](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-53)
+- [第 55 章　先让通知成为可查询的数据](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-55)
+- [第 56 章　用 SSE 传递实时更新](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-56)
+- [第 58 章　用户资料的业务约束与隐私](https://github.com/SamChowRock/epp-public/tree/part-07/chapter-58)
+- [第 59 章　安全地接收和处理头像](https://github.com/SamChowRock/epp-public/tree/part-07/chapter-59)
+- [第 60 章　对象存储与数据库如何协作](https://github.com/SamChowRock/epp-public/tree/part-07/chapter-60)
+- [第 63 章　为后台操作提供可靠的管理命令](https://github.com/SamChowRock/epp-public/tree/part-08/chapter-63)
+- [第 64 章　构建与持续集成](https://github.com/SamChowRock/epp-public/tree/part-08/chapter-64)
+- [第 66 章　调试性能与资源问题](https://github.com/SamChowRock/epp-public/tree/part-08/chapter-66)
+- [第 70 章　在本机直接部署服务](https://github.com/SamChowRock/epp-public/tree/part-09/chapter-70)
