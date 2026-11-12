@@ -1,6 +1,6 @@
 # EPP 配套实践代码
 
-本章检出命令为 `git switch part-02/chapter-09`。命令、迁移目录和请求集合沿用项目中的实际文件名。
+第 9 章「Controller 定义系统的 HTTP 入口」使用 `git switch part-02/chapter-09`。迁移目录和请求集合请按下面的实际文件名打开。
 
 当前对应第二篇第 9 章，代码分支 `part-02/chapter-09`，从 `part-02/chapter-08` 继续演进。列表新增可选的 q 与 limit，Controller 通过参数装饰器接收输入，解析器在路由之前读取 JSON，成功结果交给 Nest 发送。记录保存在单个进程的 `Map` 中，停止进程后丢失；当前仅供本机实践。
 
