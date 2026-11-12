@@ -1,6 +1,6 @@
 # EPP 配套实践代码
 
-本章检出命令为 `git switch part-03/chapter-19`。命令、迁移目录和请求集合沿用项目中的实际文件名。
+第 19 章「SQL：查询、筛选和修改自己的记录」使用 `git switch part-03/chapter-19`。迁移目录和请求集合请按下面的实际文件名打开。
 
 当前对应第三篇第 19 章，代码分支 `part-03/chapter-19`，从 `part-03/chapter-18` 继续。主服务仍是第十四章的接口、2000 单元创建规则与 Map 存储；环境准备见 [database/chapter-15](database/chapter-15/README.md)，已有表与开发数据见 [database/chapter-16](database/chapter-16/README.md)，本章查询、参数与双会话实验见 [database/chapter-17](database/chapter-17/README.md)。默认在 DBeaver 研究 SQL，第二十二章才替换 Nest 存储。
 
