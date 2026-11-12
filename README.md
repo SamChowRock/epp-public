@@ -1,6 +1,6 @@
 # EPP 配套实践代码
 
-本章检出命令为 `git switch part-03/chapter-18`。命令、迁移目录和请求集合沿用项目中的实际文件名。
+第 18 章「关系建模：为已有记录设计第一组表」使用 `git switch part-03/chapter-18`。迁移目录和请求集合请按下面的实际文件名打开。
 
 当前对应第三篇第 18 章，代码分支 `part-03/chapter-18`，从 `part-03/chapter-17` 继续。主服务仍是第十四章的接口、2000 单元创建规则与 Map 存储；环境准备见 [database/chapter-15](database/chapter-15/README.md)，新增用户／记录表、开发数据、约束与时间实验见 [database/chapter-16](database/chapter-16/README.md)。本章在 SQL 客户端操作业务表，第二十二章才替换 Nest 存储。
 
