@@ -1,6 +1,6 @@
 # EPP 配套实践代码
 
-本章检出命令为 `git switch part-06/chapter-49`。命令、迁移目录和请求集合沿用项目中的实际文件名。
+第 49 章「Transactional Outbox：业务和消息如何一起提交」使用 `git switch part-06/chapter-49`。迁移目录和请求集合请按下面的实际文件名打开。
 
 ## 第四十九章　Transactional Outbox
 
