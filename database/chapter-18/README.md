@@ -1,6 +1,6 @@
-# 第十八章：Prisma 模型与迁移基线
+# 第二十章：Prisma 模型与迁移基线
 
-从 `part-03/chapter-17` 继续。日常库是第十五章实例上的 `epp_dev`，角色 `epp_owner`，端口默认 `55432`；已有第十六章两张表、一个用户和两条记录，第十七章临时实验应已清理。服务仍使用 Map，第十九章才接入客户端。
+从 `part-03/chapter-19` 继续。日常库是第十七章实例上的 `epp_dev`，角色 `epp_owner`，端口默认 `55432`；已有第十八章两张表、一个用户和两条记录，第十九章临时实验应已清理。服务仍使用 Map，第二十二章才接入客户端。
 
 本章固定 Prisma CLI／`@prisma/client` 7.10.1，使用 v7 配置与 `prisma-client` 生成器。默认用 DBeaver 观察数据库，VS Code 查看模型与 SQL。以下命令从项目根目录执行。
 
@@ -40,7 +40,7 @@ npm run db -- migrate diff --from-config-datasource --to-schema prisma/schema.pr
 
 ## 检查基线草稿
 
-正式文件是 `prisma/migrations/0_init/migration.sql`，配合 `migration_lock.toml`。它保留第十六章完整结构及 CHECK，不含 seed，不用 IF NOT EXISTS 隐藏业务对象冲突。观察生成器遗漏时使用独立草稿：
+正式文件是 `prisma/migrations/0_init/migration.sql`，配合 `migration_lock.toml`。它保留第十八章完整结构及 CHECK，不含 seed，不用 IF NOT EXISTS 隐藏业务对象冲突。观察生成器遗漏时使用独立草稿：
 
 ```bash
 npm run db -- migrate diff --from-empty --to-schema prisma/schema.prisma \
@@ -83,12 +83,12 @@ resolve 只登记，不执行建表。刷新 DBeaver 的 epp_dev，执行 `04-in
 - 中断后先看目标身份、status、迁移记录和实际对象。已成功应用的基线再次 deploy 应无待执行操作；已登记的不再重复 resolve。
 - 差异未解释清楚时不登记；resolve 不验证结构，status 不是完整漂移检测。
 - 仅在专用校验库确认失败事务已回滚、无业务对象残留后，用 `npm run db:verify -- migrate resolve --rolled-back 0_init` 标记失败记录，再重试。该命令不撤销 SQL。任何目标已经成功应用的迁移不再编辑，修复应追加迁移。
-- 日常库保留数据，不接受重置提示。第二十章另建 epp_shadow 并配置 SHADOW_DATABASE_URL，再生成和审查新增字段迁移；影子库不能指向日常库。
+- 日常库保留数据，不接受重置提示。第二十三章另建 epp_shadow 并配置 SHADOW_DATABASE_URL，再生成和审查新增字段迁移；影子库不能指向日常库。
 - 本章不执行 db push、不创建空业务迁移、不自动 seed。部署使用审查后的迁移文件执行 deploy，另外生成和构建客户端；迁移任务需要 CLI，只装生产依赖的服务目录不能替代迁移任务。
 
 ## 结构差异的设计实验
 
-配合支线 18A 使用 [design-lab](design-lab/)：
+配合支线 20A 使用 [design-lab](design-lab/)：
 
 - `rename-mapped.prisma` 保留 @map，仅改程序字段；`rename-physical.prisma` 去掉映射，观察生成的删加列 SQL。二者只用于 `migrate diff`，不替换正式模型、不生成客户端、不执行生成的 SQL。
 - `01-rename.sql` 在 DBeaver 的同一校验库编辑器分组运行。第一组删加列触发 23502 后单独 ROLLBACK；第二组重命名保留 19 字符原文和 CHECK 引用，观察后同样 ROLLBACK。临时表名固定为 rename_example，不改成业务表。
@@ -109,6 +109,6 @@ npm run db:verify -- migrate diff --from-config-datasource --to-schema database/
 
 模型接受有效对象不等于迁移历史已补齐；基线生效前可修草稿并重新验证，生效后须追加迁移。主项目不因实验正式增加索引。
 
-失败排查时，04-inspect-history.sql 也提供未完成记录和 logs 查询。logs 可能为空；CLI 若只显示事务失败，应按时间与后端 PID 查看第十五章 server.log 的首个 ERROR／STATEMENT，随后核对实际对象是否回滚。成功恢复后允许保留失败与成功两次历史记录，不手动删除失败行。
+失败排查时，04-inspect-history.sql 也提供未完成记录和 logs 查询。logs 可能为空；CLI 若只显示事务失败，应按时间与后端 PID 查看第十七章 server.log 的首个 ERROR／STATEMENT，随后核对实际对象是否回滚。成功恢复后允许保留失败与成功两次历史记录，不手动删除失败行。
 
-机制、取舍与完整操作顺序见第十八章正文及支线 18A。
+机制、取舍与完整操作顺序见第二十章正文及支线 20A。
