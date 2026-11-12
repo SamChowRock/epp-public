@@ -1,8 +1,6 @@
 # EPP 配套实践代码
 
-本章练习「连接是一种有限资源」。
-
-本章检出命令为 `git switch part-03/chapter-22`。命令、迁移目录和请求集合沿用项目中的实际文件名。
+第 22 章「管理连接池、等待与服务关闭」使用 `git switch part-03/chapter-22`。迁移目录和请求集合请按下面的实际文件名打开。
 
 当前对应第三篇第 22 章，代码分支 `part-03/chapter-22`，从 `part-03/chapter-20` 继续。三个接口通过 Prisma 使用 PostgreSQL 中的固定开发用户与已有记录；本章不修改模型和迁移。运行前先完成[环境准备](database/chapter-15/README.md)、[表与数据](database/chapter-16/README.md)及[迁移基线](database/chapter-18/README.md)，再按[第二十二章联调说明](database/chapter-19/README.md)配置运行连接、观察字段与真实时间点、制造连接等待并恢复。
 
