@@ -1,11 +1,11 @@
-# 第二十章：给已有记录增加中文意图
+# 第二十三章：给已有记录增加中文意图
 
-从 `part-03/chapter-19` 继续，完成分支为 `part-03/chapter-20`。固定 Node 24.22.1、Prisma/adapter-pg 7.10.1 和 PostgreSQL 18，沿用第十九章运行依赖；不升级或重建数据库。正式迁移只有在 `0_init` 之后追加的 `20261102040511_add_chinese_intent`，不改基线。
+从 `part-03/chapter-22` 继续，完成分支为 `part-03/chapter-23`。固定 Node 24.22.1、Prisma/adapter-pg 7.10.1 和 PostgreSQL 18，沿用第二十二章运行依赖；不升级或重建数据库。正式迁移只有在 `0_init` 之后追加的 `20261102040511_add_chinese_intent`，不改基线。
 
 ## 使用完成代码
 
-1. 停止开发服务。在 DBeaver DEV 连接核对 `epp_dev`、实例和角色；先用第十八章 `02-inspect-data.sql` 导出旧行完整值，保留原有用户及所有合法记录。
-2. `.env.database` 指向日常库，`.env.database-verify` 指向第十八章校验库，运行 `.env` 指向日常库；三份配置用途不同。终端先 `unset DATABASE_URL SHADOW_DATABASE_URL`，避免外部变量覆盖文件。
+1. 停止开发服务。在 DBeaver DEV 连接核对 `epp_dev`、实例和角色；先用第二十章 `02-inspect-data.sql` 导出旧行完整值，保留原有用户及所有合法记录。
+2. `.env.database` 指向日常库，`.env.database-verify` 指向第二十章校验库，运行 `.env` 指向日常库；三份配置用途不同。终端先 `unset DATABASE_URL SHADOW_DATABASE_URL`，避免外部变量覆盖文件。
 3. 本章完成代码已经带迁移，直接按以下命令应用。不要再生成重复的同名迁移，也不要确认 reset。
 
 ```bash
@@ -24,7 +24,7 @@ DBeaver 刷新 `captures` 元数据后执行 `02-inspect-change.sql`：新增 `c
 
 ## 沿前章生成迁移
 
-从第十九章动手时，先在 ADMIN 的 postgres 连接开启自动提交，逐条执行 `01-create-shadow.sql`。名字已存在先确认用途，不删除。把本目录 `database.env.example` 合并至根目录 `.env.database` 并填 URL 编码后的密码，日常库与影子库必须分开；`epp_migration_check` 不是影子库。
+从第二十二章动手时，先在 ADMIN 的 postgres 连接开启自动提交，逐条执行 `01-create-shadow.sql`。名字已存在先确认用途，不删除。把本目录 `database.env.example` 合并至根目录 `.env.database` 并填 URL 编码后的密码，日常库与影子库必须分开；`epp_migration_check` 不是影子库。
 
 在 Schema 的 Capture 中新增 `chineseIntent String? @map("chinese_intent") @db.Text`，然后：
 
@@ -99,4 +99,4 @@ node --env-file=.env.database-recovery node_modules/prisma/build/index.js \
 
 `npm run check` 和已有 `npm test` 沿用；test需要已迁移的独立校验库。生产构建 `npm run build` 后，由目标环境提供运行配置再 `npm start`，不开放Inspector，默认不开放docs；迁移应由有固定Prisma CLI和迁移文件的独立步骤先执行。`--omit=dev`的应用目录通常没有CLI，不能把迁移塞进每次应用启动。测试连接在根目录 `.env.test` 用 `TEST_DATABASE_URL` 单独提供；缺失时在打开应用前退出，不回退到开发 `.env` 或继承的 `DATABASE_URL`。配置与运行方式见[项目测试说明](../../README.md)。
 
-本次可空扩展兼容第十九章旧程序读写；新程序连旧结构应在启动探测失败。回退旧程序保留新列和值，意图功能暂不可用；不执行DROP来“配合代码回退”。生产并行发布及备份恢复的完整安排在部署篇展开。
+本次可空扩展兼容第二十二章旧程序读写；新程序连旧结构应在启动探测失败。回退旧程序保留新列和值，意图功能暂不可用；不执行DROP来“配合代码回退”。生产并行发布及备份恢复的完整安排在部署篇展开。
