@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "EPP Chapter 36 Registration and Recovery",
+    "name": "EPP Chapters 42–43 Registration and Recovery",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "description": "VERIFY only. Run individually, not with Runner. Read tokens from local Mailpit and keep secrets in a local unsynced environment. Never export populated secrets. Request limit: 10 POSTs/minute shared with login. Wait Retry-After if exceeded. Step 05 requires the explicit database grant in the chapter. Reset does not replace Cookie; step 08 uses the old jar."
   },
