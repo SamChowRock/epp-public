@@ -28,7 +28,7 @@ RETURNING id, original_text;
 -- A4: after B3; let B4 query, then B should COMMIT its read transaction.
 ROLLBACK;
 
--- A5: remove only this unchanged lab row, never the chapter-16 fixtures.
+-- A5: remove only this unchanged lab row, never the chapter 18 fixtures.
 -- If the guarded delete returns zero, inspect rather than broadening WHERE.
 BEGIN;
 SET LOCAL lock_timeout = '3s';

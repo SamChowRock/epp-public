@@ -1,4 +1,4 @@
--- Optional: dedicated COPY of a chapter-29 VERIFY database, named ..._ch30_lab.
+-- Optional: dedicated COPY of a chapter 33 VERIFY database, named ..._ch30_lab.
 -- One connection, no other writers. Run all of this setup as a block, within BEGIN.
 BEGIN;
 DO $$
