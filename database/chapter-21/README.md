@@ -54,7 +54,7 @@ C写入长值后，停C，再次应用补丁启动B。B的详情和列表都应2
 
 ```bash
 git clone --single-branch --branch part-03/chapter-23 \
-  https://github.com/SamChowRock/epp-book-code.git ../epp-ch20-reader
+  https://github.com/SamChowRock/epp-public.git ../epp-ch20-reader
 ```
 
 确认克隆成功后再执行下面的构建；失败先处理地址、分支名或连接问题，不进入已有同名目录构建未知版本。当前第二十四章的文件和改动仍保留在原项目。
