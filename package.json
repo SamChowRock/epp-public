@@ -1,0 +1,15 @@
+{
+  "name": "epp-book-code",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "24.22.1"
+  },
+  "scripts": {
+    "dev": "NODE_ENV=development node --watch --inspect=127.0.0.1:9229 src/server.js",
+    "start": "NODE_ENV=production node src/server.js",
+    "debug": "NODE_ENV=development node --inspect-brk=127.0.0.1:9229 src/server.js",
+    "check": "node --check src/server.js"
+  }
+}
