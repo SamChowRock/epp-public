@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "EPP Chapter 49 Profiles",
+    "name": "EPP Chapter 58 Profiles",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "description": "在本机 VERIFY 逐条发送。20 只读本人；把 A 的 userId 复制到 profileTargetId，再换账号用 23 查看。19 为长连接，单独打开后手动取消。"
   },

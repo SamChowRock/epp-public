@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "EPP Chapter 50 Avatar Preview",
+    "name": "EPP Chapter 59 Avatar Preview",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "description": "在本机 VERIFY 逐条发送。20 只读本人；把 A 的 userId 复制到 profileTargetId，再换账号用 23 查看。19 为长连接，单独打开后手动取消。 24 单独选本机图片，先用 05 登录、15 取当前会话令牌。"
   },

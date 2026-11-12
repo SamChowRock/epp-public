@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "EPP Chapter 51 Private Avatars",
+    "name": "EPP Chapter 60 Private Avatars",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "description": "在独立 VERIFY 中逐项使用；25 会发布一张新头像。26、28 的响应含当前请求的短期读取凭证。"
   },
