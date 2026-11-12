@@ -1,6 +1,6 @@
 # EPP 配套实践代码
 
-本章检出命令为 `git switch part-02/chapter-10`。命令、迁移目录和请求集合沿用项目中的实际文件名。
+第 10 章「Provider 与依赖注入：把组件组装交给容器」使用 `git switch part-02/chapter-10`。迁移目录和请求集合请按下面的实际文件名打开。
 
 当前对应第二篇第 10 章，代码分支 `part-02/chapter-10`，从 `part-02/chapter-09` 继续演进。Service 通过构造参数接收 CaptureStore，Map 移入 MemoryCaptureStore，由 Nest 的 CAPTURE_STORE 令牌与 Service 工厂组装。存储操作统一返回 Promise，HTTP 行为和 q／limit 规则保持；记录仍只保存在当前进程内存，停止进程后丢失，仅供本机实践。
 
