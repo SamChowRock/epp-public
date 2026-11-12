@@ -1,6 +1,6 @@
 # EPP 配套实践代码
 
-本章检出命令为 `git switch part-02/chapter-12`。命令、迁移目录和请求集合沿用项目中的实际文件名。
+第 12 章「建立可信的输入与错误边界」使用 `git switch part-02/chapter-12`。迁移目录和请求集合请按下面的实际文件名打开。
 
 当前对应第二篇第 12 章，代码分支 `part-02/chapter-12`，从 `part-02/chapter-11` 继续演进。记录模块归属不变，Controller 使用 Zod 解析输入并显式映射公开响应；成功响应与 q／limit 规则保持，错误正文升级为 Problem Details。新增 `/docs` 与 `/openapi.json` 文档入口。记录仍只保存在当前进程内存，停止进程后丢失，仅供本机实践。
 
