@@ -1,4 +1,4 @@
-# 第 51 章　对象存储与数据库如何协作
+# 第 60 章　对象存储与数据库如何协作
 
 以下命令在本章配套项目根目录运行。需要 macOS、Node 24.22.1 和 PostgreSQL 18。先验证独立桶的边界，再将 API 接入。下载端、服务端和操作终端都在你的同一台 Mac 上。
 
@@ -42,7 +42,7 @@ resume 读取 write 保存的随机 ID，验证重启后仍可访问原对象，
 
 ## 升级与启动 API
 
-先在仍运行的第 50 章原版 API 用 05 登录、20 记录账号 ID 和昵称，留住当前会话。停止向该库写入的 API 与 Worker，再按[独立恢复步骤](../chapter-22/backup-restore.md)备份原库并恢复为另建的 epp_ch51_verify，确保原会话已随备份进入副本。对新库运行 [observe.sql](observe.sql) 的前两个查询（替换用户 ID）记下原有字段，再将 .env.database-verify 的 DATABASE_URL 与 .env.test 的 TEST_DATABASE_URL 同时指向这个副本。下方库名按你的建库记录替换。
+先在仍运行的第 59 章原版 API 用 05 登录、20 记录账号 ID 和昵称，留住当前会话。停止向该库写入的 API 与 Worker，再按[独立恢复步骤](../chapter-22/backup-restore.md)备份原库并恢复为另建的 epp_ch51_verify，确保原会话已随备份进入副本。对新库运行 [observe.sql](observe.sql) 的前两个查询（替换用户 ID）记下原有字段，再将 .env.database-verify 的 DATABASE_URL 与 .env.test 的 TEST_DATABASE_URL 同时指向这个副本。下方库名按你的建库记录替换。
 
 ```bash
 unset DATABASE_URL SHADOW_DATABASE_URL TEST_DATABASE_URL DB_QUERY_DEBUG
@@ -51,7 +51,7 @@ npm run db:verify -- migrate status
 npm run check
 ```
 
-若用独立空库，把 deploy 换为 bootstrap。按[第 49 章两个账号的准备步骤](../chapter-49/README.md)连接同一个 VERIFY，备好两个已开通练习账号。迁移完成后用 observe.sql 的三条查询复查。本章新增的指针初始为空，头像默认隐藏，现有账号和昵称历史应保持。已有的 .env.test 与 .env.database-verify 均只放本轮数据库配置；S3 身份单独保存在 app.env。
+若用独立空库，把 deploy 换为 bootstrap。按[第 58 章两个账号的准备步骤](../chapter-49/README.md)连接同一个 VERIFY，备好两个已开通练习账号。迁移完成后用 observe.sql 的三条查询复查。本章新增的指针初始为空，头像默认隐藏，现有账号和昵称历史应保持。已有的 .env.test 与 .env.database-verify 均只放本轮数据库配置；S3 身份单独保存在 app.env。
 
 ```bash
 unset DATABASE_URL TEST_DATABASE_URL PORT APP_ORIGIN DB_QUERY_DEBUG
@@ -66,7 +66,7 @@ process.env.DB_QUERY_DEBUG = "false";
 await import("./scripts/dev.mjs");' epp_ch51_verify
 ```
 
-Postman 导入[本章集合](../../requests/chapter-51.postman_collection.json)，确认 baseUrl 为 `http://127.0.0.1:3360`，先用同一 Cookie 发 20 核对旧账号，过期时重新用 05 登录。只有旧用户 ID 的账号可按[第 49 章说明](../chapter-49/README.md)在 05 的本地副本用 userId 登录。用未同步的本地环境填写密码。清除环境里遮住同名集合变量的旧值，15 按当前 Cookie 取写令牌。
+Postman 导入[本章集合](../../requests/chapter-51.postman_collection.json)，确认 baseUrl 为 `http://127.0.0.1:3360`，先用同一 Cookie 发 20 核对旧账号，过期时重新用 05 登录。只有旧用户 ID 的账号可按[第 58 章说明](../chapter-49/README.md)在 05 的本地副本用 userId 登录。用未同步的本地环境填写密码。清除环境里遮住同名集合变量的旧值，15 按当前 Cookie 取写令牌。
 
 1. A 发 20，把 ID 固定在 profileTargetId，发 15；在 24 的 binary 请求体选择 examples/avatar-preview/harbor.png，先核对原有预览。25 的 binary 也单独选择该文件，200 返回 avatarId。设置 expectedAvatarStatus 为 200，发 26 取得本人的 30 秒短期地址。只比较返回 ID。用 SQL 查到同一 current_id 和 live 行。桶名是 avatars，正式对象的 Key 是 avatars/版本UUID.webp。path-style 地址里连续出现两次 avatars，前一个标识桶，后一个是 Key 的首段。
 2. A 将 avatarVisible 设置为 false，发 27、29 核对设置和回查结果。B 发 05、20 确认切换；profileTargetId 保持 A 的 ID，expectedAvatarStatus 设为 404，发 28。再切回 A，05、20、15，设 true 发 27、29。B 重新登录并发 20，将 expectedAvatarStatus 改回 200，再发 28。它可以得到 A 的当前头像；签发 URL 的响应和对象均不应保存到共享日志或截图中。

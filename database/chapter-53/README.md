@@ -1,6 +1,6 @@
-# 第 53 章　账号管理命令
+# 第 63 章　账号管理命令
 
-使用 Node 24.22.1 和 PostgreSQL 18。在第 51 章环境记录一个 active 且 Web 已开通的练习账号，保留密码、用户 ID 与当前会话。暂停写入，按[非空库备份与独立恢复](../chapter-22/backup-restore.md)恢复到新的 epp_ch53_verify。将本地 .env.database-verify 的 DATABASE_URL 和 .env.test 的 TEST_DATABASE_URL 分别指向新库。连接地址中的主机、端口、角色按实际配置。CLI 只读数据库配置。
+使用 Node 24.22.1 和 PostgreSQL 18。在第 60 章环境记录一个 active 且 Web 已开通的练习账号，保留密码、用户 ID 与当前会话。暂停写入，按[非空库备份与独立恢复](../chapter-22/backup-restore.md)恢复到新的 epp_ch53_verify。将本地 .env.database-verify 的 DATABASE_URL 和 .env.test 的 TEST_DATABASE_URL 分别指向新库。连接地址中的主机、端口、角色按实际配置。CLI 只读数据库配置。
 
 ```bash
 nvm use
@@ -11,7 +11,7 @@ npm run db:verify -- migrate status
 npm run check
 ```
 
-若从全新的空库开始，上述 deploy 改为 bootstrap，完成迁移后按[两个账号的准备步骤](../chapter-49/README.md)在本章库准备一个已开通练习账号。API 启动沿用[第 51 章命令](../chapter-51/README.md)，把预期库名换成本章库名。配套的[请求集合](../../requests/chapter-51.postman_collection.json)继续有效，05 登录、20 读回 userId。只做账号资格实验时不需要操作对象或运行寄信 Worker（新注册另需寄信）。在新的配套副本开发时将先前的本地 API 配置和存储应用身份配置到该副本，避免误用原库。
+若从全新的空库开始，上述 deploy 改为 bootstrap，完成迁移后按[两个账号的准备步骤](../chapter-49/README.md)在本章库准备一个已开通练习账号。API 启动沿用[第 60 章命令](../chapter-51/README.md)，把预期库名换成本章库名。配套的[请求集合](../../requests/chapter-51.postman_collection.json)继续有效，05 登录、20 读回 userId。只做账号资格实验时不需要操作对象或运行寄信 Worker（新注册另需寄信）。在新的配套副本开发时将先前的本地 API 配置和存储应用身份配置到该副本，避免误用原库。
 
 ```bash
 db=epp_ch53_verify
@@ -38,7 +38,7 @@ admin apply "$account" off "$suspend_id"
 
 改源码时先构建。需要看流程时，在 preview 命令的 node 后加入 `--inspect-brk=127.0.0.1:9231 --enable-source-maps`，从编辑器附加到 9231，在事务外的 context.get 处查看参数再继续。调试 apply 时暂停会消耗事务期限，结束调试后应按原 ID 查明结果。交付目录使用构建后的 dist、config、package.json 与锁，安装生产依赖，在运行环境注入 DATABASE_URL，执行 `NODE_ENV=production node dist/src/account-admin.js` 并追加同一组参数。此入口没有监听端口。
 
-要跑完整回归，另建专用空测试库（例如 epp_ch53_regression）。按[第 49 章的独立回归步骤](../chapter-49/README.md)创建 .env.test-regression，将 DATABASE_URL 和 TEST_DATABASE_URL 都指向这个新库，联调用的 .env.test 继续指向 VERIFY。先用本章代码运行下方 bootstrap，在该库按[固定测试用户步骤](../chapter-42/README.md)插入样本，再运行后两行。
+要跑完整回归，另建专用空测试库（例如 epp_ch53_regression）。按[第 58 章的独立回归步骤](../chapter-49/README.md)创建 .env.test-regression，将 DATABASE_URL 和 TEST_DATABASE_URL 都指向这个新库，联调用的 .env.test 继续指向 VERIFY。先用本章代码运行下方 bootstrap，在该库按[固定测试用户步骤](../chapter-42/README.md)插入样本，再运行后两行。
 
 ```bash
 unset DATABASE_URL SHADOW_DATABASE_URL TEST_DATABASE_URL DB_QUERY_DEBUG
