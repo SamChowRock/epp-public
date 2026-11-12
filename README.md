@@ -2,7 +2,7 @@
 
 第 3 章「可靠接收请求正文并保存原文」使用 `git switch part-01/chapter-03`。迁移目录和请求集合请按下面的实际文件名打开。
 
-第 3 章从空项目建立原生 Node.js HTTP 服务。当前数据保存在单个进程的 `Map` 中，停止进程后丢失；本章仅供本机实践。
+第 3 章从第 2 章的 GET 服务继续，加入正文接收、输入校验和内存记录。当前数据保存在单个进程的 `Map` 中，停止进程后丢失；本章仅供本机实践。
 
 使用 nvm 管理 Node.js；安装方式见 [nvm 官方说明](https://github.com/nvm-sh/nvm#installing-and-updating)。macOS、Linux 使用 Bash 或 Zsh，Windows 使用 WSL。在项目根目录运行：
 
