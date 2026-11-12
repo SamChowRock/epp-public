@@ -1,8 +1,8 @@
 {
   "info": {
-    "name": "EPP 第21章：字段放宽与读写兼容",
+    "name": "EPP 第24章：字段放宽与读写兼容",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "逐项手动发送，先新建本章记录并复制 id。Scripts 的 Pre-request 只产生长度明确的正文变量，不发送额外请求、不自动清理数据。A为第20章；B为兼容读取阶段；C为第21章最终版。"
+    "description": "逐项手动发送，先新建本章记录并复制 id。Scripts 的 Pre-request 只产生长度明确的正文变量，不发送额外请求、不自动清理数据。A为第23章；B为兼容读取阶段；C为第24章最终版。"
   },
   "variable": [
     {
