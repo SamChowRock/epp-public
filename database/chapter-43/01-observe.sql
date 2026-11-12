@@ -26,5 +26,5 @@ FROM pg_stat_activity
 WHERE datname = current_database() AND application_name IN ('epp-api','epp-worker')
 GROUP BY application_name, state ORDER BY application_name, state;
 
--- Run after deploying the chapter-43 migration. A UUID identifies the incident.
+-- Run after deploying the chapter 51 migration. A UUID identifies the incident.
 SELECT paused_by AS blocking_message FROM public.verification_mail_control WHERE id = 1;
