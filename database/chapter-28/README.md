@@ -1,6 +1,6 @@
-# 第二十八章：面向客户端的有界查询
+# 第三十二章：面向客户端的有界查询
 
-从 `part-04/chapter-27` 继续到 `part-04/chapter-28`。本章不改变Prisma模型、既有迁移或数据，不新增依赖；已有27章数据库可直接被新查询读取。仍为固定开发用户，无真实登录。先确认目标是自己的DEV或独立VERIFY；不要用清库制造空列表。
+从 `part-04/chapter-31` 继续到 `part-04/chapter-32`。本章不改变Prisma模型、既有迁移或数据，不新增依赖；已有31章数据库可直接被新查询读取。仍为固定开发用户，无真实登录。先确认目标是自己的DEV或独立VERIFY；不要用清库制造空列表。
 
 在项目根目录运行 `nvm use`、`npm ci`、`npm run check`。数据库CLI用 `npm run db:verify -- migrate status` 核对VERIFY，读取 `.env.database-verify`；DEV对应 `npm run db -- migrate status`，读取 `.env.database`。首次独立建库才按既有流程deploy并建立固定开发用户。本章没有新迁移需要生成。API自己的 `.env`／进程配置仍需指向相同目标。
 
