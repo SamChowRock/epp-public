@@ -42,7 +42,7 @@ await import("./scripts/dev.mjs");' epp_ch49_verify
 3. 在第一次改名**之前**，用下方 SQL 查 A 的当前名字和窗口用量。发 15 取得 A 当前 Cookie 的写入令牌，把 nicknameVisible 设为 false，发 22 并核对 200、false。若 A 已有名字，保留它作本轮对照；若还没有名字，才把 nickname 填为「山雀」、expectedRenameStatus 填 200，发 21。20 能读到 A 的昵称与 false。切换至 B 的邮箱与密码，发 05、20，确认 ID 已变，再发 23，响应应为 A 的 ID 和 null。
 4. 切回 A，重新登录、发 20 确认身份、发 15 取这个 Cookie 的令牌。把 nicknameVisible 设为 true 发 22。切回 B，登录后发 20、23，核对 A 发布的同一昵称。23 使用固定的 profileTargetId，B 的登录、注册和身份回查都不会覆盖它。按 A 的 ID 再查 SQL，两次切换可见性均不计次。
 5. 为并发实验准备一位窗口内恰好改过两次名的账号。以要做实验的账号登录 Postman，发 20、15，按 20 返回的 userId 查询用量。用量为零时发两次 21，为一时发一次，每次都选一个与刚保存值不同的昵称；为二时直接保留当前值；为三时，改用另一练习账号并按它的用量准备，或等最早一笔满 720 小时后重查。expectedRenameStatus 保持 200。恰好两次时把 nickname 填回当前已保存的名字，重送 21 后用 20 与 SQL 核对，名字和次数都保持。
-6. 按正文 49.5 在同源 Swagger 登录刚才这位账号，在浏览器核对 GET /profile/me 的 ID 与 SQL 相同。用正文控制台代码获取浏览器会话的 /auth/csrf，再用 Promise.all 并发提交两个彼此不同且都不同于当前值的昵称。比较 200 返回的名字和 429 的 NICKNAME_CHANGE_LIMIT，查同一 ID，窗口内应有三条有效事件。两份 HTTP 结果可以验证最后一个名额只用一次；观察数据库里的实际等待请按正文的行锁实验操作。
+6. 按正文 58.5 在同源 Swagger 登录刚才这位账号，在浏览器核对 GET /profile/me 的 ID 与 SQL 相同。用正文控制台代码获取浏览器会话的 /auth/csrf，再用 Promise.all 并发提交两个彼此不同且都不同于当前值的昵称。比较 200 返回的名字和 429 的 NICKNAME_CHANGE_LIMIT，查同一 ID，窗口内应有三条有效事件。两份 HTTP 结果可以验证最后一个名额只用一次；观察数据库里的实际等待请按正文的行锁实验操作。
 7. 回到 Postman，用刚才争名额的账号登录，发 20 读回胜出的昵称、发 15 取得当前写入令牌。把它的 ID 设为 profileTargetId。把 expectedRenameStatus 设为 429，再用 21 提交一个不同于当前值的新昵称。核对错误码、原昵称与计数。再把 nicknameVisible 明确改回 false，单发 22 应返回 200、false。让另一账号登录、发 20 确认身份、用 23 查看目标，其昵称应为 null。随后若继续测试满额账号的写入，先用满额账号重新登录、发 20 确认 ID、发 15 更新令牌。将 expectedRenameStatus 改回 200，把 nickname 填为 20 返回的当前名字，重送 21 仍可成功。登录若遇 AUTH_RATE_LIMIT，按该响应的 Retry-After 再试。
 
 在 DBeaver 用被检查账号的实际 userId 替换下方占位符（前四步为 A，之后为争最后一个名额的账号），运行整条查询。它连同当前昵称一起返回次数；没有任何事件的账号也能查到零。生产中修改在取得账号锁后取数据库时钟，这条只读查询用于观察发出时的窗口。
