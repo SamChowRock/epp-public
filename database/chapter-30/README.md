@@ -1,6 +1,6 @@
-# 第三十章：从列表到索引迁移
+# 第三十五章：从列表到索引迁移
 
-从第二十九章完成状态进入 `part-04/chapter-30`。项目根目录按 `.nvmrc` 切换 Node，沿用既有依赖。准备独立 VERIFY，保留前章虚构采纳和回执。开发用户、分页签名密钥和 HTTP 契约沿用前章。
+从第三十三章完成状态进入 `part-04/chapter-35`。项目根目录按 `.nvmrc` 切换 Node，沿用既有依赖。准备独立 VERIFY，保留前章虚构采纳和回执。开发用户、分页签名密钥和 HTTP 契约沿用前章。
 
 1. DBeaver 在同一 VERIFY 编辑器分段运行[临时表实验](01-compare.sql)。百行和十万行分别采样；无列表索引、单列、联合三种情况都重跑第 2 步。只执行第 6、7 步的 SELECT 比较同页 ID。断开连接即可清理。
 2. 在尚未升级的 VERIFY 保存[行数、索引和首页](02-upgrade.sql)以及[含归属检查的真实查询计划](03-owned-page.sql)。03 按 PREPARE、EXPLAIN EXECUTE、DEALLOCATE 顺序运行，参数对应学习列表 limit=3。它只覆盖该请求的第一条 SQL。
