@@ -1,8 +1,8 @@
-# 第37章：小程序身份与会话
+# 第44章：小程序身份与会话
 
-从 `part-05/chapter-36` 的非空数据库继续。追加迁移 `20261106003700_mini_identity`：旧用户 `mini_enabled=false`，旧会话 `channel=web`，新增 `wechat_identities`；既有 userId、密码、邮箱、记录和所有权保持。Node固定24.22.1，无新增依赖。
+从 `part-05/chapter-43` 的非空数据库继续。追加迁移 `20261106003700_mini_identity`：旧用户 `mini_enabled=false`，旧会话 `channel=web`，新增 `wechat_identities`；既有 userId、密码、邮箱、记录和所有权保持。Node固定24.22.1，无新增依赖。
 
-先按第18、21章的备份／恢复步骤准备独立VERIFY，把第36章非空副本恢复到其中。DBeaver新连接先运行 `SELECT current_database(), current_user`，保留若干旧用户、素材和学习来源的完整值；不要在日常DEV上先试。确认 `.env.database-verify` 指向VERIFY，在项目根运行：
+先按第20、24章的备份／恢复步骤准备独立VERIFY，把第43章非空副本恢复到其中。DBeaver新连接先运行 `SELECT current_database(), current_user`，保留若干旧用户、素材和学习来源的完整值；不要在日常DEV上先试。确认 `.env.database-verify` 指向VERIFY，在项目根运行：
 
 ```bash
 npm ci
@@ -12,7 +12,7 @@ npm run db:verify -- migrate status
 npm run check
 ```
 
-从当前分支初始化专用空库时，先运行 `npm ci`，设置 `.env.database-verify`，清除 shell 的 `DATABASE_URL` 和 `SHADOW_DATABASE_URL` 后运行 `node --env-file=.env.database-verify scripts/deploy-verify.mjs bootstrap epp_ch37_verify`，最后运行 `npm run db:verify -- migrate status`。命令末尾都换成建库或恢复时确定的库名。脚本在实际连接查询 current_database()，一致才部署。bootstrap 先复制第 35 章迁移原件建立基线，再部署当前完整目录；已有前章历史用 deploy。非空副本另做旧数据对照。
+从当前分支初始化专用空库时，先运行 `npm ci`，设置 `.env.database-verify`，清除 shell 的 `DATABASE_URL` 和 `SHADOW_DATABASE_URL` 后运行 `node --env-file=.env.database-verify scripts/deploy-verify.mjs bootstrap epp_ch37_verify`，最后运行 `npm run db:verify -- migrate status`。命令末尾都换成建库或恢复时确定的库名。脚本在实际连接查询 current_database()，一致才部署。bootstrap 先复制第 40 章迁移原件建立基线，再部署当前完整目录；已有前章历史用 deploy。非空副本另做旧数据对照。
 
 `prisma generate` 不升级数据库。DBeaver刷新表结构，核对旧用户新增开关为false、旧会话为web，按原ID重读旧记录。新增表应为空，不给旧用户推断OpenID。核对完成才单独备份并升级DEV；切回旧代码不会自动撤销迁移。
 
