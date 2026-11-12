@@ -23,8 +23,8 @@ git apply "$stage_materials/examples/chapter-13-stages/01-configuration.patch"
 npm run check
 ```
 
-1. `01-configuration.patch`：正文 13.1 的直接解析断言应通过。`npm run dev` 后 GET /captures 仍为 200；保留旧 http-options 和入口。
+1. `01-configuration.patch`：正文 14.1 的直接解析断言应通过。`npm run dev` 后 GET /captures 仍为 200；保留旧 http-options 和入口。
 2. 把上面两条 apply 的文件名都换成 `02-observation.patch` 后执行，运行 `npm run check`。以 `LOG_LEVEL=debug npm run dev` 启动，POST 正常原文为 201，非法类型为 400；响应 X-Request-Id 可关联入口、存储或错误、完成日志。仍由旧入口启动和停止，尚不验证排空。原 http-options 已删除。
-3. 同样应用 `03-shutdown.patch`，执行 `npm run check` 和 `npm test`。dev 出现 app.ready；Ctrl+C 出现 app.draining、app.stopped。再按 13.4 运行生命周期实验，观察正常、请求中断、初始化失败与关闭超时。
+3. 同样应用 `03-shutdown.patch`，执行 `npm run check` 和 `npm test`。dev 出现 app.ready；Ctrl+C 出现 app.draining、app.stopped。再按 14.4 运行生命周期实验，观察正常、请求中断、初始化失败与关闭超时。
 
 补丁不包含个人 .env；已存在的配置只补字段，不覆盖。重新打开终端后，将 stage_materials 设为自己保留的资料目录绝对路径；用 `git status --short` 和源码核对已完成阶段，勿重复应用补丁。自己的跟写实现只对照补丁与结果，保留命名或组织上的合理差异。
