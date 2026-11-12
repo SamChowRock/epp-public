@@ -1,6 +1,6 @@
-# 第二十九章：分页、游标与日期边界
+# 第三十三章：分页、游标与日期边界
 
-从 `part-04/chapter-28` 到 `part-04/chapter-29`，保留现有模型与迁移，无新增依赖。先在项目根目录执行 `nvm use`、`npm ci`、`npm run check`，用 `npm run db -- migrate status` 或VERIFY的对应命令核对目标；不reset、不重建已有数据。API运行连接与CLI配置仍分开。
+从 `part-04/chapter-32` 到 `part-04/chapter-33`，保留现有模型与迁移，无新增依赖。先在项目根目录执行 `nvm use`、`npm ci`、`npm run check`，用 `npm run db -- migrate status` 或VERIFY的对应命令核对目标；不reset、不重建已有数据。API运行连接与CLI配置仍分开。
 
 开发沿用 `npm run dev`、本机Inspector9229和VS Code附加。新增配置CURSOR_HMAC_KEY是64位小写十六进制随机值；用 `node --input-type=module -e "import { randomBytes } from 'node:crypto'; console.log(randomBytes(32).toString('hex'))"` 生成一次，保存到已忽略的.env，不覆盖已有字段、不提交或截图。开发／测试未配置时每次创建应用使用临时密钥，重启后游标失效；生产必须由进程环境提供持久密钥，缺失则在监听前拒绝启动。所有实例使用同一值，轮换会使旧游标失效。
 
