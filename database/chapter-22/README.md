@@ -1,6 +1,6 @@
-# 第二十二章：保留输入修订历史
+# 第二十五章：保留输入修订历史
 
-起点 `part-03/chapter-21` 最终状态，完成分支 `part-04/chapter-22`。撤回第二十一章过渡补丁，停止旧 API、独立旧产物和内容维护写入。沿用 Node 24.22.1、PostgreSQL 18、Prisma 7.10.1、DEV／VERIFY／SHADOW 配置，不重建已有库。
+起点 `part-03/chapter-24` 最终状态，完成分支 `part-04/chapter-25`。撤回第二十四章过渡补丁，停止旧 API、独立旧产物和内容维护写入。沿用 Node 24.22.1、PostgreSQL 18、Prisma 7.10.1、DEV／VERIFY／SHADOW 配置，不重建已有库。
 
 ## 迁移与切换
 
@@ -8,7 +8,7 @@
 
 成品已含 `20261102100000_capture_revisions`。审查其建表、锁、回填与逐字段核对：旧 ID 保持，初始修订内容逐字复制，input_source=unknown、chunks=SQL NULL，修订时间为迁移时间；旧 captures 字段不变。新建 Capture 与第一个修订使用嵌套写入，后续只追加修订。
 
-在项目根目录运行 `nvm use` 和 `npm ci`。先按[备份与独立恢复](backup-restore.md)在第二十一章结构的校验库准备两条虚构样本，保存完整字段、归档并恢复到全新 epp_ch21_restore。使用[恢复核对](04-backup-check.sql)比较数据、迁移历史与约束。若已有库已升级且没有旧归档，说明中提供第二十一章独立样本库路径，不清空已有库。核对通过后将 `.env.database-verify` 指向恢复库；下面称该库为本轮 VERIFY，不再重复插入固定 ID。DEV 升级前另做自己的备份与独立恢复核对。
+在项目根目录运行 `nvm use` 和 `npm ci`。先按[备份与独立恢复](backup-restore.md)在第二十四章结构的校验库准备两条虚构样本，保存完整字段、归档并恢复到全新 epp_ch21_restore。使用[恢复核对](04-backup-check.sql)比较数据、迁移历史与约束。若已有库已升级且没有旧归档，说明中提供第二十四章独立样本库路径，不清空已有库。核对通过后将 `.env.database-verify` 指向恢复库；下面称该库为本轮 VERIFY，不再重复插入固定 ID。DEV 升级前另做自己的备份与独立恢复核对。
 
 ```bash
 unset DATABASE_URL SHADOW_DATABASE_URL
@@ -50,8 +50,8 @@ GET `/captures/:id/revisions?limit=2` 返回倒序历史和 nextBefore；将 nex
 
 ## 停止、恢复和产物
 
-暂停前记下 captureId、最近序号和迁移阶段，结束数据库事务，停止开发进程。下次连接原库先查历史，不再回填。不删除旧版本，不用旧列代表当前内容。旧字段只是初始副本，已经产生新修订后不能直接回到第二十一章写入协议。
+暂停前记下 captureId、最近序号和迁移阶段，结束数据库事务，停止开发进程。下次连接原库先查历史，不再回填。不删除旧版本，不用旧列代表当前内容。旧字段只是初始副本，已经产生新修订后不能直接回到第二十四章写入协议。
 
 `npm run build` 输出独立产物；运行依赖沿用锁文件，目标环境提供 DATABASE_URL，`npm start` 显式生产模式，不开启 Inspector、不监听源码、默认关闭 docs。迁移由持有固定 CLI 和历史的独立步骤执行，先于开放写入；应用启动不自动迁移。停 dev 后用生产产物 GET 相同记录，核对内容和历史仍在。已有 `npm test` 是最小 HTTP 回归，需要可连接的当前数据库，不能代替版本和迁移核对。测试连接在根目录 `.env.test` 用 `TEST_DATABASE_URL` 单独提供；缺失时在打开应用前退出，不回退到开发 `.env` 或继承的 `DATABASE_URL`。配置与运行方式见[项目测试说明](../../README.md)。
 
-早期 `examples/chapter-14-review.patch` 与 `database/chapter-21/reader-only.patch` 仅用于各自章节起点，回看时使用对应章节分支，不能直接套到修订实现上。没有认证的固定用户实践仍只用于本机；来源字段不构成权限证据。
+早期 `examples/chapter-15-review.patch` 与 `database/chapter-21/reader-only.patch` 仅用于各自章节起点，回看时使用对应章节分支，不能直接套到修订实现上。没有认证的固定用户实践仍只用于本机；来源字段不构成权限证据。
