@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "EPP 第25章 并发控制",
+    "name": "EPP 第28章 并发控制",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "description": "同一候选采纳201、重复操作409；锁等待503后先读取。按01至08手动发送；09至13沿用严格输入与历史修订检查。只保存ID，不自动重发请求。"
   },
