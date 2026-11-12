@@ -1,6 +1,6 @@
 # 最小小程序登录入口
 
-这里只放登录／关联、读五条素材与退出，使用微信原生API，无UI框架或构建依赖。前置是第37章API与迁移；本地映射观察见[VERIFY说明](../database/chapter-37/README.md)。
+这里只放登录／关联、读五条素材与退出，使用微信原生API，无UI框架或构建依赖。前置是第44章API与迁移；本地映射观察见[VERIFY说明](../database/chapter-37/README.md)。
 
 1. 在[微信公众平台](https://mp.weixin.qq.com/)准备实际小程序，确认管理员／开发者资格。在开发管理中取得AppID；AppSecret只放API的环境配置，不能写入此目录。游客AppID只够看静态入口，不能完成真实身份交换。
 2. 从[官方入口](https://developers.weixin.qq.com/miniprogram/dev/devtools/download.html)安装微信开发者工具，登录并导入本目录；项目类型小程序、不开云开发，填实际AppID。`project.config.json` 的touristappid是占位值，不是可用测试凭据；个人配置文件已忽略。不要为了截屏展示登录二维码或AppSecret。
