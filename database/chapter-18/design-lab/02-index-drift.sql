@@ -1,4 +1,4 @@
--- Use only the dedicated chapter-18 epp_migration_check connection.
+-- Use only the dedicated chapter 20 epp_migration_check connection.
 -- Run sections separately; inspect Prisma status/diff between CREATE and DROP.
 SELECT current_database(), current_user;
 SELECT indexname, indexdef FROM pg_indexes
