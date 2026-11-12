@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "EPP 第十四章独立改造",
+    "name": "EPP 第十五章独立改造",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "description": "仅用于已完成1200单元输入规则改造的隔离练习。开发默认3008，产物副本改3009；逐条手动Send，不自动提取ID或重放。"
   },
