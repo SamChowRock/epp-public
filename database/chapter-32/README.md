@@ -6,7 +6,7 @@
 2. 分别运行 `node examples/password-cost.mjs 19456 1`、`node examples/password-cost.mjs 19456 8`、`node examples/password-cost.mjs 65536 8`、`UV_THREADPOOL_SIZE=8 node examples/password-cost.mjs 65536 8`。每次是新进程；比较总耗时、各任务含排队耗时与峰值 RSS。有限实验不是公开入口的限流实现。
 3. 准备完成第三十六章且含旧虚构记录的独立 VERIFY。DBeaver 在该连接运行 [01-before.sql](01-before.sql)，私下保存 ID 与归属结果；Postman 按已保存学习记录 ID 保存旧详情。停止该库写入，检查 `.env.database-verify` 的目标，清除当前 shell 的 DATABASE_URL、SHADOW_DATABASE_URL、DB_QUERY_DEBUG 覆盖值，依次执行 `npm run db:verify -- migrate status`、`npm run db:verify -- migrate deploy`、`npm run db:verify -- migrate status`。
 4. 从源码跟写时，保存本章密码凭据函数与管理脚本后，再次 `npm run check` 生成新文件的dist；已取得完整章节代码也执行check。DBeaver 刷新表和约束，运行 [02-credential.sql](02-credential.sql)。首次升级 has_password=false；已有凭据则从 verify 恢复，不删行重新开始。重跑 01 对照旧 ID 与归属。
-5. 沿正文30.4从`.env.test`取VERIFY连接启动开发API，将DB_QUERY_DEBUG改为false，确认Postman baseUrl；初始化和CLI在另一个终端执行。使用下面的 zsh 隐藏输入初始化，成功后立即重跑02保存created_at与旧计数的基线，再将 init 换成 verify 输入同一密码，预期 PASSWORD_MATCH。换一个字符验证，应为 PASSWORD_NO_MATCH；再次 init 返回 PASSWORD_ALREADY_EXISTS，最初密码仍可验证。该入口只创建固定开发用户的第一份密码，不提供密码重置。
+5. 沿正文35.4从`.env.test`取VERIFY连接启动开发API，将DB_QUERY_DEBUG改为false，确认Postman baseUrl；初始化和CLI在另一个终端执行。使用下面的 zsh 隐藏输入初始化，成功后立即重跑02保存created_at与旧计数的基线，再将 init 换成 verify 输入同一密码，预期 PASSWORD_MATCH。换一个字符验证，应为 PASSWORD_NO_MATCH；再次 init 返回 PASSWORD_ALREADY_EXISTS，最初密码仍可验证。该入口只创建固定开发用户的第一份密码，不提供密码重置。
 
 ```bash
 unset DATABASE_URL SHADOW_DATABASE_URL DB_QUERY_DEBUG
