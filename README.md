@@ -1,6 +1,6 @@
 # EPP 配套实践代码
 
-本章检出命令为 `git switch part-05/chapter-38`。命令、迁移目录和请求集合沿用项目中的实际文件名。
+第 38 章「Session 与 Cookie 登录状态从哪里来」使用 `git switch part-05/chapter-38`。迁移目录和请求集合请按下面的实际文件名打开。
 
 ## 第三十八章 Session 与 Cookie
 
