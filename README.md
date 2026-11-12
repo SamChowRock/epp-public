@@ -1,58 +1,60 @@
 # EPP 配套实践代码
 
-## 第四十五章　失败、重试与未知结果
+本章检出命令为 `git switch part-06/chapter-53`。命令、迁移目录和请求集合沿用项目中的实际文件名。
 
-从第44章继续，按[本章实验](database/chapter-45/README.md)将同一投递分别停在连接、收件人应答与正文结束三个位置，对照退避、死信和持久停发，按事故 ID 恢复。
+## 第五十三章　失败、重试与未知结果
 
-## 第四十四章　安全领取任务与识别过期执行者
+从第52章继续，按[本章实验](database/chapter-45/README.md)将同一投递分别停在连接、收件人应答与正文结束三个位置，对照退避、死信和持久停发，按事故 ID 恢复。
 
-从 `part-06/chapter-43` 继续。按[本章双执行者实验](database/chapter-44/README.md)升级隔离库，在领取后和 SMTP 接受后分别暂停；对照租约、通道与收件箱，判断何时可接手，何时必须停发。
+## 第五十二章　安全领取任务与识别过期执行者
 
-## 第四十三章　为什么需要独立 Worker
+从 `part-06/chapter-51` 继续。按[本章双执行者实验](database/chapter-44/README.md)升级隔离库，在领取后和 SMTP 接受后分别暂停；对照租约、通道与收件箱，判断何时可接手，何时必须停发。
 
-从 `part-06/chapter-42` 继续，分支 `part-06/chapter-43` 追加验证邮件通道控制表，重启后保留停发状态。按[双进程启动说明](database/chapter-43/README.md)配置 API 与寄信进程，导入[本章集合](requests/chapter-43.postman_collection.json)，用当前身份和邮箱对照重置前后的事实。
+## 第五十一章　为什么需要独立 Worker
 
-## 第四十二章　Transactional Outbox
+从 `part-06/chapter-49` 继续，分支 `part-06/chapter-51` 追加验证邮件通道控制表，重启后保留停发状态。按[双进程启动说明](database/chapter-43/README.md)配置 API 与寄信进程，导入[本章集合](requests/chapter-43.postman_collection.json)，用当前身份和邮箱对照重置前后的事实。
 
-分支 `part-06/chapter-42` 从密码路线第 36 章继续。按[本章说明](database/chapter-42/README.md)升级 VERIFY，用原注册／重置请求提交业务意图与寄信任务，关闭 API 后运行一次性程序向 Mailpit 寄信。第 36 章标题下的同步投递说明描述旧分支。
+## 第四十九章　Transactional Outbox
 
-## 第三十六章 注册、验证与密码重置
+分支 `part-06/chapter-49` 从密码路线第 43 章继续。按[本章说明](database/chapter-42/README.md)升级 VERIFY，用原注册／重置请求提交业务意图与寄信任务，关闭 API 后运行一次性程序向 Mailpit 寄信。第 43 章标题下的同步投递说明描述旧分支。
 
-分支 `part-05/chapter-36` 从第35章继续。按[本章说明](database/chapter-36/README.md)升级非空VERIFY，保留旧用户与密码；用[请求集合](requests/chapter-36.postman_collection.json)和本地Mailpit走完注册、资格检查与密码恢复。新增Nodemailer 10.3.1、邮箱与意图两表及凭据版本。四个匿名动作仍有来源／固定头／JSON／限流保护；旧ID登录保留，已验证邮箱也可登录。发送同步等待，202不保证送达，第六篇继续可靠投递。
+## 第四十三章 注册、验证与密码重置
 
-## 第三十五章 保护浏览器入口
+分支 `part-05/chapter-43` 从第40章继续。按[本章说明](database/chapter-36/README.md)升级非空VERIFY，保留旧用户与密码；用[请求集合](requests/chapter-36.postman_collection.json)和本地Mailpit走完注册、资格检查与密码恢复。新增Nodemailer 10.3.1、邮箱与意图两表及凭据版本。四个匿名动作仍有来源／固定头／JSON／限流保护；旧ID登录保留，已验证邮箱也可登录。发送同步等待，202不保证送达，第六篇继续可靠投递。
 
-分支 `part-05/chapter-35` 从第34章继续，无新增迁移或依赖。按[本章实验](examples/browser-boundary/README.md)使用独立VERIFY与真实浏览器，观察同源CSRF拒绝、同站跨源Cookie、预检和响应不可读。所有写请求新增固定头，已有会话写请求还需Token；[本章集合](requests/chapter-35.postman_collection.json)先登录再取Token。代理默认不可信，限流仍为有界单进程实现，生产交付不包含实验页面。
+## 第四十章 保护浏览器入口
 
-## 第三十四章 鉴权与授权
+分支 `part-05/chapter-40` 从第39章继续，无新增迁移或依赖。按[本章实验](examples/browser-boundary/README.md)使用独立VERIFY与真实浏览器，观察同源CSRF拒绝、同站跨源Cookie、预检和响应不可读。所有写请求新增固定头，已有会话写请求还需Token；[本章集合](requests/chapter-35.postman_collection.json)先登录再取Token。代理默认不可信，限流仍为有界单进程实现，生产交付不包含实验页面。
 
-从第33章继续，分支 `part-05/chapter-34` 增加账号状态与 Web 使用资格，保留所有业务归属。按[本章说明](database/chapter-34/README.md)升级独立 VERIFY；旧账号保留资格，新账号默认未开通。用[请求集合](requests/chapter-34.postman_collection.json)和 DBeaver 核对第二账号、资源隔离、现有会话403/恢复200及受限退出。当前所有 Cookie API 都受该资格约束，Postman也不例外。
+## 第三十九章 鉴权与授权
 
-## 第三十三章 Session 与 Cookie
+从第38章继续，分支 `part-05/chapter-39` 增加账号状态与 Web 使用资格，保留所有业务归属。按[本章说明](database/chapter-34/README.md)升级独立 VERIFY；旧账号保留资格，新账号默认未开通。用[请求集合](requests/chapter-34.postman_collection.json)和 DBeaver 核对第二账号、资源隔离、现有会话403/恢复200及受限退出。当前所有 Cookie API 都受该资格约束，Postman也不例外。
 
-从第32章继续，分支 `part-05/chapter-33` 新增会话表和登录、当前身份、列表、撤销、退出、改密接口；已有业务改为使用当前请求身份。按[本章说明](database/chapter-33/README.md)先升级非空 VERIFY，再导入[请求集合](requests/chapter-33.postman_collection.json)登录。此前各章说明描述各自版本；当前服务无 Cookie 返回401，不能直接照旧集合匿名读取。
+## 第三十八章 Session 与 Cookie
 
-## 第三十二章 安全地保存密码与秘密
+从第37章继续，分支 `part-05/chapter-38` 新增会话表和登录、当前身份、列表、撤销、退出、改密接口；已有业务改为使用当前请求身份。按[本章说明](database/chapter-33/README.md)先升级非空 VERIFY，再导入[请求集合](requests/chapter-33.postman_collection.json)登录。此前各章说明描述各自版本；当前服务无 Cookie 返回401，不能直接照旧集合匿名读取。
 
-从第三十一章继续，分支 `part-05/chapter-32` 新增密码凭据表、本地初始化和秘密处理函数。按[本章说明](database/chapter-32/README.md)先跑独立实验，再升级非空 VERIFY、核对旧归属和初始化不覆盖；DEV 单独备份、升级与设置密码。仍未接登录，旧接口保留固定开发身份。
+## 第三十七章 安全地保存密码与秘密
 
-## 第三十一章 第四篇回顾
+从第三十六章继续，分支 `part-05/chapter-37` 新增密码凭据表、本地初始化和秘密处理函数。按[本章说明](database/chapter-32/README.md)先跑独立实验，再升级非空 VERIFY、核对旧归属和初始化不覆盖；DEV 单独备份、升级与设置密码。仍未接登录，旧接口保留固定开发身份。
 
-从第三十章继续，分支 `part-04/chapter-31` 保持业务代码与迁移不变。用[本章实验](database/chapter-31/README.md)里的 Postman 请求和双会话 SQL，核对两种竞争顺序、成功响应丢失与最后一个预约名额。
+## 第三十六章 第四篇回顾
 
-## 第三十章 索引与执行计划
+从第三十五章继续，分支 `part-04/chapter-36` 保持业务代码与迁移不变。用[本章实验](database/chapter-31/README.md)里的 Postman 请求和双会话 SQL，核对两种竞争顺序、成功响应丢失与最后一个预约名额。
 
-本章分支 `part-04/chapter-30` 从第二十九章继续。给学习记录追加一份有序索引，保留接口和旧数据。先按[本章操作说明](database/chapter-30/README.md)在已有数据的校验库保存计划，然后迁移、重读并比较。
+## 第三十五章 索引与执行计划
 
-## 第二十九章 分页与时间
+本章分支 `part-04/chapter-35` 从第三十三章继续。给学习记录追加一份有序索引，保留接口和旧数据。先按[本章操作说明](database/chapter-30/README.md)在已有数据的校验库保存计划，然后迁移、重读并比较。
 
-前置分支 `part-04/chapter-29` 从第二十八章继续，为学习记录和星图提供显式Offset／Cursor分页与UTC半开时间区间。旧请求不传mode时保持原结构；模型、迁移与依赖不变。操作与密钥配置见[本章说明](database/chapter-29/README.md)，导入[请求集合](requests/chapter-29.postman_collection.json)。
+## 第三十三章 分页与时间
+
+前置分支 `part-04/chapter-33` 从第三十二章继续，为学习记录和星图提供显式Offset／Cursor分页与UTC半开时间区间。旧请求不传mode时保持原结构；模型、迁移与依赖不变。操作与密钥配置见[本章说明](database/chapter-29/README.md)，导入[请求集合](requests/chapter-29.postman_collection.json)。
 
 游标绑定资源、用户、排序、limit和筛选，整轮有效期30分钟；分页读取实时数据，不承诺固定快照。生产启动新增必填CURSOR_HMAC_KEY；开发／测试未设置时使用进程内随机值，重建应用后旧游标失效。此前章节说明只描述对应版本。
 
-前置章节是第四篇第22章（`part-04/chapter-22`），该章从 `part-03/chapter-21` 最终状态继续。保留旧记录并回填初始修订，新增追加修订和历史查询，旧PATCH改为追加快照，详情／列表读取最新内容。先完成第三篇环境与迁移，再按[第二十二章说明](database/chapter-22/README.md)停写、迁移、核对和切换，旧字段保留初始副本，不再代表当前内容。
+前置章节是第四篇第25章（`part-04/chapter-25`），该章从 `part-03/chapter-24` 最终状态继续。保留旧记录并回填初始修订，新增追加修订和历史查询，旧PATCH改为追加快照，详情／列表读取最新内容。先完成第三篇环境与迁移，再按[第二十五章说明](database/chapter-22/README.md)停写、迁移、核对和切换，旧字段保留初始副本，不再代表当前内容。
 
-第十四章的 1200 单元新建限制、旧记录读取兼容与数组存储属于隔离练习，参考补丁和图形请求仍保留在下方“第十四章综合实践”，不作为当前主服务行为。
+第十五章的 1200 单元新建限制、旧记录读取兼容与数组存储属于隔离练习，参考补丁和图形请求仍保留在下方“第十五章综合实践”，不作为当前主服务行为。
 
 主服务集中解析启动配置，提供结构化日志与服务端 X-Request-Id；SIGINT/SIGTERM 先停止接收，再等待已有工作并释放资源。既有三个接口增加可空意图响应，另提供追加意图修改、完整修订和历史读取接口；Problem 契约沿用，关闭期间明确拒绝的新请求使用 503／SERVICE_DRAINING。Swagger 开发默认开启，生产默认关闭。记录保存在 PostgreSQL；API 退出会释放连接并保留已提交行。当前用户由数据库会话确定，旧资源仍检查原归属；本章先在本机同源入口实践。
 
@@ -74,7 +76,7 @@ Prisma CLI、Client 与 adapter-pg 固定 7.10.1，pg 为 8.16.3；本章连接�
 
 `package.json` 中的 `engines.node` 同样声明精确版本，`.npmrc` 开启 `engine-strict`，让 npm 安装时拒绝不匹配的 Node 版本。遇到 `EBADENGINE` 先执行 `nvm use`，再重试安装。
 
-沿用第十一章的 Zod `4.6.6` 与 @nestjs/swagger `11.4.8`，后者提供 Swagger UI 及其静态资源。其他运行依赖为 Nest `11.2.5`（common、core、platform-express）、reflect-metadata `0.2.2` 与 rxjs `7.8.2`；沿用的独立支线示例显式依赖 Express `5.2.1`，适配器也使用 Express 5，overrides 固定其间接依赖 Multer `2.5.0`。开发依赖保留 TypeScript `5.9.3`、tsx `4.23.15`、`@types/node` `24.13.3`，以及 `@types/express` `5.0.6`。`npm ci` 按锁文件安装完整依赖；`npm run build` 先清理 `dist/`，编译业务源码，再复制默认配置；`npm start` 只运行产物。服务默认监听 `http://127.0.0.1:3000`。默认端口来自 `config/service.json`，启动时由 `src/config.ts`（产物为 `dist/src/config.js`）相对于模块读取，不依赖调用者的工作目录。
+沿用第十二章的 Zod `4.6.6` 与 @nestjs/swagger `11.4.8`，后者提供 Swagger UI 及其静态资源。其他运行依赖为 Nest `11.2.5`（common、core、platform-express）、reflect-metadata `0.2.2` 与 rxjs `7.8.2`；沿用的独立支线示例显式依赖 Express `5.2.1`，适配器也使用 Express 5，overrides 固定其间接依赖 Multer `2.5.0`。开发依赖保留 TypeScript `5.9.3`、tsx `4.23.15`、`@types/node` `24.13.3`，以及 `@types/express` `5.0.6`。`npm ci` 按锁文件安装完整依赖；`npm run build` 先清理 `dist/`，编译业务源码，再复制默认配置；`npm start` 只运行产物。服务默认监听 `http://127.0.0.1:3000`。默认端口来自 `config/service.json`，启动时由 `src/config.ts`（产物为 `dist/src/config.js`）相对于模块读取，不依赖调用者的工作目录。
 
 以下生产命令要求先配置 CURSOR_HMAC_KEY、DATABASE_URL 和 APP_ORIGIN；本机3001端口可用 APP_ORIGIN=http://127.0.0.1:3001，实际HTTPS入口使用其完整origin，不附路径或末尾斜杠。可以为一次启动覆盖端口：
 
@@ -84,22 +86,22 @@ NODE_ENV=production APP_ORIGIN=http://127.0.0.1:3001 PORT=3001 node --enable-sou
 
 `PORT` 必须为十进制数字字符串，转换后的整数范围是 1～65535；缺失时使用默认端口，空值或错误值会在监听前退出并返回非零状态。即使指定 `PORT`，默认配置文件仍必须存在且有效。配置由每个服务进程在启动时读取；dev 会在源配置变化后复制并重启，生产产物则需要重新构建，修改生产运行目录的默认配置后需重启；绑定地址始终为 `127.0.0.1`。改端口后同步修改请求地址。
 
-沿用第二十二章的[修订历史请求集合](requests/chapter-22.postman_collection.json)，逐项核对完整追加、旧PATCH、最新读取和历史翻页。前章集合仍可观察原有输入边界；第二十一章三版本实验与补丁应回到对应章节分支操作，不能对当前修订库运行旧写入者。
+沿用第二十五章的[修订历史请求集合](requests/chapter-22.postman_collection.json)，逐项核对完整追加、旧PATCH、最新读取和历史翻页。前章集合仍可观察原有输入边界；第二十四章三版本实验与补丁应回到对应章节分支操作，不能对当前修订库运行旧写入者。
 
 ## 用 Postman 发送和保存请求
 
 保持 `npm run dev` 运行。在 [Postman 桌面客户端](https://www.postman.com/downloads/) 中选择 **Import**，导入 [requests/epp.postman_collection.json](requests/epp.postman_collection.json)，打开“EPP 本机接口调试”集合。已有同类客户端也可以按相同方法、地址、头部和正文创建请求。
 
-先在第33章集合登录，保持同一客户端 Cookie jar。以下旧业务集合复用此 Cookie，不必给每个请求手写 Cookie。
+先在第38章集合登录，保持同一客户端 Cookie jar。以下旧业务集合复用此 Cookie，不必给每个请求手写 Cookie。
 
 1. 打开“01 查看列表”，点击 **Send**，查看响应状态、Body 和 Headers。应返回 200 与前章已有的数据库记录。
 2. 打开“02 创建原文”，在 **Body → raw → JSON** 修改 originalText，点击 Send，查看 201、返回的 id 和响应头 Location。
 3. 将实际 id 填入集合 **Variables** 的 captureId，再发送“03 查看详情”，应返回 200。baseUrl 默认是 `http://127.0.0.1:3000`；改端口时一起修改，发送前核对变量解析后的实际 URL。所选环境中的同名变量可能覆盖集合变量。
 4. 集合还保存了字段类型错误、JSON 格式错误、内容类型错误与详情不存在的输入，分别观察 400、400、415、404，再查看列表确认失败没有新增记录。各章错误正文以当前实现为准。
 
-需要修改请求时，在 Headers、Body 或 Params 中编辑，保存后可反复点击 Send；查询条件由 Params 处理 URL 编码，第八章起再使用 q／limit。保存源码后等待服务自动重启，再点 Send 查看新响应；重启保留数据库记录；按已保存 captureId 继续查询，不必重复创建。每次 POST 都可能新增记录，集合保存的是请求，不会自动发送或保留服务数据。
+需要修改请求时，在 Headers、Body 或 Params 中编辑，保存后可反复点击 Send；查询条件由 Params 处理 URL 编码，第九章起再使用 q／limit。保存源码后等待服务自动重启，再点 Send 查看新响应；重启保留数据库记录；按已保存 captureId 继续查询，不必重复创建。每次 POST 都可能新增记录，集合保存的是请求，不会自动发送或保留服务数据。
 
-调试时保持同一个请求，在源码中设置断点后点击 Send。暂停期间客户端会等待；继续执行后才会收到响应。第五章起可用 VS Code 的 `EPP: attach to npm run dev` 自动重连，前面章节通过 Chrome 的 `chrome://inspect` 连接；重启后若连接断开，重新选择目标。生产运行方式见文末，日常学习保持 dev 模式。
+调试时保持同一个请求，在源码中设置断点后点击 Send。暂停期间客户端会等待；继续执行后才会收到响应。第六章起可用 VS Code 的 `EPP: attach to npm run dev` 自动重连，前面章节通过 Chrome 的 `chrome://inspect` 连接；重启后若连接断开，重新选择目标。生产运行方式见文末，日常学习保持 dev 模式。
 
 下面的 curl 是旧章匿名请求表示；在当前版本应返回401。需要终端复现时使用权限受控的 Cookie jar 文件并给请求加 `-b`，不要把 Cookie 写在命令、历史或截图中；日常使用已登录的 Postman 集合。
 
@@ -110,15 +112,15 @@ curl -i http://127.0.0.1:3000/captures \
   --data '{"originalText":"I am not much of cook."}'
 ```
 
-带有效会话创建成功返回 `201`，复制响应中的 `id`，用 `GET /captures/<id>` 查看详情。列表返回 `{ "items": [...] }`。同一正文重复提交会创建两条记录。创建可以省略 chineseIntent，响应明确返回 null；PATCH 必须提供该字段，字符串替换、null清空、缺失或空白拒绝。意图最多2000个UTF-16单元，原文和创建时间不由PATCH修改。q只搜索最新修订的原文。PATCH每次成功都会追加一版，重复发送并非幂等；并发争号可返回409／REVISION_CONFLICT。完整修订接口和历史范围参数见第二十二章说明。
+带有效会话创建成功返回 `201`，复制响应中的 `id`，用 `GET /captures/<id>` 查看详情。列表返回 `{ "items": [...] }`。同一正文重复提交会创建两条记录。创建可以省略 chineseIntent，响应明确返回 null；PATCH 必须提供该字段，字符串替换、null清空、缺失或空白拒绝。意图最多2000个UTF-16单元，原文和创建时间不由PATCH修改。q只搜索最新修订的原文。PATCH每次成功都会追加一版，重复发送并非幂等；并发争号可返回409／REVISION_CONFLICT。完整修订接口和历史范围参数见第二十五章说明。
 
 原文必须是无 NUL、无孤立代理项的非空白字符串，至多 2000 个 JavaScript UTF-16 代码单元；保留原始空格。q 同样拒绝不可原样表示的文本。请求体限制为 16 KiB，须为不带 BOM 的合法 UTF-8 JSON；非法编码不会被替换后写入。错误通过 HTTP 状态码与 `application/problem+json` 返回，包含 type、title、status、detail、code，字段校验失败还包含 issues。旧客户端读取 error 的逻辑需要改为使用新结构：无效输入 `400`、不存在 `404`、方法不支持 `405`、请求体过大 `413`、内容类型不支持 `415`。
 
 保持 `npm run dev` 运行，在 Chrome 的 `chrome://inspect` 中打开 Node 调试目标，连接后，在 `src/captures.service.ts` 的 `await this.store.insert(capture)` 和 `src/prisma-capture.store.ts` 的数据库写入处设置断点并再次发送创建请求。调试器仅监听本机 `9229` 端口。停止时，在运行服务的终端按 `Ctrl+C`。
 
-当前主服务已接入数据库，已包含本机会话登录，尚不包含 AI、跨域 CORS 配置和生产部署。第十三章统一协调 `SIGINT`／`SIGTERM`：停止接收、等待传输和已追踪工作、释放资源；达到关闭期限时以失败状态退出。完整原理与操作步骤见 [EPP 后端开发实践](https://github.com/SamChowRock/EPP-Book)。
+当前主服务已接入数据库，已包含本机会话登录，尚不包含 AI、跨域 CORS 配置和生产部署。第十四章统一协调 `SIGINT`／`SIGTERM`：停止接收、等待传输和已追踪工作、释放资源；达到关闭期限时以失败状态退出。完整原理与操作步骤见 [EPP 后端开发实践](https://github.com/SamChowRock/EPP-Book)。
 
-第二章支线“从字节到 JSON”另有独立示例。在项目根目录执行：
+第三章支线“从字节到 JSON”另有独立示例。在项目根目录执行：
 
 ```bash
 nvm use
@@ -127,7 +129,7 @@ node examples/buffer-boundary.js
 
 示例主动切开一个 UTF-8 字符，对照逐块解码、合并后解码和 `StringDecoder` 的输出；无需启动 HTTP 服务。
 
-## 第三章运行环境示例
+## 第四章运行环境示例
 
 以下从项目根目录运行，均不需要监听端口：
 
@@ -164,7 +166,7 @@ echo $?
 
 最后一次启动应输出配置错误，退出码为 `1`。默认文件损坏、字段类型错误或文件缺失也会在监听前拒绝启动。`npm start` 会在包根目录运行脚本，观察 cwd 差异时使用上面的直接 `node` 命令。
 
-## 第三章知识支线与路径变式
+## 第四章知识支线与路径变式
 
 正文的 `path-report.js` 只展示路径解析，不读写传入文件：
 
@@ -178,9 +180,9 @@ node examples/path-report.js ./input.json
 
 两次输出的模块配置位置相同，用户输入与导出目录随 cwd 改变。输出包含本机路径，分享前检查个人信息。
 
-支线 3A 使用 `stdio-result.js` 将一份 JSON 输出到 stdout，将诊断说明输出到 stderr；配合 `echo-stdin.js` 观察重定向与管道。正文给出了 `2>&1` 顺序与 `pipefail` 的对照，不要把两路输出混合后的内容当成合法 JSON。
+支线 4A 使用 `stdio-result.js` 将一份 JSON 输出到 stdout，将诊断说明输出到 stderr；配合 `echo-stdin.js` 观察重定向与管道。正文给出了 `2>&1` 顺序与 `pipefail` 的对照，不要把两路输出混合后的内容当成合法 JSON。
 
-支线 3B 的示例只修改自己创建的临时目录，结束时自动清理：
+支线 4B 的示例只修改自己创建的临时目录，结束时自动清理：
 
 ```bash
 node examples/file-permissions.js
@@ -191,7 +193,7 @@ echo $?
 
 权限示例按普通账号、POSIX 常规文件权限解释；管理员权限、ACL、沙箱和挂载方式可能改变结果。句柄示例的 `--fail` 路径刻意在写入后抛错，应返回 1，但仍执行关闭，并在清理之前重新读到已写内容。关闭资源不回滚写入。
 
-支线 3C 用短定时任务比较两种停止策略，无需 HTTP 端口：
+支线 4C 用短定时任务比较两种停止策略，无需 HTTP 端口：
 
 ```bash
 node examples/signal-lifetime.js log-only
@@ -200,7 +202,7 @@ node examples/signal-lifetime.js drain
 
 每次看到 `ready` 和工作开始后，在该终端按 `Ctrl+C`。`log-only` 只记录信号，仍会继续开始新工作，十秒演示时限会停止调度并返回失败；`drain` 停止调度，等待已接受工作完成，清理剩余定时器后自然退出。按顺序分别完成两次观察，不需要同时运行。这个有限任务示例用于解释资源与工作归属，不替代服务的 HTTP／数据库生命周期实现。
 
-## 第四章事件循环与执行边界示例
+## 第五章事件循环与执行边界示例
 
 继续从项目根目录运行，沿用 Node.js `24.22.1`，这些 JavaScript 示例没有第三方依赖。记录接口保持前文行为，以下实验不增加业务路由。
 
@@ -215,7 +217,7 @@ wait "$upload_pid"
 curl -sS http://127.0.0.1:3000/captures
 ```
 
-先确认服务已收到 POST、上传尚未完成：第4章快照的服务日志输出 JSON，其中 event 为 http.request、method 为 POST；后续章节日志格式演进后，按对应章的入口事件核对。期间列表仍应能返回；之后列表增加本次原文。改服务端口时同步改客户端与 curl 地址。重复运行会创建新记录。
+先确认服务已收到 POST、上传尚未完成：第5章快照的服务日志输出 JSON，其中 event 为 http.request、method 为 POST；后续章节日志格式演进后，按对应章的入口事件核对。期间列表仍应能返回；之后列表增加本次原文。改服务端口时同步改客户端与 curl 地址。重复运行会创建新记录。
 
 独立实验服务使用 `127.0.0.1:3002`。先停止主服务，释放共用的 Inspector 端口 9229，再启动实验：
 
@@ -255,7 +257,7 @@ UV_THREADPOOL_SIZE=4 node examples/thread-pool.js
 
 异常程序三种模式均返回 1，后两种刻意展示未处理异常；需要看退出码时，紧接单次运行执行 `echo $?`。race 模式调用方结束后工作仍继续，cancel 模式应先收尾工作再报告超时，fast 模式正常返回。分批程序在第 3 项失败后等第 4 项结束，不再接受第 5、6 项，最后显示 `active=0, peak=2` 并返回 1。线程池的派生参数仅作原生计算负载，不是业务密码配置；观察完成时间分布，避免将打印顺序或某次毫秒数当成调度保证。
 
-支线 4A 的顺序与有限饥饿实验：
+支线 5A 的顺序与有限饥饿实验：
 
 ```bash
 node examples/scheduling-order.js
@@ -264,7 +266,7 @@ node examples/scheduling-order.js --starve
 
 分别比较 ESM 顶层与 I/O 回调中的 nextTick／微任务顺序，以及 `--starve` 对定时器和 I/O 回调的延后。
 
-支线 4B 的一次性线程协议：
+支线 5B 的一次性线程协议：
 
 ```bash
 node examples/worker-boundary.js main
@@ -283,9 +285,9 @@ main 与 worker 对照父线程探针和计算完成的先后；后者修改输�
 
 需要观察启动第一行或构建产物时，先停止 dev，再选择 `EPP: build and launch`；也可依次执行 `npm run build`、`npm run debug`，选择 `EPP: attach to npm run debug` 并继续执行。两条路线使用 dist；launch 和 debug 都使用 development，并加载本机 .env。业务 HTTP 端口与 Inspector 端口承担不同职责，不同时启动多个占用相同端口的进程。
 
-源码断点依赖目标产物的 .map 与当前源码。dev 的 outFiles 指向 .dev，构建调试指向 dist；空心断点先核对目标进程、编译产物和映射。Scope、Watch、调用栈、条件断点、日志点与已捕获异常的用法见支线 5B。Nest 章节的断点放到各自的 Controller、Service 或错误边界。
+源码断点依赖目标产物的 .map 与当前源码。dev 的 outFiles 指向 .dev，构建调试指向 dist；空心断点先核对目标进程、编译产物和映射。Scope、Watch、调用栈、条件断点、日志点与已捕获异常的用法见支线 6B。Nest 章节的断点放到各自的 Controller、Service 或错误边界。
 
-## 第五章类型、模块与构建
+## 第六章类型、模块与构建
 
 开发入口与产物入口分别运行，不要同时占用默认端口：
 
@@ -293,9 +295,9 @@ main 与 worker 对照父线程探针和计算完成的先后；后者修改输�
 npm run dev
 ```
 
-第五章建立的默认开发入口继续使用项目锁定的 TypeScript watch 将源码编译到 `.dev`，本章新增的装饰器元数据也由编译器生成。只有编译无错误才重启服务；类型错误会停止旧服务，修复保存后恢复，重启保留 PostgreSQL 记录。`npm run typecheck` 单独检查，`npm run build` 生成独立的 `dist`；核对产物时用 `PORT=3001 npm start`，与开发端口区分。构建产物保留 `dist/src/` 与 `dist/config/` 的相对关系，默认配置是构建时复制的快照。
+第六章建立的默认开发入口继续使用项目锁定的 TypeScript watch 将源码编译到 `.dev`，本章新增的装饰器元数据也由编译器生成。只有编译无错误才重启服务；类型错误会停止旧服务，修复保存后恢复，重启保留 PostgreSQL 记录。`npm run typecheck` 单独检查，`npm run build` 生成独立的 `dist`；核对产物时用 `PORT=3001 npm start`，与开发端口区分。构建产物保留 `dist/src/` 与 `dist/config/` 的相对关系，默认配置是构建时复制的快照。
 
-仅查看不使用装饰器的 `src/config.ts` 或运行第五章独立示例，仍可使用 `node --import=tsx`；当前 Nest 应用入口必须按上述 tsc 路径构建运行，不能直接用 tsx 替代。源码中的 `.js` 导入继续匹配最终产物。
+仅查看不使用装饰器的 `src/config.ts` 或运行第六章独立示例，仍可使用 `node --import=tsx`；当前 Nest 应用入口必须按上述 tsc 路径构建运行，不能直接用 tsx 替代。源码中的 `.js` 导入继续匹配最终产物。
 
 类型断言不验证输入的独立失败示例：
 
@@ -316,7 +318,7 @@ node dist/alias/main.js
 
 前两步成功，最后一步刻意失败。观察产物保留的 `@demo/value`，再按正文改为 `./value.js` 对照。下一次服务构建会清理独立示例的产物。
 
-支线 5A 的模块实验无需监听端口：
+支线 6A 的模块实验无需监听端口：
 
 ```bash
 node examples/modules/consumer.js
@@ -345,41 +347,41 @@ cp -R dist "$release_dir/dist" &&
 运行目录不含源码和开发工具，不支持重新构建。保留当前 shell 的 `release_dir`，停止服务后可从其他 cwd 使用绝对入口和 `PORT=3001` 再运行；配置仍从运行目录里的 `dist/config/` 读取。默认配置缺失应在监听前失败。本章需先通过进程环境提供 DATABASE_URL 且保持 DB_QUERY_DEBUG=false；可在独立目录用 VS Code 新建本机验证专用 `.env`，按 `.env.example` 填写后改用 `NODE_ENV=production PORT=3001 node --env-file=.env dist/src/server.js`，验证结束移除该秘密文件，正式部署仍由环境注入。按正文再次核对四个接口、错误输入与重启保留数据，结束后只清理自己新建的临时目录。
 
 
-## 第六章独立实践参考
+## 第七章独立实践参考
 
-`part-01/chapter-06` 的主服务保持第五章状态。`examples/chapter-06-source.patch` 保存可选来源标签的独立实现，供完成自主实践后对照；该字段不进入第七章及后续主线。
+`part-01/chapter-07` 的主服务保持第六章状态。`examples/chapter-06-source.patch` 保存可选来源标签的独立实现，供完成自主实践后对照；该字段不进入第八章及后续主线。
 
 自己从空目录跟写、普通克隆和单分支克隆都可使用同一路径：保留当前项目，另建资料目录。以下每条命令成功后才执行下一条；已有目录用 `git worktree list` 找回练习，不覆盖它。
 
 ```bash
 main_dir=$(pwd)
-git clone --single-branch --branch part-01/chapter-06 \
+git clone --single-branch --branch part-01/chapter-07 \
   https://github.com/SamChowRock/epp-book-code.git ../epp-chapter-06-materials
 cd ../epp-chapter-06-materials
-git fetch origin refs/heads/part-01/chapter-05:refs/remotes/origin/part-01/chapter-05
-git worktree add -b practice/chapter-06-source ../epp-chapter-06-source origin/part-01/chapter-05
+git fetch origin refs/heads/part-01/chapter-06:refs/remotes/origin/part-01/chapter-06
+git worktree add -b practice/chapter-06-source ../epp-chapter-06-source origin/part-01/chapter-06
 ```
 
-进入 `../epp-chapter-06-source`，执行 `nvm use`、`npm ci`，按正文独立实现。远程分支记录 `origin/part-01/chapter-05` 已由显式 fetch 建立，不依赖同名本地分支；原项目无需初始化 Git。
+进入 `../epp-chapter-06-source`，执行 `nvm use`、`npm ci`，按正文独立实现。远程分支记录 `origin/part-01/chapter-06` 已由显式 fetch 建立，不依赖同名本地分支；原项目无需初始化 Git。
 
-查看参考：`git show origin/part-01/chapter-06:examples/chapter-06-source.patch`。需要运行参考时，在资料目录执行 `git worktree add -b practice/chapter-06-reference ../epp-chapter-06-reference origin/part-01/chapter-05`；成功后进入该目录，执行 `git show origin/part-01/chapter-06:examples/chapter-06-source.patch | git apply -`，然后安装依赖、类型检查、构建与启动。不要在已有个人成果上直接应用补丁。结束后用 `cd "$main_dir"` 回到原项目；重开终端后用自己记录的原路径。详细需求、隔离步骤与响应观察见第六章。
+查看参考：`git show origin/part-01/chapter-07:examples/chapter-06-source.patch`。需要运行参考时，在资料目录执行 `git worktree add -b practice/chapter-06-reference ../epp-chapter-06-reference origin/part-01/chapter-06`；成功后进入该目录，执行 `git show origin/part-01/chapter-07:examples/chapter-06-source.patch | git apply -`，然后安装依赖、类型检查、构建与启动。不要在已有个人成果上直接应用补丁。结束后用 `cd "$main_dir"` 回到原项目；重开终端后用自己记录的原路径。详细需求、隔离步骤与响应观察见第七章。
 
-## 第七章建立的 Nest 组装与业务边界
+## 第八章建立的 Nest 组装与业务边界
 
-第七章先从职责变化比较手动组装与框架组织，再解释 Nest 的控制反转、依赖注入、模块封装与平台适配。独立示例在完成构建后运行：
+第八章先从职责变化比较手动组装与框架组织，再解释 Nest 的控制反转、依赖注入、模块封装与平台适配。独立示例在完成构建后运行：
 
 ```bash
 node examples/manual-composition.mjs
 ```
 
-`makeEntry` 通过普通函数参数接收 Service，两个入口共享同一实例时打印 `shared entry count: 1`。第九章新增 `another service, same store: 1`，说明不同 Service 可以共享同一存储；使用独立 MemoryCaptureStore 的入口打印 `isolated entry count: 0`。这只观察同一进程内的对象关系，不表示未来独立运行的 HTTP 与 CLI 进程共享 Map。
+`makeEntry` 通过普通函数参数接收 Service，两个入口共享同一实例时打印 `shared entry count: 1`。第十章新增 `another service, same store: 1`，说明不同 Service 可以共享同一存储；使用独立 MemoryCaptureStore 的入口打印 `isolated entry count: 0`。这只观察同一进程内的对象关系，不表示未来独立运行的 HTTP 与 CLI 进程共享 Map。
 
-- `src/captures.service.ts`：原文规则、记录创建与查询；第九章接收 CaptureStore，不再直接持有 Map。
+- `src/captures.service.ts`：原文规则、记录创建与查询；第十章接收 CaptureStore，不再直接持有 Map。
 - `src/capture.ts`、`src/capture-store.ts`、`src/memory-capture.store.ts`：模型、存储契约与内存实现，复制写入与读取对象，保留查询语义。
-- `src/captures.controller.ts`：四个 HTTP 入口；第八章改用 Nest 返回值响应，创建用 passthrough 设置 Location。
+- `src/captures.controller.ts`：四个 HTTP 入口；第九章改用 Nest 返回值响应，创建用 passthrough 设置 Location。
 - `src/http.ts`：沿用流读取、16 KiB 限制与 JSON 输出，转换业务和协议失败。
 - `src/http-boundary.ts`：路由前核对路径与允许方法，保留 404／405、Allow 和原始 ID 行为。
-- `src/captures.module.ts`、`src/app.module.ts` 与 `src/app.ts`：第十章由记录模块拥有组件登记，根模块导入它；创建 Nest Express 应用时关闭默认解析器，由 captureBody 在路由前唯一读取 JSON。
+- `src/captures.module.ts`、`src/app.module.ts` 与 `src/app.ts`：第十一章由记录模块拥有组件登记，根模块导入它；创建 Nest Express 应用时关闭默认解析器，由 captureBody 在路由前唯一读取 JSON。
 - `src/server.ts`：加载启动配置、监听以及启动失败收尾。
 
 路径仍精确匹配；`/Captures` 和 `/captures/` 不等于 `/captures`。HEAD 与 OPTIONS 仍返回 405；没有增加 CORS。详情 ID 按原始路径段查询，生成的 UUID 直接用于请求地址。未知业务异常返回通用 500，诊断保留在服务端。
@@ -393,7 +395,7 @@ node examples/nest-metadata.mjs
 
 观察 Controller 的构造依赖为 `CapturesService`、类值相等；原文副本修改不影响存储，空白输入拒绝且不新增记录，另建 Service 并传入独立 MemoryCaptureStore 时列表为空。
 
-支线 7A 对照移除元数据的产物：
+支线 8A 对照移除元数据的产物：
 
 ```bash
 npm exec -- tsc --emitDecoratorMetadata false
@@ -405,7 +407,7 @@ node examples/nest-metadata.mjs
 中间一次应显示依赖描述 `undefined`、类值相等为 `false`，手动构造的业务调用仍成立。实验覆盖了产物，必须执行最后的构建恢复，随后再启动 HTTP 服务。TypeScript 配置文件本身没有改变。
 
 
-### 支线 7A：装饰器的执行与路由注册
+### 支线 8A：装饰器的执行与路由注册
 
 ```bash
 npm exec -- tsc -p examples/decorators/tsconfig.json
@@ -414,7 +416,7 @@ node dist/decorators/mini-router.js
 
 `examples/decorators/mini-router.ts` 只用传统 TypeScript 装饰器和普通 JavaScript 注册表，不导入 Nest、不监听端口。先观察方法／类装饰器在 `before new` 之前执行，再看到 `/notes/preview` 注册并返回 `saved: hello`；`/preview` 不匹配。按支线改变 Group 前缀并重新编译，观察地址变化，再恢复。这个示例关闭自动类型元数据，以区分自行记录路由与编译器发出类型描述。服务 build 会清理其产物，需要时重新执行上述命令。
 
-### 支线 7B：Express 请求链
+### 支线 8B：Express 请求链
 
 ```bash
 npm run dev:express
@@ -443,9 +445,9 @@ node --input-type=module -e 'process.stdout.write(JSON.stringify({message:"a".re
 依次应得到 200、403、500、500、404、客户端超时、200、400、413。结合日志区分 next 返回与响应 finish；正常 echo 看到 body 已解析，失败输入不进入该路由。实验的 JSON 上限为 1 KiB，EPP 仍为 16 KiB；观察完按 Ctrl+C 停止独立进程。
 
 
-## 第八章 Controller 输入与响应
+## 第九章 Controller 输入与响应
 
-`src/capture-query.ts` 把单值查询转换为业务参数，`src/capture-body.ts` 负责 POST／PATCH 的唯一 JSON 读取；第十二章已把原来的 httpResult 替换为 `src/problem.filter.ts` 的统一 Problem 处理。四个 Controller 方法返回业务结果，创建时只设置 Location。成功响应的自动头部可能变化，业务状态、JSON 和 Location／Allow 约定继续保持。
+`src/capture-query.ts` 把单值查询转换为业务参数，`src/capture-body.ts` 负责 POST／PATCH 的唯一 JSON 读取；第十三章已把原来的 httpResult 替换为 `src/problem.filter.ts` 的统一 Problem 处理。四个 Controller 方法返回业务结果，创建时只设置 Location。成功响应的自动头部可能变化，业务状态、JSON 和 Location／Allow 约定继续保持。
 
 ```bash
 curl -i 'http://127.0.0.1:3000/captures?q=coffee&limit=1'
@@ -455,7 +457,7 @@ curl -i --get --data-urlencode 'q=C++ & Node' http://127.0.0.1:3000/captures
 
 q 大小写敏感、按字面子串匹配，提供时非空白且最多 200 个 UTF-16 代码单元；limit 是 1～100 的十进制整数文本，不接受前导零、小数和指数。重复已知参数拒绝，未知字段忽略。当前主服务先按固定归属和字面条件筛选，再按 created_at/id 升序截取；没有参数时仍返回全部匹配记录，未增加分页。失败不改变已有记录。
 
-支线 8A 无需服务端口：
+支线 9A 无需服务端口：
 
 ```bash
 node examples/url-inputs.mjs
@@ -463,7 +465,7 @@ node examples/url-inputs.mjs
 
 观察加号与空格、get 与 getAll、百分号只解码一次，以及构造参数值后片段不进入请求目标。
 
-支线8B使用独立开发入口监听3005：
+支线9B使用独立开发入口监听3005：
 
 ```bash
 npm run dev:responses
@@ -485,16 +487,16 @@ curl --max-time 2 -i http://127.0.0.1:3005/responses/forgotten
 
 ### 查询容量与条件读取
 
-从第八章开始，业务入口在 simple 查询解析前拒绝超过 1000 个 `&` 分隔片段的查询（400），包括未知字段和空片段，避免尾部 q 或重复参数被静默丢弃。上限内的未知字段仍忽略。
+从第九章开始，业务入口在 simple 查询解析前拒绝超过 1000 个 `&` 分隔片段的查询（400），包括未知字段和空片段，避免尾部 q 或重复参数被静默丢弃。上限内的未知字段仍忽略。
 
-自动响应会生成 ETag。GET 带匹配的 `If-None-Match`（或 `*`）时可能返回 304，没有响应体及 JSON Content-Type；客户端应复用已有缓存。不带条件或条件不匹配时返回 200 JSON。主线仍不开放 HEAD（405）。此行为从第八章起承接 Express 的条件响应语义，具体操作见支线 8B。
+自动响应会生成 ETag。GET 带匹配的 `If-None-Match`（或 `*`）时可能返回 304，没有响应体及 JSON Content-Type；客户端应复用已有缓存。不带条件或条件不匹配时返回 200 JSON。主线仍不开放 HEAD（405）。此行为从第九章起承接 Express 的条件响应语义，具体操作见支线 9B。
 
 
-## 第九章存储契约与 Provider
+## 第十章存储契约与 Provider
 
 - `capture-store.ts` 同时导出类型接口与唯一 Symbol 令牌，两者分别服务于静态检查与运行时查找。
 - `MemoryCaptureStore` 实现异步契约，Map 仍是同步内存操作；存储副本、查询语义与不存在／故障区分由契约约定。
-- 使用 useClass 提供存储，以 useFactory／inject 创建普通 CapturesService；第十章将这组登记移入 CapturesModule。Controller 在成功写入后设置 Location，列表先等待再包装。
+- 使用 useClass 提供存储，以 useFactory／inject 创建普通 CapturesService；第十一章将这组登记移入 CapturesModule。Controller 在成功写入后设置 Location，列表先等待再包装。
 
 先观察慢写入和失败写入如何影响业务完成，以下程序只操作独立内存对象：
 
@@ -514,7 +516,7 @@ node dist/examples/provider-values/main.js
 
 useValue 提供固定 find，返回 demo-capture。其 insert 和 list 明确失败，不代表真实持久化，也不替换主线 HTTP 应用。应用容器由 finally 关闭。
 
-支线 9A：
+支线 10A：
 
 ```bash
 npm exec -- tsc -p examples/provider-identity/tsconfig.json
@@ -527,7 +529,7 @@ node dist/examples/provider-identity/main.js fail-factory
 
 前两次成功：alias 的对象相同且两处均读到一条；class 的对象不同，具体类注册为空，令牌对应实例有一条。后三次刻意返回 1，分别暴露不同 Symbol、缺少注册和初始化失败；单独运行并紧接 echo $? 查看退出状态。Reader 的 design type 为 Object，真正身份来自 Inject。
 
-支线 9B：
+支线 10B：
 
 ```bash
 npm exec -- tsc -p examples/provider-scopes/tsconfig.json
@@ -537,9 +539,9 @@ node dist/examples/provider-scopes/main.js
 输出共享计数 1、同上下文 Reader 相同、不同上下文不同、请求计数 1／0；两个消费者不共享 transient Stamp，同一消费者保留自己的 Stamp。按支线临时把 Stamp 或 RequestCounter 改成默认作用域，重新编译观察后恢复。显式上下文不代表真实 HTTP 请求或用户身份。所有示例产物在常规 build 后需重新编译。
 
 
-## 第十章模块边界与循环依赖示例
+## 第十一章模块边界与循环依赖示例
 
-下面这一节在 `part-02/chapter-10` 快照中运行，保持原来的内存语义。module-consumer 和 module-workflow 直接导入 CapturesModule；若在当前分支运行，它们会连接数据库并写入，已不适合用来观察原章节的隔离 Map 结果。回看原实验请使用对应快照。
+下面这一节在 `part-02/chapter-11` 快照中运行，保持原来的内存语义。module-consumer 和 module-workflow 直接导入 CapturesModule；若在当前分支运行，它们会连接数据库并写入，已不适合用来观察原章节的隔离 Map 结果。回看原实验请使用对应快照。
 
 先完成主项目构建，再单独编译示例。`npm run build` 会清空 dist，重新构建后要重新执行对应示例的 tsc 命令。以下程序各自创建应用上下文，不与另一个 HTTP 进程共享内存，也不增加业务路由。
 
@@ -568,7 +570,7 @@ node dist/examples/module-visibility/main.js bridge
 node dist/examples/module-workflow/cycle.js
 ```
 
-四种可见性失败分别是未导出 Service、只有根模块导入、消费者直接要求内部存储、中间模块没有再导出。cycle 则是两个工厂互相要求对方实例，均以非零状态退出。更完整的关系与修法见第十章，不通过重复登记或扩大所有导出来掩盖失败。
+四种可见性失败分别是未导出 Service、只有根模块导入、消费者直接要求内部存储、中间模块没有再导出。cycle 则是两个工厂互相要求对方实例，均以非零状态退出。更完整的关系与修法见第十一章，不通过重复登记或扩大所有导出来掩盖失败。
 
 支线先观察 ESM 求值，再观察双向类关系：
 
@@ -594,14 +596,14 @@ ESM 默认输出 A，eager 在初始化前读取类而失败。双向类程序 l
 
 先在终端运行 dev，再在 VS Code 选择 `EPP: attach to npm run dev`；`restart: true` 会在服务重启后尝试重连，断点保留。Chrome 可从 chrome://inspect 连接，但重启后可能需要重新选择目标。只有排查启动第一行才使用 `npm run build` 和 `npm run debug`；dev与debug不要同时占用9229或业务端口。dev 使用 .dev，build/clean 使用 dist，二者不会相互清理；并行检查不会自动重启开发服务。依赖、package.json、开发脚本及环境变量改变后手动重启dev。此时的自动重启不保留进程内状态。
 
-生产方式先 `npm ci`、`npm run build`，再按第五章准备运行目录，仅安装运行依赖（`npm ci --omit=dev`），执行 `npm start`。start只运行构建产物，不开启Inspector或文件监听；生产环境不运行dev/debug。配置已复制进dist，修改源配置不会自动更新生产产物。环境变量按部署目标提供；NODE_ENV=production本身不会替代构建或自动关闭调试。完整进程托管、HTTPS与发布恢复在部署篇展开。
+生产方式先 `npm ci`、`npm run build`，再按第六章准备运行目录，仅安装运行依赖（`npm ci --omit=dev`），执行 `npm start`。start只运行构建产物，不开启Inspector或文件监听；生产环境不运行dev/debug。配置已复制进dist，修改源配置不会自动更新生产产物。环境变量按部署目标提供；NODE_ENV=production本身不会替代构建或自动关闭调试。完整进程托管、HTTPS与发布恢复在部署篇展开。
 
 
-## 第十一章输入、公开响应与接口文档
+## 第十二章输入、公开响应与接口文档
 
 查询超过 1000 项时返回 `QUERY_TOO_LARGE`；非法 UTF-8、BOM 或 JSON 语法失败返回 `INVALID_JSON`。两个 GET 的 OpenAPI 同时描述 If-None-Match、ETag 以及没有正文的 304。
 
-关键文件：capture-contract.ts 定义输入和公开响应；input-validation.ts 只把输入失败转为 400；第十二章由 Pipe 解析输入、Interceptor 按公开 Schema 投影响应；http.ts 统一描述 Problem；openapi.ts 从 Schema 生成字段描述并显式维护操作。
+关键文件：capture-contract.ts 定义输入和公开响应；input-validation.ts 只把输入失败转为 400；第十三章由 Pipe 解析输入、Interceptor 按公开 Schema 投影响应；http.ts 统一描述 Problem；openapi.ts 从 Schema 生成字段描述并显式维护操作。
 
 ```bash
 npm run typecheck
@@ -628,10 +630,10 @@ curl -i -X DELETE http://127.0.0.1:3000/captures
 curl -s http://127.0.0.1:3000/openapi.json
 ```
 
-前两项为 VALIDATION_ERROR，详情不存在为 CAPTURE_NOT_FOUND，不支持的方法为 METHOD_NOT_ALLOWED 并保留 Allow。未知请求字段仍忽略，id／createdAt 继续由服务端生成，原文空格和 UTF-16 长度规则不变，第十九章另拒绝 NUL 与孤立代理项。业务规则仍由 Service 维护；独立示例只展示各自的机制，不等同主线新协议。第十二章已将这些边界接到 Nest 请求机制，错误约定继续保持。
+前两项为 VALIDATION_ERROR，详情不存在为 CAPTURE_NOT_FOUND，不支持的方法为 METHOD_NOT_ALLOWED 并保留 Allow。未知请求字段仍忽略，id／createdAt 继续由服务端生成，原文空格和 UTF-16 长度规则不变，第二十二章另拒绝 NUL 与孤立代理项。业务规则仍由 Service 维护；独立示例只展示各自的机制，不等同主线新协议。第十三章已将这些边界接到 Nest 请求机制，错误约定继续保持。
 
 
-## 第十二章请求机制与独立顺序实验
+## 第十三章请求机制与独立顺序实验
 
 主线默认 `npm run dev`，继续使用 [基础请求集合](requests/epp.postman_collection.json)。在 schema.pipe.ts 的 transform、Controller、response-schema.interceptor.ts 的 map 和 problem.filter.ts 的 catch 设置断点，分别发送字段类型错误、JSON 格式错误和正常创建，比较哪些位置会执行。输入失败为 400，输出失约为 500；输出失败不撤回已经完成的写入，失败响应会移除成功专用的 Location。
 
@@ -655,7 +657,7 @@ node examples/observable-boundaries.mjs
 
 它展示重复订阅执行两次、错误恢复成普通值、等待超时后底层工作继续完成。程序不依赖 dist，也不要求启动服务。
 
-数据库测试使用单独的连接配置。首次将 [test/database.env.example](test/database.env.example) 复制为根目录 `.env.test`，填写隔离校验库的 `TEST_DATABASE_URL`，保持 `DB_QUERY_DEBUG=false`；已有文件只补所需字段，不覆盖。这个库须已应用本章迁移并含固定开发用户，可以使用第十八章建立的独立 VERIFY，不能使用 DEV 或需要保留业务数据的共享库。测试不会自动建库、迁移或清库。
+数据库测试使用单独的连接配置。首次将 [test/database.env.example](test/database.env.example) 复制为根目录 `.env.test`，填写隔离校验库的 `TEST_DATABASE_URL`，保持 `DB_QUERY_DEBUG=false`；已有文件只补所需字段，不覆盖。这个库须已应用本章迁移并含固定开发用户，可以使用第二十章建立的独立 VERIFY，不能使用 DEV 或需要保留业务数据的共享库。测试不会自动建库、迁移或清库。
 
 `npm test` 只加载 `.env.test`，不读取开发 `.env`。测试入口要求显式的 `TEST_DATABASE_URL`，并用它替换测试进程中的 `DATABASE_URL`；仅设置 `NODE_ENV=test` 不会隔离数据库。进程已有的同名变量仍优先于文件，使用文件前先清除本终端旧的 `TEST_DATABASE_URL`、`DB_QUERY_DEBUG` 和 `DOCS_ENABLED`，再核对目标库。连接凭据不提交、不打印。
 
@@ -669,17 +671,17 @@ npm test
 
 ## 本机配置与交付核对
 
-第三章起可将 `.env.example` 复制为 `.env`，填写开发 PORT。dev/debug 通过 Node 的 --env-file-if-exists 加载它，已存在的进程环境变量优先；NODE_ENV 由对应脚本明确指定。`.env` 不进入版本控制或交付目录，生产进程由启动环境提供 DATABASE_URL、CURSOR_HMAC_KEY、APP_ORIGIN、PORT 等配置，npm start 不自动读取开发文件。修改 .env 后手动重新启动 dev；复制示例不会自动改变已经运行的进程。
+第四章起可将 `.env.example` 复制为 `.env`，填写开发 PORT。dev/debug 通过 Node 的 --env-file-if-exists 加载它，已存在的进程环境变量优先；NODE_ENV 由对应脚本明确指定。`.env` 不进入版本控制或交付目录，生产进程由启动环境提供 DATABASE_URL、CURSOR_HMAC_KEY、APP_ORIGIN、PORT 等配置，npm start 不自动读取开发文件。修改 .env 后手动重新启动 dev；复制示例不会自动改变已经运行的进程。
 
-`npm run check` 是本章的静态检查入口。检查代码后，仍需用已保存的 Postman 请求核对合法创建、错误拒绝、列表与详情；静态检查不能证明 HTTP 可用。生产模式核对请使用另外的端口和请求集合副本，避免把请求发到开发进程。采用第五章构建布局后，在独立运行目录执行 npm ci --omit=dev，再用 PORT=3001 npm start 启动产物，Postman 中将该集合副本的 baseUrl 设为 http://127.0.0.1:3001；核对依赖、配置、正常与失败响应，最后停止该进程。
-
-
-第十一章起，Swagger 在 development 默认开启，在 test/production 默认关闭。NODE_ENV 只接受 development/test/production；DOCS_ENABLED 只接受 true/false，非法值在创建应用前失败。确需开启文档时由目标环境显式提供 DOCS_ENABLED=true；开放文档是一项有意的入口配置，不代表已有访问权限控制。生产关闭时 /docs 和 /openapi.json 返回路由不存在，业务接口照常可用；静态契约仍可用 scripts/export-openapi.mjs 导出。
+`npm run check` 是本章的静态检查入口。检查代码后，仍需用已保存的 Postman 请求核对合法创建、错误拒绝、列表与详情；静态检查不能证明 HTTP 可用。生产模式核对请使用另外的端口和请求集合副本，避免把请求发到开发进程。采用第六章构建布局后，在独立运行目录执行 npm ci --omit=dev，再用 PORT=3001 npm start 启动产物，Postman 中将该集合副本的 baseUrl 设为 http://127.0.0.1:3001；核对依赖、配置、正常与失败响应，最后停止该进程。
 
 
-## 第十三章配置、日志与关闭
+第十二章起，Swagger 在 development 默认开启，在 test/production 默认关闭。NODE_ENV 只接受 development/test/production；DOCS_ENABLED 只接受 true/false，非法值在创建应用前失败。确需开启文档时由目标环境显式提供 DOCS_ENABLED=true；开放文档是一项有意的入口配置，不代表已有访问权限控制。生产关闭时 /docs 和 /openapi.json 返回路由不存在，业务接口照常可用；静态契约仍可用 scripts/export-openapi.mjs 导出。
 
-从第十二章跟做时，按[三个可运行阶段](examples/chapter-13-stages/README.md)推进：配置解析 → 请求日志 → 关闭协调。每段均先 check 再观察行为，可以暂停恢复；补丁用于独立第十二章目录，不覆盖自己的实现。
+
+## 第十四章配置、日志与关闭
+
+从第十三章跟做时，按[三个可运行阶段](examples/chapter-13-stages/README.md)推进：配置解析 → 请求日志 → 关闭协调。每段均先 check 再观察行为，可以暂停恢复；补丁用于独立第十三章目录，不覆盖自己的实现。
 
 本机 .env 可新增 LOG_LEVEL=debug、SHUTDOWN_TIMEOUT_MS=5000；已有 .env 不要直接覆盖。NODE_ENV 与文档开关由 src/config.ts 集中解析，src/http-options.ts 不再使用。PORT 和关闭期限先校验十进制表示；关闭期限为1～30000毫秒。配置无效时在创建应用前记录 CONFIG_INVALID 和字段名，返回非零退出码，不打印原值。APP_CONFIG 注入不可变配置快照；启动后改环境需重启。
 
@@ -711,16 +713,16 @@ node examples/lifecycle-order.mjs
 node examples/request-context.mjs
 ```
 
-前者观察初始化与关闭钩子；后者对照全局变量串值、AsyncLocalStorage 与事件绑定。第十章直接消费 CapturesModule 的示例已在自身根模块登记 RuntimeModule，容器之间不共享 global 模块。主服务使用数据库；独立生命周期实验仍只管理自己的文件资源，不连接数据库。build 排除全部 src/labs；dev:lifecycle 与 dev:pipeline 都只运行 .dev 产物。
+前者观察初始化与关闭钩子；后者对照全局变量串值、AsyncLocalStorage 与事件绑定。第十一章直接消费 CapturesModule 的示例已在自身根模块登记 RuntimeModule，容器之间不共享 global 模块。主服务使用数据库；独立生命周期实验仍只管理自己的文件资源，不连接数据库。build 排除全部 src/labs；dev:lifecycle 与 dev:pipeline 都只运行 .dev 产物。
 
-## 第十四章综合实践（在第十四章快照进行）
+## 第十五章综合实践（在第十五章快照进行）
 
-先独立完成需求，再对照参考：新建 originalText 上限收紧为 1200 个 UTF-16 代码单元，旧记录仍可按原有 2000 单元范围读取；用数组替换 Map，同时保留 CAPTURE_STORE、观测包装、顺序、副本与失败约定。练习使用 `part-02/chapter-14` 快照；不要在本章持久化分支套用旧 Map／数组补丁。
+先独立完成需求，再对照参考：新建 originalText 上限收紧为 1200 个 UTF-16 代码单元，旧记录仍可按原有 2000 单元范围读取；用数组替换 Map，同时保留 CAPTURE_STORE、观测包装、顺序、副本与失败约定。练习使用 `part-02/chapter-15` 快照；不要在本章持久化分支套用旧 Map／数组补丁。
 
 停止已有 dev，保留原项目；无论自己跟写还是使用配套代码，都另建本章资料目录：
 
 ```bash
-git clone --single-branch --branch part-02/chapter-14 \
+git clone --single-branch --branch part-02/chapter-15 \
   https://github.com/SamChowRock/epp-book-code.git ../epp-chapter-14-materials
 ```
 
@@ -729,11 +731,11 @@ git clone --single-branch --branch part-02/chapter-14 \
 ```bash
 cd ../epp-chapter-14-materials
 review_root=$(pwd)
-git fetch origin refs/heads/part-02/chapter-13:refs/remotes/origin/part-02/chapter-13
-git worktree add -b practice/chapter-14 ../epp-chapter-14-practice origin/part-02/chapter-13
+git fetch origin refs/heads/part-02/chapter-14:refs/remotes/origin/part-02/chapter-14
+git worktree add -b practice/chapter-14 ../epp-chapter-14-practice origin/part-02/chapter-14
 ```
 
-确认创建成功后进入目录，按第十四章实现自己的版本；已存在的目录或分支应保留，换新名称。review_root 只保存在当前 shell，后面仍使用这个终端回到原目录。
+确认创建成功后进入目录，按第十五章实现自己的版本；已存在的目录或分支应保留，换新名称。review_root 只保存在当前 shell，后面仍使用这个终端回到原目录。
 
 ```bash
 cd ../epp-chapter-14-practice
@@ -745,21 +747,21 @@ PORT=3008 LOG_LEVEL=debug npm run dev
 
 用 VS Code 打开练习目录并 attach。业务端口为 3008，Inspector 仍为 9229，不能与另一份 dev 同时启动。保存后自动编译重启，内存清空；比较失败前后的记录数量时，先建立当前进程的基线。
 
-从第十四章资料目录导入 [requests/review.postman_collection.json](requests/review.postman_collection.json)，集合默认 baseUrl 为 `http://127.0.0.1:3008`。逐条 Send：普通输入、1200 单元、600 个表情成功；1201 单元、601 个表情及纯空白返回400且不写入。普通输入的首尾空格保留。成功响应 id 手动填入集合 captureId，核对详情、Location 与 X-Request-Id。集合不自动发请求；第十三章基线本身仍允许 1201 单元。
+从第十五章资料目录导入 [requests/review.postman_collection.json](requests/review.postman_collection.json)，集合默认 baseUrl 为 `http://127.0.0.1:3008`。逐条 Send：普通输入、1200 单元、600 个表情成功；1201 单元、601 个表情及纯空白返回400且不写入。普通输入的首尾空格保留。成功响应 id 手动填入集合 captureId，核对详情、Location 与 X-Request-Id。集合不自动发请求；第十四章基线本身仍允许 1201 单元。
 
-需运行参考时，保留自己的实现，在另一个 worktree 使用 [examples/chapter-14-review.patch](examples/chapter-14-review.patch)：
+需运行参考时，保留自己的实现，在另一个 worktree 使用 [examples/chapter-15-review.patch](examples/chapter-15-review.patch)：
 
 ```bash
 cd "$review_root"
-git worktree add -b practice/chapter-14-reference ../epp-chapter-14-reference origin/part-02/chapter-13
+git worktree add -b practice/chapter-14-reference ../epp-chapter-14-reference origin/part-02/chapter-14
 ```
 
 创建成功后进入目录，只有补丁检查成功才应用；失败先检查基线和已有修改。
 
 ```bash
 cd ../epp-chapter-14-reference
-git apply --check "$review_root/examples/chapter-14-review.patch" &&
-git apply "$review_root/examples/chapter-14-review.patch"
+git apply --check "$review_root/examples/chapter-15-review.patch" &&
+git apply "$review_root/examples/chapter-15-review.patch"
 nvm use
 npm ci
 npm run check
@@ -771,4 +773,4 @@ PORT=3008 LOG_LEVEL=debug npm run dev
 
 正文继续用两次可恢复故障区分写入前失败与输出失约；恢复源码后再构建交付。关闭对照复用 `npm run dev:lifecycle` 和生命周期集合，勿与业务 dev 同时运行。生产产物按前文所述文件布局在独立目录运行时，将端口改为 3009，复制练习集合并设置该目标，重新创建数据；`npm start` 使用 production、不加载开发 .env、不启用 Inspector，文档默认关闭。数组仍不持久化，停止后重新启动应为空。
 
-本章的独立产物步骤与前面的生产运行说明使用相同文件布局；以第十四章正文的 3009 命令为准。退出并保存成果后再管理 worktree，不强制清除未提交实现。
+本章的独立产物步骤与前面的生产运行说明使用相同文件布局；以第十五章正文的 3009 命令为准。退出并保存成果后再管理 worktree，不强制清除未提交实现。
