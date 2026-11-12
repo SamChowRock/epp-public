@@ -1,6 +1,10 @@
 # EPP 配套实践代码
 
-第 2 章从空项目建立原生 Node.js HTTP 服务。当前数据保存在单个进程的 `Map` 中，停止进程后丢失；本章仅供本机实践。
+本章练习「可靠地接收并保存请求正文」。
+
+本章检出命令为 `git switch part-01/chapter-03`。命令、迁移目录和请求集合沿用项目中的实际文件名。
+
+第 3 章从空项目建立原生 Node.js HTTP 服务。当前数据保存在单个进程的 `Map` 中，停止进程后丢失；本章仅供本机实践。
 
 使用 nvm 管理 Node.js；安装方式见 [nvm 官方说明](https://github.com/nvm-sh/nvm#installing-and-updating)。macOS、Linux 使用 Bash 或 Zsh，Windows 使用 WSL。在项目根目录运行：
 
@@ -27,9 +31,9 @@ npm run dev
 3. 将实际 id 填入集合 **Variables** 的 captureId，再发送“03 查看详情”，应返回 200。baseUrl 默认是 `http://127.0.0.1:3000`；改端口时一起修改，发送前核对变量解析后的实际 URL。所选环境中的同名变量可能覆盖集合变量。
 4. 集合还保存了字段类型错误、JSON 格式错误、内容类型错误与详情不存在的输入，分别观察 400、400、415、404，再查看列表确认失败没有新增记录。各章错误正文以当前实现为准。
 
-需要修改请求时，在 Headers、Body 或 Params 中编辑，保存后可反复点击 Send；查询条件由 Params 处理 URL 编码，第八章起再使用 q／limit。保存源码后等待服务自动重启，再点 Send 查看新响应；重启会清空 Map，需要重新创建记录并更新 captureId。每次 POST 都可能新增记录，集合保存的是请求，不会自动发送或保留服务数据。
+需要修改请求时，在 Headers、Body 或 Params 中编辑，保存后可反复点击 Send；查询条件由 Params 处理 URL 编码，第九章起再使用 q／limit。保存源码后等待服务自动重启，再点 Send 查看新响应；重启会清空 Map，需要重新创建记录并更新 captureId。每次 POST 都可能新增记录，集合保存的是请求，不会自动发送或保留服务数据。
 
-调试时保持同一个请求，在源码中设置断点后点击 Send。暂停期间客户端会等待；继续执行后才会收到响应。第五章起可用 VS Code 的 `EPP: attach to npm run dev` 自动重连，前面章节通过 Chrome 的 `chrome://inspect` 连接；重启后若连接断开，重新选择目标。生产运行方式见文末，日常学习保持 dev 模式。
+调试时保持同一个请求，在源码中设置断点后点击 Send。暂停期间客户端会等待；继续执行后才会收到响应。第六章起可用 VS Code 的 `EPP: attach to npm run dev` 自动重连，前面章节通过 Chrome 的 `chrome://inspect` 连接；重启后若连接断开，重新选择目标。生产运行方式见文末，日常学习保持 dev 模式。
 
 下面的 curl 是同一请求的终端表示，用于复制复现；日常可直接使用集合里的请求。
 
@@ -48,7 +52,7 @@ curl -i http://127.0.0.1:3000/captures \
 
 本章不包含数据库、登录、AI、分页、CORS 配置和生产部署。完整原理与操作步骤见 [EPP 后端开发实践](https://github.com/SamChowRock/EPP-Book)。
 
-第二章支线“从字节到 JSON”另有独立示例。在项目根目录执行：
+第三章支线“从字节到 JSON”另有独立示例。在项目根目录执行：
 
 ```bash
 nvm use
