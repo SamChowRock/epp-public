@@ -1,6 +1,6 @@
-# 第二十三章 候选状态与关系
+# 第二十六章 候选状态与关系
 
-从 `part-04/chapter-22` 继续，完成分支 `part-04/chapter-23`。使用 Node 24.22.1、PostgreSQL 18、Prisma 7.10.1，沿用 DEV、VERIFY、SHADOW 配置。已有修订保持原值，没有候选就是零条子记录。
+从 `part-04/chapter-25` 继续，完成分支 `part-04/chapter-26`。使用 Node 24.22.1、PostgreSQL 18、Prisma 7.10.1，沿用 DEV、VERIFY、SHADOW 配置。已有修订保持原值，没有候选就是零条子记录。
 
 ## 追加迁移
 
@@ -34,6 +34,6 @@ VS Code 连接现有本机 Inspector，在 `CandidatesService.discard` 的结果
 
 ## 生产与中断恢复
 
-`npm run check` 生成生产 dist；沿用第十九章独立产物步骤，复制 dist、package.json、package-lock.json、.npmrc，在独立目录 `npm ci --omit=dev`，由运行环境提供 DATABASE_URL，执行 `npm start`。不携带 .env，不开 Inspector或源码监听，默认 docs关闭。迁移由部署步骤先执行，应用启动探测候选表，缺表拒绝就绪。已有最小检查仍用 `npm test`，它需要已迁移且含固定开发用户的隔离数据库。测试连接在根目录 `.env.test` 用 `TEST_DATABASE_URL` 单独提供；缺失时在打开应用前退出，不回退到开发 `.env` 或继承的 `DATABASE_URL`。配置与运行方式见[项目测试说明](../../README.md)。
+`npm run check` 生成生产 dist；沿用第二十二章独立产物步骤，复制 dist、package.json、package-lock.json、.npmrc，在独立目录 `npm ci --omit=dev`，由运行环境提供 DATABASE_URL，执行 `npm start`。不携带 .env，不开 Inspector或源码监听，默认 docs关闭。迁移由部署步骤先执行，应用启动探测候选表，缺表拒绝就绪。已有最小检查仍用 `npm test`，它需要已迁移且含固定开发用户的隔离数据库。测试连接在根目录 `.env.test` 用 `TEST_DATABASE_URL` 单独提供；缺失时在打开应用前退出，不回退到开发 `.env` 或继承的 `DATABASE_URL`。配置与运行方式见[项目测试说明](../../README.md)。
 
-本章新增表不改变22章的读写含义，但22章程序不提供候选路由。回退应用不删表、不撤销放弃，也不启动21章旧写入者。故障先查候选列表、当前状态及迁移历史。503或连接中断后不自动换序号重建；占位409不提供原请求结果重放。停下时保存四个ID、结束SQL事务；继续从GET恢复，而不是再次执行01、04或07。
+本章新增表不改变25章的读写含义，但25章程序不提供候选路由。回退应用不删表、不撤销放弃，也不启动24章旧写入者。故障先查候选列表、当前状态及迁移历史。503或连接中断后不自动换序号重建；占位409不提供原请求结果重放。停下时保存四个ID、结束SQL事务；继续从GET恢复，而不是再次执行01、04或07。

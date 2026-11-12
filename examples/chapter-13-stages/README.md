@@ -1,15 +1,15 @@
-# 第十三章的三个运行阶段
+# 第十四章的三个运行阶段
 
-三份补丁仅以 `part-02/chapter-12` 为起点，依次应用，每份只修改该阶段需要的文件；不是三个可任意挑选的功能开关。最终应用与 `part-02/chapter-13` 相同（不含文档及补丁资料自身）。正文按同样顺序讲解，不需要先看关闭实现才能验证配置。
+三份补丁仅以 `part-02/chapter-13` 为起点，依次应用，每份只修改该阶段需要的文件；不是三个可任意挑选的功能开关。最终应用与 `part-02/chapter-14` 相同（不含文档及补丁资料自身）。正文按同样顺序讲解，不需要先看关闭实现才能验证配置。
 
 需要直接运行参考时，保留原项目，另取资料目录。每条命令成功后才继续；目录已存在时保留并恢复已有进度，或为新一轮另选目录名。
 
 ```bash
-git clone --single-branch --branch part-02/chapter-13 https://github.com/SamChowRock/epp-book-code.git ../epp-chapter-13-materials
+git clone --single-branch --branch part-02/chapter-14 https://github.com/SamChowRock/epp-book-code.git ../epp-chapter-13-materials
 cd ../epp-chapter-13-materials
 stage_materials=$(pwd)
-git fetch origin refs/heads/part-02/chapter-12:refs/remotes/origin/part-02/chapter-12
-git worktree add -b practice/chapter-13-stages ../epp-chapter-13-stages origin/part-02/chapter-12
+git fetch origin refs/heads/part-02/chapter-13:refs/remotes/origin/part-02/chapter-13
+git worktree add -b practice/chapter-13-stages ../epp-chapter-13-stages origin/part-02/chapter-13
 cd ../epp-chapter-13-stages
 nvm use
 npm ci
