@@ -2,8 +2,8 @@
 
 从下表选取正在跟做的章节。检出分支后，按该版本的 README 安装、启动和验证。迁移目录、集合与实验文件的名称沿用项目内的实际路径。
 
-- [第 2 章　第一次 HTTP 往返](https://github.com/SamChowRock/epp-public/tree/part-01/chapter-02)
-- [第 3 章　可靠地接收并保存请求正文](https://github.com/SamChowRock/epp-public/tree/part-01/chapter-03)
+- [第 2 章　完成第一次 HTTP 往返](https://github.com/SamChowRock/epp-public/tree/part-01/chapter-02)
+- [第 3 章　可靠接收请求正文并保存原文](https://github.com/SamChowRock/epp-public/tree/part-01/chapter-03)
 - [第 4 章　Node.js 程序究竟运行在哪里](https://github.com/SamChowRock/epp-public/tree/part-01/chapter-04)
 - [第 5 章　事件循环如何影响服务的响应能力](https://github.com/SamChowRock/epp-public/tree/part-01/chapter-05)
 - [第 6 章　TypeScript 如何变成可运行的服务](https://github.com/SamChowRock/epp-public/tree/part-01/chapter-06)
@@ -20,8 +20,8 @@
 - [第 18 章　关系建模：为已有记录设计第一组表](https://github.com/SamChowRock/epp-public/tree/part-03/chapter-18)
 - [第 19 章　SQL：查询、筛选和修改自己的记录](https://github.com/SamChowRock/epp-public/tree/part-03/chapter-19)
 - [第 20 章　Prisma：将已有表纳入 Schema 与迁移管理](https://github.com/SamChowRock/epp-public/tree/part-03/chapter-20)
-- [第 21 章　把旧记录接进 API](https://github.com/SamChowRock/epp-public/tree/part-03/chapter-21)
-- [第 22 章　连接是一种有限资源](https://github.com/SamChowRock/epp-public/tree/part-03/chapter-22)
+- [第 21 章　让记录接口读写已有的 PostgreSQL 数据](https://github.com/SamChowRock/epp-public/tree/part-03/chapter-21)
+- [第 22 章　管理连接池、等待与服务关闭](https://github.com/SamChowRock/epp-public/tree/part-03/chapter-22)
 - [第 23 章　Migration：给已有记录增加中文意图](https://github.com/SamChowRock/epp-public/tree/part-03/chapter-23)
 - [第 24 章　第三篇回顾：带着旧记录完成一次结构演进](https://github.com/SamChowRock/epp-public/tree/part-03/chapter-24)
 - [第 25 章　关系演进：从覆盖输入到保留修订历史](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-25)
@@ -38,8 +38,8 @@
 - [第 38 章　Session 与 Cookie 登录状态从哪里来](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-38)
 - [第 39 章　鉴权与授权 登录了也不代表能操作](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-39)
 - [第 40 章　保护基于浏览器的服务入口](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-40)
-- [第 42 章　注册并验证邮箱](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-42)
-- [第 43 章　已有账号怎样恢复密码](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-43)
+- [第 42 章　从一封验证邮件建立账号](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-42)
+- [第 43 章　恢复已有账号并撤销旧会话](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-43)
 - [第 44 章　小程序登录与独立会话](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-44)
 - [第 45 章　先理解 OAuth，再接入 OIDC 外部登录](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-45)
 - [第 46 章　微信网站扫码登录](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-46)
