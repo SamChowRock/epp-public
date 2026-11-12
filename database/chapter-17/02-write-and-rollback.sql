@@ -1,5 +1,5 @@
 -- Execute statement by statement; rollback on error in this same session.
--- Do not change the two chapter-16 fixture records.
+-- Do not change the two chapter 18 fixture records.
 BEGIN;
 SET LOCAL lock_timeout = '3s';
 
