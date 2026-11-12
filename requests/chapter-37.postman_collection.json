@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "EPP 第37章 小程序独立会话",
+    "name": "EPP 第44章 小程序独立会话",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "description": "Use an unsynchronized local environment. Cookies disabled on every request. 01/02 require a fresh real wx.login code each time; local exercise starts at 03. Never export filled secrets."
   },

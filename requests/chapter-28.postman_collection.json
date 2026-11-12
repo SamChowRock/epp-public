@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "EPP 第28章 查询接口",
+    "name": "EPP 第32章 查询接口",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "description": "本机隔离实践。从01开始会建立新样本；中断后保留变量从下一项继续。仅采纳以保存的operationId重试。",
     "_postman_id": "f65edb23-6e54-4040-826a-1bd97ae295c5"

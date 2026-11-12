@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "EPP 第31章 两次相反的决定",
+    "name": "EPP 第36章 两次相反的决定",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "description": "仅在独立校验库逐项发送；07 预期为网络错误。不要使用 Runner 从头重放。"
   },
