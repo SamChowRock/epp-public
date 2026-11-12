@@ -1,6 +1,6 @@
 # EPP 配套实践代码
 
-本章检出命令为 `git switch part-03/chapter-24`。命令、迁移目录和请求集合沿用项目中的实际文件名。
+第 24 章「第三篇回顾：带着旧记录完成一次结构演进」使用 `git switch part-03/chapter-24`。迁移目录和请求集合请按下面的实际文件名打开。
 
 当前对应第三篇第 24 章，代码分支 `part-03/chapter-24`，从 `part-03/chapter-23` 继续。保留旧记录，将中文意图上限扩到2000 UTF-16单元；通过兼容读取版本解释发布和回退。先完成[环境准备](database/chapter-15/README.md)、[表与数据](database/chapter-16/README.md)、[迁移基线](database/chapter-18/README.md)、[持久化接入](database/chapter-19/README.md)与[意图字段](database/chapter-20/README.md)，再按[第二十四章说明](database/chapter-21/README.md)应用追加迁移并核对三版本行为。
 
