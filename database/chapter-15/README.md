@@ -1,8 +1,8 @@
-# 第十五章：数据库运行环境
+# 第十七章：数据库运行环境
 
 本章建立 PostgreSQL 18 的独立开发实例，使用回环地址 `127.0.0.1`、端口 `55432`、实践库 `epp_dev` 和开发所有者 `epp_owner`。`epp_admin` 只用于实例管理；两个角色的密码由操作者在提示中设置，不写入文件。
 
-安装、初始化、启停、DBeaver 连接及故障推导见第十五章正文。数据库文件保存在读者自己的项目目录之外；重开终端后按正文重新设置 `EPP_PGDATA` 和 PostgreSQL 18 的 PATH。不能把代码分支切换当成数据库回滚。
+安装、初始化、启停、DBeaver 连接及故障推导见第十七章正文。数据库文件保存在读者自己的项目目录之外；重开终端后按正文重新设置 `EPP_PGDATA` 和 PostgreSQL 18 的 PATH。不能把代码分支切换当成数据库回滚。
 
 前三个文件按正文顺序使用，第四个用于认证支线，不能一口气当成迁移执行：
 
@@ -11,7 +11,7 @@
 | [01-create-role.psql](01-create-role.psql) | 管理员连接 `postgres`，psql | 创建开发所有者，然后交互设置密码 |
 | [02-create-database.sql](02-create-database.sql) | 管理员连接 `postgres`，psql 自动提交 | 创建实践库并收回 PUBLIC 的数据库权限 |
 | [03-inspect.sql](03-inspect.sql) | 所有者连接 `epp_dev`，psql 或 DBeaver | 只读核对连接身份、端口、版本、编码、时区、Schema 与环境备注 |
-| [04-auth-rules.sql](04-auth-rules.sql) | 管理员连接 `postgres`，psql 或 DBeaver | 支线 15A 检查 HBA 当前文件和解析结果，不代表已加载状态 |
+| [04-auth-rules.sql](04-auth-rules.sql) | 管理员连接 `postgres`，psql 或 DBeaver | 支线 17A 检查 HBA 当前文件和解析结果，不代表已加载状态 |
 
 在代码仓库根目录启动管理员会话：
 
@@ -53,8 +53,8 @@ pg_ctl -D "$EPP_PGDATA" status
 
 用的是初始化时的目录；若当时更改过路径，这里同步修改。已经运行就直接连接。明确报告未运行时，执行 `pg_ctl -D "$EPP_PGDATA" -l "$EPP_PGDATA/server.log" -w start`；目录不存在或不可访问则先修正路径和权限，不自动重建。
 
-启动后回到 DBeaver 重新连接并执行 03-inspect.sql；上面的 psql `-f` 是等效备用入口。尚未配置时回到正文 15.3 建立连接。不要重跑文件 01、02；后续章节已经建表时，也不再要求 public 为空。中断在首次创建过程中的情况，仍按前面的失败恢复说明处理。
+启动后回到 DBeaver 重新连接并执行 03-inspect.sql；上面的 psql `-f` 是等效备用入口。尚未配置时回到正文 17.3 建立连接。不要重跑文件 01、02；后续章节已经建表时，也不再要求 public 为空。中断在首次创建过程中的情况，仍按前面的失败恢复说明处理。
 
-本章不创建用户表或记录表，不新增 Prisma 和数据库驱动，不把连接串加入尚未消费它的 Nest 配置。主服务依旧使用 Map；`npm run dev` 保持断点与自动重启，`npm run check`、`npm start` 保持既有构建和生产运行行为。业务表、SQL、迁移与接口替换依次在第十六至十九章建立。
+本章不创建用户表或记录表，不新增 Prisma 和数据库驱动，不把连接串加入尚未消费它的 Nest 配置。主服务依旧使用 Map；`npm run dev` 保持断点与自动重启，`npm run check`、`npm start` 保持既有构建和生产运行行为。业务表、SQL、迁移与接口替换依次在第十八至二十二章建立。
 
 这些 SQL 文件是环境准备与连接诊断材料，不是部署时自动执行的初始化器，不包含密码、数据目录或生产环境配置。运行产物只需已有 `dist` 和运行依赖，本目录不进入应用生产构建。
