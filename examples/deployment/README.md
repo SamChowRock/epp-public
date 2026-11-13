@@ -1,12 +1,28 @@
-# 第 70 章　本机进程托管
+# 第 70 章　把已验产物从独立工作目录启动
 
-从第 69 章交接的非空数据库与配对的练习桶起步。本章沿用第 66 章的应用、迁移与请求集合。本章开放 LISTEN_HOST 和 LOCAL_SMTP_HOST，默认均为 127.0.0.1。前者选择 API 的监听 IP，后者供邮件 Worker 连接私有练习收件端。API、两个 Worker 和 CLI 都由 Node 在前台直接运行。以下是本机部署工具，均从配套项目根目录使用。
+从第 69 章实际验过的 release 开始。顺序跟做时，它来自第 66 章，已含生产依赖。让程序继续从原位置读取 dist/config/service.json，另给 API 一个私有工作目录，头像预览将在那里写入 .avatar-tmp。
 
-1. 在本次独立 PostgreSQL 实例创建非所有者登录角色 epp57_run，交互设置密码。以业务表所有者连接目标库，在 psql 设定独立记录的库名（如 `\set expected_db epp_ch57_handoff`），运行 `\i examples/deployment/runtime-grants.sql`。脚本只向这个角色追加授权。用新建角色，并确认它没有通过所有权、PUBLIC 或角色继承取得 DDL 权限。
-2. 依第 64 章制作生产目录，放入部署根的 release。另建私有 config、work 和 logs 目录。Linux 和 macOS 分别在目标平台安装生产依赖。源码与迁移工具留在构建和迁移环境。
-3. 在 config 新建 0600 的 api.env、mail.env、notifications.env。每份都有本轮运行角色的 DATABASE_URL、NODE_ENV=production 和 DB_POOL_MAX。API 增加 PORT、APP_ORIGIN、稳定的 CURSOR_HMAC_KEY 与第 60 章的四项 AVATAR_S3 配置；mail 增加 LOCAL_SMTP_PORT。通知进程只需公共三项。
-4. 在配套根目录用 nvm use 选好 Node，执行 `node examples/deployment/launch-agents.mjs "$deploy" "$db"`。两个参数分别是部署根和来自建库记录的预期库名。生成器取当前 Node 的绝对路径供 launchd 启动进程，并用 Node 写出供 macOS 宿主选用的 XML 配置。生成器新建 agents，不覆盖已有目录。生成内容只含路径、参数和策略，秘密由 Node 在启动时从受限文件读取。先以同一环境运行账号 CLI 的 receipt，再加载 API。
-5. 在本机登录会话用 `launchctl bootstrap "gui/$(id -u)" "$deploy/agents/local.epp.ch57.api.plist"` 加载；另两份替换末尾文件名。邮件需要明确 `launchctl kickstart "gui/$(id -u)/local.epp.ch57.mail"`。正常维护用 bootout 卸载本次标签。默认生成到部署根，登录时自动加载需另行将文件安装到对应账号的 Library/LaunchAgents。
-6. 配置文件改动在下一次启动时读取。要修改 plist，请先卸载已注册且归属本轮的任务，将 agents 改为未使用的归档名，重新生成、校验并加载。旧的配置文件及相应 Node 路径也须保持可用，才能用旧 plist 回退。
+1. 取交接记录里的实际库名、旧账号 ID、原收据 ID，以及与练习库配对的头像桶。用实例管理员创建普通登录角色 epp57_run 并在 psql 用 `\password epp57_run` 设置口令。以业务表所有者连接目标库，从配套仓库根在 psql 执行 `\set expected_db epp_ch56_handoff`（替换为实际库名）和 `\i examples/deployment/runtime-grants.sql`。以运行角色核对收据表可读取和追加，改写旧收据应遭拒绝。[授权脚本](runtime-grants.sql)
+2. 在 Mac 的 Bash 设定 `release` 为已验程序的绝对路径，`deploy` 为这次运行目录的绝对路径，`db` 为实际库名。按正文在 release 以外准备模式 0700 的 config 和 work。将 api.env 放在 config，模式 0600。填写 NODE_ENV=production、epp57_run 的 DATABASE_URL、DB_POOL_MAX、回环端口 PORT、实际 APP_ORIGIN、稳定的 CURSOR_HMAC_KEY 和原桶的四项 AVATAR_S3 配置。
+3. 在已选择项目 Node 版本的 Bash 中运行下面的命令，两个 ID 从第 69 章交接记录取得。同一份配置先供管理命令读原收据，再供前台 API 读取。
 
-API 和通知异常退出时可重新拉起。邮件角色任何退出都停下，由维护者核对通道状态后再决定是否启动。三个任务共用本机用户身份；希望操作系统隔离不同角色时需分别分配身份和目录。管理员在系统域长期运行时还应确认数据库和存储的开机托管、监督启动失败、日志轮转与停发告警。
+```bash
+node_bin=$(command -v node)
+run_with_api_config() {
+  (cd "$deploy/work" && /usr/bin/env -i "$node_bin" \
+    --env-file="$deploy/config/api.env" "$@")
+}
+user_id='替换为旧账号UUID'
+op_id='替换为原暂停收据UUID'
+run_with_api_config "$release/dist/src/account-admin.js" "$db" receipt "$user_id" "$op_id"
+```
+
+核对原收据后执行 `run_with_api_config "$release/dist/src/server.js"`。原账号登录，先读本人资料，再发一次头像预览，检查 work/.avatar-tmp 的属主、模式。签发并实际打开旧头像，保留字节摘要。Ctrl-C 后观察 app.stopped、退出码与监听释放。第 71 章直接交付这份程序。若换成 Debian，从该 release 取 dist、package.json、package-lock.json 和 .npmrc，在目标平台按锁安装生产依赖；已有验过的同平台整包则按原摘要交付。
+
+第 70 章代码分支还提供可选的 LISTEN_HOST 和 LOCAL_SMTP_HOST，两者默认均为 127.0.0.1。需要更换监听地址或练习收件主机时，再构建并验收含这些配置的版本。第 70、71 章的回环主线可继续运行最初的第 66 章产物。
+
+## 支线 70A　在 Mac 托管服务并追查意外退出
+
+若 Mac 本身需要在关闭终端后继续服务，按支线准备同级的 release、config、work、logs，并给邮件和通知分别准备 0600 的 mail.env 和 notifications.env。通知仅需生产模式、数据库连接和池上限。邮件还需确认 Mailpit 的 SMTP 端口和通道可投递。
+
+在配套根目录使用选定的 Node 执行 `node examples/deployment/launch-agents.mjs "$deploy" "$db"`。生成器在新建的 agents 目录写入三份 plist，路径与参数可用 plutil 检查，密码仍在各自的配置文件中。用 `launchctl bootstrap "gui/$(id -u)" "$deploy/agents/local.epp.ch57.api.plist"` 加载 API，另两份替换文件名；在先前登记的任务上直接检查状态。API 和通知异常退出可重新启动；邮件需明确启动，投递结果未知时保留停发。结束练习时按实际标签逐一 bootout。三个任务在同一 Mac 账号下运行，第 72 章再拆分系统身份。[任务生成器](launch-agents.mjs)
