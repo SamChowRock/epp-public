@@ -1,6 +1,10 @@
 # EPP 配套实践代码
 
-第 75 章「客户端怎样确认访问的是自己的 HTTPS 服务」使用 `git switch part-09/chapter-75`。应用和迁移沿用第 74 章。
+第 76 章「让 API 和后台进程更换凭据与签名密钥」使用 `git switch part-09/chapter-76`。应用和迁移沿用第 75 章。
+
+## 第七十六章　让 API 和后台进程更换凭据与签名密钥
+
+[准备隔离实例、定向请求与逐角色授权](examples/credential-rotation/README.md)。
 
 ## 第七十五章　客户端怎样确认访问的是自己的 HTTPS 服务
 
