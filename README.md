@@ -56,17 +56,18 @@
 - [第 63 章　为后台操作提供可靠的管理命令](https://github.com/SamChowRock/epp-public/tree/part-08/chapter-63)
 - [第 64 章　构建与持续集成](https://github.com/SamChowRock/epp-public/tree/part-08/chapter-64)
 - [第 66 章　调试性能与资源问题](https://github.com/SamChowRock/epp-public/tree/part-08/chapter-66)
-- [第 70 章　在本机直接部署服务](https://github.com/SamChowRock/epp-public/tree/part-09/chapter-70)
+- [第 70 章　把已验产物从独立工作目录启动](https://github.com/SamChowRock/epp-public/tree/part-09/chapter-70)
 
-## 部署、观测与维护的本地审阅分支
+## 部署、观测与维护
 
-第九篇 Docker 支线仍为教学规划。第 74 章在 HTTPS 入口加入同源练习页，第 75 章的观测规划沿用该配套。已有下列本地分支的工作副本可按实际阶段选择。
+第 70 章直接运行第 69 章验过的 release，顺序跟做时其中是第 66 章的程序。可从第 70 章分支取得数据库授权脚本、选做的 macOS 托管脚本，以及允许配置监听与练习 SMTP 主机的实现。原 release 默认监听回环，足以完成第 70、71 章。第九篇的 Docker 支线为选做的章节规划。
 
-| 章 | 主题 | 在本地工作副本检出 |
+| 章 | 本章交付什么 | 配套入口 |
 | --- | --- | --- |
-| 71 | 从空 Debian 接手，沿用第 70 章 | `git switch part-09/chapter-70` |
+| 71 | 让另一台主机在退出登录后继续提供服务。把已验程序交给 Debian，跨平台时传 dist 和安装清单，在目标平台按锁安装生产依赖 | 沿用第 70 章交出的 release |
 | 72 | 为 API、邮件和通知分配权限，按目标平台交接制品 | `git switch part-09/chapter-72` |
-| 73 | 建立可信 HTTPS 入口 | `git switch part-09/chapter-73` |
-| 74、75 | 交给第二台设备使用同源练习页，观察用户报障 | `git switch part-09/chapter-74` |
+| 73 | 把 EPP 放到使用者能访问的 HTTPS 地址，在私网配置入口与客户端信任 | `git switch part-09/chapter-73` |
+| 74 | 把服务交给另一台设备上的使用者。从同源交付页登录、读写素材和取头像 | `git switch part-09/chapter-74` |
+| 75 | 通知已经积压，怎样在人来报障之前发现（章节规划） | 沿用第 74 章部署 |
 | 76 | 定时维护漏跑、重复领取与恢复 | `git switch part-10/chapter-76` |
 | 77 | 让 API 和后台进程更换凭据与签名密钥 | `git switch part-10/chapter-77` |
