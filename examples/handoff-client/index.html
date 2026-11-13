@@ -11,6 +11,20 @@
   <button>登录</button>
 </form>
 <p id="session" role="status"></p>
+<details>
+  <summary>重置练习账号密码</summary>
+  <form id="request-reset">
+    <label>练习账号邮箱 <input type="email" id="reset-email" autocomplete="email" required></label>
+    <button>申请重置邮件</button>
+  </form>
+  <p id="request-result" role="status"></p>
+  <form id="confirm-reset">
+    <label>邮件令牌 <input type="password" id="reset-token" autocomplete="off" required></label>
+    <label>新密码 <input type="password" id="new-password" autocomplete="new-password" required></label>
+    <button>确认重置密码</button>
+  </form>
+  <p id="confirm-result" role="status"></p>
+</details>
 <fieldset id="actions" disabled>
   <legend>当前会话</legend>
   <h2>素材</h2>

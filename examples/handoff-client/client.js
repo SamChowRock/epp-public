@@ -47,6 +47,33 @@ function action(button, output, work) {
   };
 }
 
+function resetForm(id, output, submit) {
+  const form = el(id);
+  form.onsubmit = async event => {
+    event.preventDefault();
+    const button = form.querySelector('button');
+    button.disabled = true;
+    el(output).textContent = '';
+    try { el(output).textContent = await submit(); }
+    catch (error) { el(output).textContent = error.message; }
+    finally { button.disabled = false; }
+  };
+}
+
+resetForm('request-reset', 'request-result', async () => {
+  await api('/auth/reset/request', 'POST', { email: el('reset-email').value.trim() });
+  return '202 · 请检查这个练习邮箱。若一分钟后还未收到邮件，可以再申请。';
+});
+
+resetForm('confirm-reset', 'confirm-result', async () => {
+  const token = el('reset-token').value.trim();
+  const newPassword = el('new-password').value;
+  el('reset-token').value = '';
+  el('new-password').value = '';
+  await api('/auth/reset/confirm', 'POST', { token, newPassword });
+  return '204 · 密码已重置。若当前登录的正是这个账号，点“刷新收件箱”核对旧会话的响应，再用新密码登录。';
+});
+
 el('login').onsubmit = async event => {
   event.preventDefault();
   reset();
