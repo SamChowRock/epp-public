@@ -16,7 +16,10 @@ const objects = new AvatarObjects();
 try {
   objects.ready();
   await withVerifiedDatabase(database, async client => {
-    const { deleted, failed } = await cleanAvatarBatch(client, objects, attemptId);
+    const report = item => console.log(JSON.stringify(item));
+    report({ event: 'batch-start', database });
+    const { deleted, failed } = await cleanAvatarBatch(client, objects, attemptId, report);
+    report({ event: 'batch-end', deleted, failed });
     console.log('Deleted or already absent:', deleted, 'Failed:', failed);
     if (failed) process.exitCode = 1;
   });
