@@ -60,13 +60,13 @@
 
 ## 部署、观测与维护的本地审阅分支
 
-第九篇 Docker 支线仍为教学规划。第 74 章的独立客户端交接、第 75 章的观测规划均沿用 HTTPS 配套。已有下列本地分支的工作副本可按实际阶段选择。
+第九篇 Docker 支线仍为教学规划。第 74 章在 HTTPS 入口加入同源练习页，第 75 章的观测规划沿用该配套。已有下列本地分支的工作副本可按实际阶段选择。
 
 | 章 | 主题 | 在本地工作副本检出 |
 | --- | --- | --- |
 | 71 | 从空 Debian 接手，沿用第 70 章 | `git switch part-09/chapter-70` |
 | 72 | 为 API、邮件和通知分配权限，按目标平台交接制品 | `git switch part-09/chapter-72` |
 | 73 | 建立可信 HTTPS 入口 | `git switch part-09/chapter-73` |
-| 74、75 | 交给第二台设备，观察用户报障，沿用 HTTPS 配套 | `git switch part-09/chapter-73` |
+| 74、75 | 交给第二台设备使用同源练习页，观察用户报障 | `git switch part-09/chapter-74` |
 | 76 | 定时维护漏跑、重复领取与恢复 | `git switch part-10/chapter-76` |
 | 77 | 让 API 和后台进程更换凭据与签名密钥 | `git switch part-10/chapter-77` |
