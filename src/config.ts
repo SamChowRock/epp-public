@@ -25,6 +25,14 @@ const decimal = (max: number) => z.string().regex(/^[0-9]+$/)
   .transform(Number).pipe(z.number().int().min(1).max(max));
 export const mailHostSchema = z.union([z.hostname(), z.ipv4(), z.ipv6()]).default('127.0.0.1');
 export const mailPortSchema = decimal(65535).default(1025);
+export function parseMailEndpoint(env: NodeJS.ProcessEnv) {
+  const host = mailHostSchema.safeParse(env.LOCAL_SMTP_HOST);
+  if (!host.success) throw new ConfigError('LOCAL_SMTP_HOST');
+  const port = mailPortSchema.safeParse(env.LOCAL_SMTP_PORT);
+  if (!port.success) throw new ConfigError('LOCAL_SMTP_PORT');
+  return { localSmtpHost: host.data, localSmtpPort: port.data };
+}
+export const logLevelSchema = z.enum(['debug', 'info', 'warn', 'error']).default('info');
 const EnvironmentSchema = z.object({
   LISTEN_HOST: z.string().refine(host => isIP(host) !== 0).default('127.0.0.1'),
   LOCAL_SMTP_HOST: mailHostSchema,
@@ -35,7 +43,7 @@ const EnvironmentSchema = z.object({
   PORT: decimal(65535).optional(),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   DOCS_ENABLED: z.enum(['true', 'false']).optional(),
-  LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
+  LOG_LEVEL: logLevelSchema,
   SHUTDOWN_TIMEOUT_MS: decimal(30000).default(5000),
 });
 

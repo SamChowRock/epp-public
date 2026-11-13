@@ -41,9 +41,9 @@ export class RecoveryService {
           RETURNING id
         `;
         if (issued) {
-          await tx.verificationOutbox.create({ data: {
-            id: randomUUID(), intentId: issued.id, generation, purpose, recipient: email,
-          } });
+          await tx.$executeRaw`INSERT INTO public.verification_outbox
+            (id, intent_id, generation, purpose, recipient)
+            VALUES (${randomUUID()}::uuid, ${issued.id}::uuid, ${generation}, ${purpose}, ${email})`;
         }
       }, { maxWait: 2000, timeout: 5000 }));
       return accepted;
@@ -87,10 +87,13 @@ export class RecoveryService {
           const intent = await this.lockIntent(tx, purpose, digest);
           if (!intent || await tx.verifiedEmail.findUnique({ where: { email: intent.email } })) return null;
           const userId = randomUUID();
-          await tx.user.create({ data: { id: userId, passwordCredential: { create: { passwordHash } },
-            verifiedEmail: { create: { email: intent.email } } } });
+          // Only the database defaults may set a new account's initial status and Web access.
+          await tx.$executeRaw`INSERT INTO public.users (id) VALUES (${userId}::uuid)`;
+          await tx.passwordCredential.create({ data: { userId, passwordHash } });
+          await tx.verifiedEmail.create({ data: { userId, email: intent.email } });
           await tx.verificationIntent.update({ where: { id: intent.id }, data: { consumedAt: new Date() } });
-          await tx.notificationJob.create({ data: { id: randomUUID(), userId, kind: 'registered' } });
+          await tx.$executeRaw`INSERT INTO public.notification_jobs (id, user_id, kind)
+            VALUES (${randomUUID()}::uuid, ${userId}::uuid, 'registered')`;
           return { userId };
         }
         if (!observed.userId) return null;
@@ -108,7 +111,8 @@ export class RecoveryService {
           data: { passwordHash, version: { increment: 1 } } });
         await tx.session.deleteMany({ where: { userId: observed.userId } });
         await tx.verificationIntent.update({ where: { id: intent.id }, data: { consumedAt: new Date() } });
-        await tx.notificationJob.create({ data: { id: randomUUID(), userId: observed.userId, kind: 'password-reset' } });
+        await tx.$executeRaw`INSERT INTO public.notification_jobs (id, user_id, kind)
+          VALUES (${randomUUID()}::uuid, ${observed.userId}::uuid, 'password-reset')`;
         return { userId: observed.userId };
       }, { maxWait: 2000, timeout: 5000 }));
       if (!result) throw invalid();

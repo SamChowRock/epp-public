@@ -12,8 +12,8 @@ export function createOneNotification(database: DatabaseService) {
     }
     if (!existing) {
       // A non-key change such as disabling an account must conflict with this lock.
-      const [user] = await tx.$queryRaw<{ status: string }[]>`SELECT status FROM public.users
-        WHERE id=${job.user_id}::uuid FOR SHARE`;
+      const [user] = await tx.$queryRaw<{ status: string }[]>`SELECT status FROM public.notification_recipients
+        WHERE id=${job.user_id}::uuid`;
       const [fresh] = await tx.$queryRaw<{ valid: boolean }[]>`SELECT expires_at > clock_timestamp() AS valid
         FROM public.notification_jobs WHERE id=${job.id}::uuid`;
       if (user?.status !== 'active' || !fresh?.valid) {

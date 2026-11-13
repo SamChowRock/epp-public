@@ -1,0 +1,23 @@
+[Unit]
+Description=EPP mail
+After=network.target
+
+[Service]
+Type=exec
+User=epp-mail
+Group=epp-mail
+WorkingDirectory=/opt/epp72/release
+Environment=EPP_DATABASE=epp_ch72_handoff
+ExecStart=/opt/epp72/node/bin/node --env-file=/etc/epp72/mail.env /opt/epp72/release/dist/src/mail-worker.js ${EPP_DATABASE}
+UMask=0077
+ProtectSystem=strict
+ProtectHome=yes
+NoNewPrivileges=yes
+PrivateTmp=yes
+Restart=on-failure
+RestartSec=10s
+RestartPreventExitStatus=2
+TimeoutStopSec=40s
+
+[Install]
+WantedBy=multi-user.target
