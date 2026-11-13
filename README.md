@@ -1,22 +1,22 @@
 # EPP 配套实践代码
 
-第 74 章使用 `git switch part-09/chapter-74`。沿用第 73 章的 API 和迁移。
+第 74 章「把服务交给另一台设备上的使用者」使用 `git switch part-09/chapter-74`。沿用第 73 章的 API 和迁移。
 
-## 第七十四章　把服务交给另一个使用者
+## 第七十四章　把服务交给另一台设备上的使用者
 
 按[同源练习页交付说明](examples/handoff-client/README.md)把两个公开文件放入已验的 HTTPS 入口，从使用端登录、写读素材、打开头像并核对通知。
 
-## 第七十三章　客户端怎样确认访问的是自己的 HTTPS 服务
+## 第七十三章　把 EPP 放到使用者能访问的 HTTPS 地址
 
-按[练习 CA 和 HTTPS 入口说明](examples/tls-trust/README.md)签发、验证、替换和回退叶证书，带同一会话复读原素材并经入口验证头像请求。
+按[练习 CA 和 HTTPS 入口说明](examples/tls-trust/README.md)准备证书，在部署端将签名头像和 API 接到私网可达的带名入口。换证和回退在支线中演练。
 
 ## 第七十二章　为 API、邮件和通知进程分别分配运行权限
 
 按[服务身份与授权](examples/service-roles/README.md)升级非空副本，用三个系统用户和数据库角色完成注册、寄信和通知。按[分角色交接说明](examples/portable-release/README.md)核对目标平台归档、收据 CLI、头像签名地址和 API 可写目录。
 
-## 第七十章　在本机直接部署服务
+## 第七十章　把已验产物从独立工作目录启动
 
-使用[部署配置与运行说明](examples/deployment/README.md)部署上一章交接的非空副本，在独立工作目录按角色托管 API、邮件和通知进程。
+按[运行目录和数据库身份说明](examples/deployment/README.md)，直接用第 69 章验过的 release（顺序跟做时来自第 66 章）启动 API。第 70 章配套提供授权脚本和可配置监听地址的实现。第 71 章继续交付已验程序，跨平台时在目标机安装生产依赖。需要 Mac 托管时再做支线 70A。
 
 ## 第六十六章　调试性能与资源问题
 
