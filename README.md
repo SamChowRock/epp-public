@@ -57,3 +57,16 @@
 - [第 64 章　构建与持续集成](https://github.com/SamChowRock/epp-public/tree/part-08/chapter-64)
 - [第 66 章　调试性能与资源问题](https://github.com/SamChowRock/epp-public/tree/part-08/chapter-66)
 - [第 70 章　在本机直接部署服务](https://github.com/SamChowRock/epp-public/tree/part-09/chapter-70)
+
+## 部署、观测与维护的本地审阅分支
+
+已有这些本地分支的工作副本可使用下表中的命令。第 75～78 章是 Docker 选做规划，第 79 章是部署回顾，第 80 章是观测规划，目前均无单独的配套分支。
+
+| 章 | 主题 | 在本地工作副本检出 |
+| --- | --- | --- |
+| 71 | 用 iTerm2 经 SSH 接手服务，沿用第 70 章 | `git switch part-09/chapter-70` |
+| 72 | 为 API、邮件和通知进程分别分配运行权限 | `git switch part-09/chapter-72` |
+| 73 | 运行环境变了，怎样交付同一份服务 | `git switch part-09/chapter-73` |
+| 74 | 客户端怎样确认访问的是自己的 HTTPS 服务 | `git switch part-09/chapter-74` |
+| 81 | 定时维护漏跑或同时启动两次以后怎么办 | `git switch part-10/chapter-81` |
+| 82 | 让 API 和后台进程更换凭据与签名密钥 | `git switch part-10/chapter-82` |
