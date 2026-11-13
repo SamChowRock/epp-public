@@ -60,13 +60,13 @@
 
 ## 部署、观测与维护的本地审阅分支
 
-已有这些本地分支的工作副本可使用下表中的命令。第 75～78 章是 Docker 选做规划，第 79 章是部署回顾，第 80 章是观测规划，目前均无单独的配套分支。
+第九篇 Docker 支线仍为教学规划。第 74 章的独立客户端交接、第 75 章的观测规划均沿用 HTTPS 配套。已有下列本地分支的工作副本可按实际阶段选择。
 
 | 章 | 主题 | 在本地工作副本检出 |
 | --- | --- | --- |
-| 71 | 用 iTerm2 经 SSH 接手服务，沿用第 70 章 | `git switch part-09/chapter-70` |
-| 72 | 为 API、邮件和通知进程分别分配运行权限 | `git switch part-09/chapter-72` |
-| 73 | 运行环境变了，怎样交付同一份服务 | `git switch part-09/chapter-73` |
-| 74 | 客户端怎样确认访问的是自己的 HTTPS 服务 | `git switch part-09/chapter-74` |
-| 81 | 定时维护漏跑或同时启动两次以后怎么办 | `git switch part-10/chapter-81` |
-| 82 | 让 API 和后台进程更换凭据与签名密钥 | `git switch part-10/chapter-82` |
+| 71 | 从空 Debian 接手，沿用第 70 章 | `git switch part-09/chapter-70` |
+| 72 | 为 API、邮件和通知分配权限，按目标平台交接制品 | `git switch part-09/chapter-72` |
+| 73 | 建立可信 HTTPS 入口 | `git switch part-09/chapter-73` |
+| 74、75 | 交给第二台设备，观察用户报障，沿用 HTTPS 配套 | `git switch part-09/chapter-73` |
+| 76 | 定时维护漏跑、重复领取与恢复 | `git switch part-10/chapter-76` |
+| 77 | 让 API 和后台进程更换凭据与签名密钥 | `git switch part-10/chapter-77` |
