@@ -1,0 +1,14 @@
+[Unit]
+Description=Scan one batch of retired or abandoned EPP avatars
+
+[Service]
+Type=oneshot
+User=epp-cleanup
+Group=epp-cleanup
+WorkingDirectory=/opt/epp73/release
+EnvironmentFile=/etc/epp73/cleanup.env
+ExecStart=/opt/epp72/node/bin/node database/chapter-51/clean.mjs epp_ch73_handoff http://127.0.0.1:18633 avatars
+TimeoutStartSec=120s
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
