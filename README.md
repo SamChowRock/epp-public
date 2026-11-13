@@ -1,6 +1,10 @@
 # EPP 配套实践代码
 
-第 73 章「客户端怎样确认访问的是自己的 HTTPS 服务」使用 `git switch part-09/chapter-73`。沿用第 72 章的分角色部署、应用和迁移。
+第 74 章使用 `git switch part-09/chapter-74`。沿用第 73 章的 API 和迁移。
+
+## 第七十四章　把服务交给另一个使用者
+
+按[同源练习页交付说明](examples/handoff-client/README.md)把两个公开文件放入已验的 HTTPS 入口，从使用端登录、写读素材、打开头像并核对通知。
 
 ## 第七十三章　客户端怎样确认访问的是自己的 HTTPS 服务
 

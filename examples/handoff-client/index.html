@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>EPP 交付验收</title>
+<h1>EPP 交付验收</h1>
+<form id="login">
+  <label>用户 ID <input id="user" autocomplete="username" required></label>
+  <label>密码 <input type="password" id="password" autocomplete="current-password" required></label>
+  <button>登录</button>
+</form>
+<p id="session" role="status"></p>
+<fieldset id="actions" disabled>
+  <legend>当前会话</legend>
+  <h2>素材</h2>
+  <button id="create">创建本轮素材</button>
+  <label>素材 ID <input id="capture"></label>
+  <button id="read">按 ID 读取</button>
+  <p id="material"></p>
+  <h2>头像</h2>
+  <button id="open">打开当前头像</button>
+  <label>新头像 <input type="file" id="file" accept="image/png,image/jpeg"></label>
+  <button id="publish">发布并打开头像</button>
+  <p id="photo"></p>
+  <img id="avatar" alt="当前头像" hidden>
+  <h2>收件箱</h2>
+  <button id="refresh">刷新收件箱</button>
+  <button id="subscribe">订阅通知</button>
+  <p id="stream"></p>
+  <p id="inbox"></p>
+  <ul id="items"></ul>
+  <button id="logout">登出</button>
+</fieldset>
+<script defer src="./client.js"></script>
+</html>
