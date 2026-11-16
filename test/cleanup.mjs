@@ -1,5 +1,6 @@
 export async function removeTestCaptures(db, captureIds, preservedExpressionIds) {
   await db.$transaction(async tx => {
+    await tx.captureWriteReceipt.deleteMany({ where: { captureId: { in: captureIds } } });
     const candidates = await tx.candidate.findMany({ where: { revision: { captureId: { in: captureIds } } } });
     const ids = candidates.map(row => row.id);
     const records = await tx.learningRecord.findMany({ where: { candidateId: { in: ids } } });

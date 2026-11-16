@@ -1,5 +1,7 @@
 # EPP 配套实践代码
 
+已继承[第30章的创建与修订重试](examples/write-retry/README.md)：两个POST可带Idempotency-Key，省略时保留原行为。
+
 第 77 章「让 API 和后台进程更换凭据与签名密钥」使用 `git switch part-10/chapter-77`。继承第 76 章受限原生与容器身份、计时器、已验镜像和非空副本，通过原 HTTPS 入口及会话验收。
 
 ## 第七十七章　让 API 和后台进程更换凭据与签名密钥
