@@ -1,5 +1,7 @@
 # EPP 配套实践代码
 
+已继承[第30章的创建与修订重试](examples/write-retry/README.md)：两个POST可带Idempotency-Key，省略时保留原行为。
+
 第 53 章「失败、重试与未知结果」使用 `git switch part-06/chapter-53`。迁移目录和请求集合请按下面的实际文件名打开。
 
 ## 第五十三章　失败、重试与未知结果
