@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
+import { readFile } from 'node:fs/promises';
 import { Pager, sameIds } from '../examples/paging-upgrade/pager.mjs';
 import { createPracticeServer } from '../examples/paging-upgrade/server.mjs';
 const item = n => ({ id: `10000000-0000-4000-8000-${String(n).padStart(12, '0')}`, originalText: `text${n}`, chineseIntent: null, createdAt: '2026-11-16T00:00:00.000Z' });
@@ -86,4 +87,35 @@ test('wired read publishes only after the post-response identity confirmation',a
  const {readForOwner}=await import('../examples/paging-upgrade/pager.mjs');const events=[];
  const accepted=await readForOwner({owner:'same',path:'/captures',request:async()=>{events.push('read');return {items:[item(1)]};},identify:async()=>{events.push('identity');return 'same';},isCurrent:()=>true,clearIdentity:()=>assert.fail(),accept:result=>{assert.equal(result.items.length,1);events.push('accept');}});
  assert.equal(accepted,true);assert.deepEqual(events,['read','identity','accept']);
+});
+
+test('actual page starts a fresh identity check after blur/focus and ignores old check cleanup',async()=>{
+ const elements=new Map(),events={};
+ const element=id=>{if(!elements.has(id))elements.set(id,{hidden:true,value:'',textContent:'',replaceChildren(){}});return elements.get(id);};
+ const saved={document:globalThis.document,window:globalThis.window,fetch:globalThis.fetch};
+ const pending=[];
+ globalThis.document={hidden:false,getElementById:element,addEventListener:(type,fn)=>events[type]=fn,createElement:()=>({append(){}})};
+ globalThis.window={addEventListener:(type,fn)=>events[type]=fn};
+ globalThis.fetch=async path=>path==='/practice-config'?{json:async()=>({sessionMode:false})}
+  :{ok:true,status:200,json:()=>new Promise(resolve=>pending.push(resolve))};
+ try {
+  const source=(await readFile(new URL('../examples/paging-upgrade/page.mjs',import.meta.url),'utf8'))
+   .replace("'./pager.mjs'",JSON.stringify(new URL('../examples/paging-upgrade/pager.mjs',import.meta.url).href));
+  const loaded=import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(pending.length,1);
+  events.blur();events.focus();await new Promise(resolve=>setImmediate(resolve));
+  const identity={userId:'10000000-0000-4000-8000-000000000001'};
+  // Settle the obsolete request first; its finally must not erase the new check.
+  pending[0](identity);await loaded;
+  assert.equal(pending.length,2,'focus must issue a check for the new view epoch');
+  assert.equal(element('work').hidden,true);
+  events.focus();await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(pending.length,2,'the new in-flight check is still shared');
+  pending[1](identity);await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(element('work').hidden,false);
+  assert.match(element('status').textContent,/身份已确认/);
+ } finally {
+  for(const [key,value] of Object.entries(saved)) {if(value===undefined)delete globalThis[key];else globalThis[key]=value;}
+ }
 });
