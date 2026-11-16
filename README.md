@@ -1,5 +1,7 @@
 # 第 42 章 从一封验证邮件建立账号
 
+已继承[第30章的创建与修订重试](examples/write-retry/README.md)：两个POST可带Idempotency-Key，省略时保留原行为。
+
 检出 `git switch part-05/chapter-42`。从旧库升级后，先完成注册、收信、确认和第一次登录。保留 VERIFY 及旧会话供下一章验证密码恢复。
 
 
