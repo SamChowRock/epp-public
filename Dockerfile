@@ -23,7 +23,7 @@ COPY config ./config
 RUN npm run build
 
 FROM build AS production-deps
-RUN npm prune --omit=dev --omit=peer
+RUN npm prune --omit=dev
 
 FROM base AS runtime
 ENV NODE_ENV=production
