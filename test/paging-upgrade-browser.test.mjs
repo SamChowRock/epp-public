@@ -68,3 +68,22 @@ test('cursor cycles and malformed timestamps are rejected before mutation',()=>{
  assert.throws(()=>p.accept(r,page([{...item(5),createdAt:'Nov 16 2026'}])));p.fail(r);r=p.begin();
  assert.throws(()=>p.accept(r,page([{...item(5),createdAt:'2026-02-31T00:00:00.000Z'}])));
 });
+
+test('wired read rechecks identity after response and binds expected session',async()=>{
+ const {readForOwner}=await import('../examples/paging-upgrade/pager.mjs');let cleared=false,accepted=false,headers;
+ const result=await readForOwner({owner:'old',sessionId:'session-old',path:'/captures/page',request:async(_path,options)=>{headers=options.headers;return page([item(1)]);},identify:async()=> 'new',isCurrent:()=>true,clearIdentity:()=>{cleared=true;},accept:()=>{accepted=true;}});
+ assert.equal(headers['X-Expected-Session'],'session-old');assert.equal(result,false);assert.equal(cleared,true);assert.equal(accepted,false);
+});
+test('wired read suppresses filter change during identity recheck',async()=>{
+ const {readForOwner}=await import('../examples/paging-upgrade/pager.mjs');let current=true,accepted=false;
+ await readForOwner({owner:'same',path:'/captures',request:async()=>({items:[]}),identify:async()=>{current=false;return 'same';},isCurrent:()=>current,clearIdentity:()=>assert.fail(),accept:()=>{accepted=true;}});assert.equal(accepted,false);
+});
+test('invalid cursor requires explicit restart instead of repeating failed cursor',()=>{
+ const p=new Pager({limit:2});p.reset('a','q');let t=p.begin();p.accept(t,page([item(1),item(2)],'expired'));t=p.begin();assert.equal(p.invalidate(t),true);assert.equal(p.begin(),null);assert.deepEqual(p.items,[]);assert.equal(p.requiresRestart,true);p.reset('a','q');assert.equal(p.begin().cursor,null);
+});
+
+test('wired read publishes only after the post-response identity confirmation',async()=>{
+ const {readForOwner}=await import('../examples/paging-upgrade/pager.mjs');const events=[];
+ const accepted=await readForOwner({owner:'same',path:'/captures',request:async()=>{events.push('read');return {items:[item(1)]};},identify:async()=>{events.push('identity');return 'same';},isCurrent:()=>true,clearIdentity:()=>assert.fail(),accept:result=>{assert.equal(result.items.length,1);events.push('accept');}});
+ assert.equal(accepted,true);assert.deepEqual(events,['read','identity','accept']);
+});

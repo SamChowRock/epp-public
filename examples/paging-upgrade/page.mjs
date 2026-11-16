@@ -1,4 +1,4 @@
-import {Pager,sameIds,validItem} from './pager.mjs';
+import {Pager,sameIds,validItem,readForOwner} from './pager.mjs';
 const $=id=>document.getElementById(id);
 const config=await fetch('/practice-config',{cache:'no-store'}).then(r=>r.json());
 const model=new Pager(); let owner=null,identity=null,visible=false,legacy=null,legacyTicket=null,viewEpoch=0,verifying=null,authenticating=false;
@@ -14,8 +14,8 @@ async function request(path,options={}) {
 }
 function render(){
  $('work').hidden=!visible||!owner;
- $('legacy').disabled=!!legacyTicket; $('next').disabled=!!model.active||model.done||!owner;
- $('next').textContent=model.error?'重试同一页':model.done?'已到末页':model.pages.length?'读取下一页':'读取第一页';
+ $('legacy').disabled=!!legacyTicket; $('next').disabled=!!model.active||model.done||model.requiresRestart||!owner;
+ $('next').textContent=model.requiresRestart?'请从第一页重新开始':model.error?'重试同一页':model.done?'已到末页':model.pages.length?'读取下一页':'读取第一页';
  $('legacy-count').textContent=legacy===null?'尚未读取':`旧列表返回 ${legacy.length} 条${config.legacyCap?'（隔离截断模拟）':''}`;
  $('legacy-ids').textContent=legacy?.map(i=>i.id).join('\n')??'';
  $('progress').textContent=`已接受 ${model.pages.length} 页，累计 ${model.items.length} 条`;
@@ -50,19 +50,18 @@ $('legacy').onclick=async()=>{
  if(legacyTicket||!await checkedRead())return;
  if(legacyTicket)return;
  const ticket={epoch:model.epoch,view:viewEpoch};legacyTicket=ticket;render();
- try{const params=new URLSearchParams();if(model.q!=='')params.set('q',model.q);const {items:result}=await request('/captures'+(params.size?'?'+params:''));
-  if(legacyTicket!==ticket||ticket.epoch!==model.epoch||ticket.view!==viewEpoch)return;
+ try{const params=new URLSearchParams();if(model.q!=='')params.set('q',model.q);await readForOwner({owner,sessionId:config.sessionMode?identity?.sessionId:null,path:'/captures'+(params.size?'?'+params:''),request,identify:async()=>await verify()?owner:null,isCurrent:()=>legacyTicket===ticket&&ticket.epoch===model.epoch&&ticket.view===viewEpoch,clearIdentity:forget,accept:({items:result})=>{
   if(!Array.isArray(result)||!result.every(validItem)||new Set(result.map(i=>i.id)).size!==result.length)throw Error('Invalid old list');
-  legacy=result;$('status').textContent='旧列表读取成功。';
- }catch(e){if(legacyTicket===ticket){if(e.status===401)forget();$('status').textContent=`旧列表未接受：${e.message}`;}}
+  legacy=result;$('status').textContent='旧列表读取成功。';}});
+ }catch(e){if(legacyTicket===ticket){if(e.status===401||e.status===403)forget();$('status').textContent=`旧列表未接受：${e.message}`;}}
  finally{if(legacyTicket===ticket)legacyTicket=null;render();}
 };
 $('next').onclick=async()=>{
  if(model.active||!await checkedRead())return;
  const ticket=model.begin();if(!ticket)return;render();
  const params=new URLSearchParams({limit:String(model.limit)});if(model.q!=='')params.set('q',model.q);if(ticket.cursor!==null)params.set('cursor',ticket.cursor);
- try{const result=await request('/captures/page?'+params);if(model.accept(ticket,result))$('status').textContent='本页完整通过校验，现已推进游标。';}
- catch(e){if(model.fail(ticket)){if(e.status===401){forget();$('status').textContent='会话失效，旧结果已清空，请重新登录。';}else $('status').textContent=`本页未接受：${e.message}。累计结果与请求游标保留，可重试同一页。`;}}
+ try{await readForOwner({owner,sessionId:config.sessionMode?identity?.sessionId:null,path:'/captures/page?'+params,request,identify:async()=>await verify()?owner:null,isCurrent:()=>model.current(ticket),clearIdentity:forget,accept:result=>{if(model.accept(ticket,result))$('status').textContent='本页完整通过校验，现已推进游标。';}});}
+ catch(e){if(model.current(ticket)){if(e.status===400){model.invalidate(ticket);legacy=null;legacyTicket=null;$('status').textContent='请求或游标失效（400），两套结果已清空。请点击“从第一页重新开始”。';}else if(e.status===401||e.status===403){forget();$('status').textContent='会话或权限校验失败，旧结果已清空，请重新确认身份。';}else{model.fail(ticket);$('status').textContent=`本页未接受：${e.message}。累计结果与请求游标保留，可重试同一页。`;}}}
  render();
 };
 $('login-form').onsubmit=async e=>{

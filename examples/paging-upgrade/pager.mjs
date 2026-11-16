@@ -7,10 +7,11 @@ export function validItem(item) {
 }
 export class Pager {
  constructor({limit=20}={}) { if(!Number.isInteger(limit)||limit<1||limit>100) throw Error('Invalid limit'); this.limit=limit; this.epoch=0; this.reset(null,''); }
- reset(owner,q) { this.epoch++; this.owner=owner; this.q=q; this.items=[]; this.pages=[]; this.cursor=null; this.done=false; this.active=null; this.error=null; this.seenCursors=new Set(); }
- begin() { if(!this.owner||this.active||this.done) return null; const ticket=Object.freeze({epoch:this.epoch,cursor:this.cursor}); this.active=ticket; this.error=null; return ticket; }
+ reset(owner,q) { this.epoch++; this.owner=owner; this.q=q; this.items=[]; this.pages=[]; this.cursor=null; this.done=false; this.requiresRestart=false; this.active=null; this.error=null; this.seenCursors=new Set(); }
+ begin() { if(!this.owner||this.active||this.done||this.requiresRestart) return null; const ticket=Object.freeze({epoch:this.epoch,cursor:this.cursor}); this.active=ticket; this.error=null; return ticket; }
  current(ticket) { return this.active===ticket && ticket.epoch===this.epoch; }
  fail(ticket) { if(!this.current(ticket)) return false; this.active=null; this.error='failed'; return true; }
+ invalidate(ticket) { if(!this.current(ticket))return false; this.reset(this.owner,this.q); this.requiresRestart=true; this.error='invalid-cursor'; return true; }
  accept(ticket,result) {
   if(!this.current(ticket)) return false;
   if(!result||!Array.isArray(result.items)||result.limit!==this.limit||typeof result.hasMore!=='boolean'
@@ -23,4 +24,16 @@ export class Pager {
   if(result.nextCursor!==null)this.seenCursors.add(result.nextCursor);
   this.cursor=result.nextCursor; this.done=!result.hasMore; this.active=null; this.error=null; return true;
  }
+}
+
+// Shared by both page controls. Capture owner/session before issuing the request;
+// never publish a response until identity has been rechecked after its arrival.
+export async function readForOwner({owner,sessionId,path,request,identify,isCurrent,clearIdentity,accept}) {
+ const headers=sessionId?{'X-Expected-Session':sessionId}:{};
+ const result=await request(path,{headers});
+ if(!isCurrent())return false;
+ const confirmedOwner=await identify();
+ if(!isCurrent())return false;
+ if(confirmedOwner!==owner){clearIdentity();return false;}
+ accept(result);return true;
 }
