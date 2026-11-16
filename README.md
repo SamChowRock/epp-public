@@ -1,5 +1,7 @@
 # EPP 配套实践代码
 
+已继承[第30章的创建与修订重试](examples/write-retry/README.md)：两个POST可带Idempotency-Key，省略时保留原行为。
+
 第 72 章「让客户端通过可信入口访问服务」使用 `git switch part-09/chapter-72`。沿用第 71 章的 API 和迁移，接入 HTTPS 入口与同源交付页。
 
 ## 第七十二章　让客户端通过可信入口访问服务
