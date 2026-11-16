@@ -1,5 +1,7 @@
 # EPP 配套实践代码
 
+已继承[第30章的创建与修订重试](examples/write-retry/README.md)：两个POST可带Idempotency-Key，省略时保留原行为。
+
 第 73 章「把应用交付为可验证的容器镜像」使用 `git switch part-09/chapter-73`。从第 72 章继续，新增 Linux 镜像构建与无数据库检查，应用和迁移保持不变。
 
 ## 第七十三章　把应用交付为可验证的容器镜像
