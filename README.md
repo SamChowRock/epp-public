@@ -56,18 +56,16 @@
 - [第 63 章　为后台操作提供可靠的管理命令](https://github.com/SamChowRock/epp-public/tree/part-08/chapter-63)
 - [第 64 章　构建与持续集成](https://github.com/SamChowRock/epp-public/tree/part-08/chapter-64)
 - [第 66 章　调试性能与资源问题](https://github.com/SamChowRock/epp-public/tree/part-08/chapter-66)
-- [第 64 章　在目标环境运行已有应用](https://github.com/SamChowRock/epp-public/tree/part-09/chapter-70)
+- [第 70 章　在目标环境运行已有应用](https://github.com/SamChowRock/epp-public/tree/part-09/chapter-70)
 
 ## 部署、观测与维护
 
-第 64 章直接运行第 69 章验过的 release，顺序跟做时其中是第 66 章的程序。可从第 64 章分支取得数据库授权脚本、选做的 macOS 托管脚本，以及允许配置监听与练习 SMTP 主机的实现。原 release 默认监听回环，足以完成第 69、70 章。第九篇的 Docker 支线为选做的章节规划。
+第 70 章沿用第 69 章已验产物，在目标平台接通程序与数据。第 71 章建立服务身份与托管，第 72 章完成 HTTPS 入口和客户端交付。
 
 | 章 | 本章交付什么 | 配套入口 |
 | --- | --- | --- |
-| 71 | 在目标环境运行已有应用。把已验程序交给 Debian，跨平台时传 dist 和安装清单，在目标平台按锁安装生产依赖 | 沿用第 64 章交出的 release |
-| 72 | 为 API、邮件和通知分配权限，按目标平台交接制品 | `git switch part-09/chapter-71` |
-| 73 | 把 EPP 放到使用者能访问的 HTTPS 地址，在私网配置入口与客户端信任 | `git switch part-09/chapter-72` |
-| 74 | 把服务交给另一台设备上的使用者。从同源交付页登录、读写素材和取头像 | `git switch part-09/chapter-72` |
-| 75 | 通知已经积压，怎样在人来报障之前发现（章节规划） | 沿用第 72 章部署 |
-| 76 | 定时维护漏跑、重复领取与恢复 | `git switch part-10/chapter-74` |
-| 77 | 让 API 和后台进程更换凭据与签名密钥 | `git switch part-10/chapter-75` |
+| 70 | 目标环境、运行目录与前台启动 | `git switch part-09/chapter-70` |
+| 71 | 运行身份、配置与进程托管 | `git switch part-09/chapter-71` |
+| 72、73 | HTTPS、同源页面与交付；73观测为提要 | `git switch part-09/chapter-72` |
+| 74 | 定时维护 | `git switch part-10/chapter-74` |
+| 75 | 凭据轮换 | `git switch part-10/chapter-75` |
