@@ -1,0 +1,234 @@
+{
+  "info": {
+    "name": "EPP 第30章 创建与追加重试",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000"
+    },
+    {
+      "key": "createKey",
+      "value": "30000000-0000-4000-8000-000000000001"
+    },
+    {
+      "key": "revisionKey",
+      "value": "30000000-0000-4000-8000-000000000002"
+    },
+    {
+      "key": "nextRevisionKey",
+      "value": "30000000-0000-4000-8000-000000000003"
+    },
+    {
+      "key": "captureId",
+      "value": "替换为01返回的ID"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 创建并保存原ID",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "{{createKey}}"
+          }
+        ],
+        "url": "{{baseUrl}}/captures",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"originalText\": \"Take a break.\",\n  \"chineseIntent\": null\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "02 同键重放创建",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "{{createKey}}"
+          }
+        ],
+        "url": "{{baseUrl}}/captures",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"originalText\": \"Take a break.\",\n  \"chineseIntent\": null\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "03 同键改参被拒",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "{{createKey}}"
+          }
+        ],
+        "url": "{{baseUrl}}/captures",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"originalText\": \"Changed input.\",\n  \"chineseIntent\": null\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "04 无键旧客户端",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/captures",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"originalText\": \"Legacy client.\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "05 追加第2版",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "{{revisionKey}}"
+          }
+        ],
+        "url": "{{baseUrl}}/captures/{{captureId}}/revisions",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"originalText\": \"Second revision.\",\n  \"chineseIntent\": null\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "06 新键追加第3版",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "{{nextRevisionKey}}"
+          }
+        ],
+        "url": "{{baseUrl}}/captures/{{captureId}}/revisions",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"originalText\": \"Third revision.\",\n  \"chineseIntent\": null\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "07 原键回放第2版",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "{{revisionKey}}"
+          }
+        ],
+        "url": "{{baseUrl}}/captures/{{captureId}}/revisions",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"originalText\": \"Second revision.\",\n  \"chineseIntent\": null\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "08 读取当前详情",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/captures/{{captureId}}"
+      }
+    },
+    {
+      "name": "09 读取修订历史",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/captures/{{captureId}}/revisions"
+      }
+    }
+  ]
+}

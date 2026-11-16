@@ -1,5 +1,7 @@
 # EPP 配套实践代码
 
+已继承[第30章的创建与修订重试](examples/write-retry/README.md)：两个POST可带Idempotency-Key，省略时保留原行为。
+
 第 36 章「第四篇回顾：让采纳经得起竞争与重试」使用 `git switch part-04/chapter-36`。迁移目录和请求集合请按下面的实际文件名打开。
 
 ## 第三十六章 第四篇回顾
