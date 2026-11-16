@@ -29,7 +29,7 @@ export function createPracticeServer({ targetPort, sessionMode = false, csrfMode
     // Browser ambient credentials and Origin remain exactly those of the page.
     // No header is translated into an authenticated user identity.
     const headers = {};
-    for (const name of ['content-type', 'content-length', 'cookie', 'origin', 'idempotency-key', 'x-csrf-token', 'x-expected-session']) {
+    for (const name of ['content-type', 'content-length', 'cookie', 'origin', 'idempotency-key', 'x-csrf-token', 'x-expected-session', 'x-epp-request']) {
       if (request.headers[name] !== undefined) headers[name] = request.headers[name];
     }
     const upstream = http.request({ host: '127.0.0.1', port: targetPort, method: request.method, path, headers, timeout: 15000 }, result => {
@@ -40,8 +40,12 @@ export function createPracticeServer({ targetPort, sessionMode = false, csrfMode
         dropped.add(operation);
         result.resume();
         result.on('end', () => {
-          console.log(`Consumed upstream 201; dropped first success for ${operation}`);
-          response.destroy();
+          console.log(`Consumed upstream 201; truncating first success for ${operation}`);
+          // A close before any bytes can be transparently retried by a browser.
+          // Start a response, then deliberately violate its declared body length.
+          response.writeHead(201, { 'Content-Type': 'application/json', 'Content-Length': '1024',
+            ...(result.headers.location ? { Location: result.headers.location } : {}) });
+          response.write('{"id":', () => response.destroy());
         });
       } else {
         for (const name of ['content-type', 'location', 'set-cookie']) {

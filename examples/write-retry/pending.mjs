@@ -17,7 +17,8 @@ export class PendingWrite {
     this.controller?.abort();
     // Even if storage throws, forget all visible content and suppress late callbacks.
     this.update({ owner: null, pending: null, result: null, phase: 'signed-out' });
-    try { this.remove(); } catch { this.update({ phase: 'storage-error' }); }
+    try { this.remove(); return true; }
+    catch { this.update({ phase: 'storage-error' }); return false; }
   }
   async checkIdentity(epoch) {
     const identity = await this.identify();
@@ -27,9 +28,21 @@ export class PendingWrite {
     }
     const owner = JSON.stringify([identity.userId, identity.sessionId ?? 'fixed-lab']);
     if (this.state.owner && this.state.owner !== owner) {
-      this.clearIdentity(); this.update({ owner, phase: 'identity-changed' }); return false;
+      if (this.clearIdentity()) this.update({ owner, phase: 'identity-changed' });
+      return false;
     }
     this.update({ owner }); return true;
+  }
+  async verifyIdentity() {
+    if (!this.state.owner || this.state.phase === 'unavailable') {
+      await this.initialize();
+      return ['ready', 'pending'].includes(this.state.phase);
+    }
+    const epoch = this.epoch;
+    try {
+      const matched = await this.checkIdentity(epoch);
+      return matched || (this.epoch === epoch + 1 && this.state.phase === 'identity-changed');
+    } catch { return false; }
   }
   async initialize() {
     const epoch = ++this.epoch;
@@ -47,7 +60,8 @@ export class PendingWrite {
     } catch { if (epoch === this.epoch) this.update({ phase: 'unavailable' }); }
   }
   async submit(path, body) {
-    if (this.state.pending || !this.state.owner || ['sending', 'checking'].includes(this.state.phase)) return;
+    if (this.state.pending || !this.state.owner
+      || !['ready', 'success', 'identity-changed', 'storage-error'].includes(this.state.phase)) return;
     if (!validPath(path)) throw Error('Unsupported write path');
     // Lock before awaiting identity, so a double click cannot allocate two intents.
     this.update({ result: null, phase: 'checking' });
@@ -93,7 +107,7 @@ export class PendingWrite {
     this.epoch++;
     this.controller?.abort();
     this.update({ pending: null, result: null, phase: this.state.owner ? 'ready' : 'signed-out' });
-    try { this.remove(); } catch { this.update({ phase: 'storage-error' }); }
+    try { this.remove(); } catch { this.update({ owner: null, phase: 'storage-error' }); }
   }
 }
 
@@ -108,6 +122,7 @@ export async function writeHeaders(owner, { sessionMode, csrfMode, request }) {
     headers['X-Expected-Session'] = sessionId;
   }
   if (csrfMode) {
+    headers['X-EPP-Request'] = '1';
     const { csrfToken } = await request('/auth/csrf');
     if (typeof csrfToken !== 'string' || !csrfToken) throw Error('Invalid CSRF response');
     headers['X-CSRF-Token'] = csrfToken;

@@ -18,6 +18,7 @@ const labels = { checking: '正在确认当前身份…', ready: '可以提交',
   'storage-error': '本页无法可靠保存或清除待办，请检查浏览器存储设置。未自动发起新请求。',
   unavailable: '无法确认当前身份或读取待办，请恢复连接后刷新。' };
 let visibleOwner = null;
+let concealed = true;
 const model = new PendingWrite({
   // Access sessionStorage lazily: a browser denying access can throw even at property access.
   storage: { getItem: k => sessionStorage.getItem(k), setItem: (k,v) => sessionStorage.setItem(k,v), removeItem: k => sessionStorage.removeItem(k) },
@@ -34,13 +35,14 @@ const model = new PendingWrite({
   changed: state => {
     if (state.owner !== visibleOwner) { $('form').reset(); visibleOwner = state.owner; $('target-row').hidden = true; }
     const busy = ['sending', 'checking'].includes(state.phase);
+    $('form').hidden = concealed;
     $('editor').disabled = !state.owner || !!state.pending || busy || state.phase === 'unavailable';
-    $('retry').disabled = !state.pending || busy;
-    $('clear').disabled = !state.pending;
+    $('retry').disabled = concealed || !state.pending || busy;
+    $('clear').disabled = concealed || !state.pending;
     $('status').textContent = labels[state.phase];
-    $('pending').hidden = !state.pending;
+    $('pending').hidden = concealed || !state.pending;
     $('pending').textContent = state.pending ? `操作键：${state.pending.operationId}\n路径：${state.pending.path}\n原参数：${state.pending.body}` : '';
-    $('result').hidden = !state.result;
+    $('result').hidden = concealed || !state.result;
     $('result').textContent = state.result ? JSON.stringify(state.result, null, 2) : '';
   },
 });
@@ -66,4 +68,33 @@ $('logout').onclick = async () => {
   }
   catch { $('status').textContent = '本页内容已清除，但服务端退出尚未确认。请恢复连接后再次退出。'; }
 };
+// Hide immediately on backgrounding. Refocusing confirms identity before showing
+// the draft again; it does not cancel a same-owner request already in flight.
+function conceal() {
+  concealed = true;
+  $('form').hidden = $('pending').hidden = $('result').hidden = true;
+  $('retry').disabled = $('clear').disabled = true;
+  $('status').textContent = '正文已隐藏，返回本页后重新确认身份。';
+}
+let resumePromise = null;
+let verifiedAt = 0;
+async function resume() {
+  if (document.hidden || resumePromise || (!concealed && performance.now() - verifiedAt < 500)) return;
+  conceal();
+  resumePromise = model.verifyIdentity();
+  const verified = await resumePromise;
+  resumePromise = null;
+  if (document.hidden) return;
+  if (verified) {
+    concealed = false; verifiedAt = performance.now(); model.update({});
+  } else {
+    $('status').textContent = model.state.phase === 'storage-error' ? labels['storage-error']
+      : '尚未确认当前身份，正文保持隐藏。恢复连接后重新进入本页或刷新。';
+  }
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden) conceal(); else void resume(); });
+window.addEventListener('focus', () => void resume());
 await model.initialize();
+if (!document.hidden && ['ready', 'pending'].includes(model.state.phase)) {
+  concealed = false; verifiedAt = performance.now(); model.update({});
+}

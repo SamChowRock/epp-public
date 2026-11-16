@@ -59,7 +59,7 @@ test('proxy loses first success after upstream body ends; retry forwards origina
   const requests = []; let ended = false;
   const upstream = http.createServer(async (req, res) => {
     let body = ''; for await (const chunk of req) body += chunk;
-    requests.push({ path: req.url, body, key: req.headers['idempotency-key'], origin: req.headers.origin, expectedSession: req.headers['x-expected-session'] });
+    requests.push({ path: req.url, body, key: req.headers['idempotency-key'], origin: req.headers.origin, expectedSession: req.headers['x-expected-session'], eppRequest: req.headers['x-epp-request'] });
     res.writeHead(201, { 'Content-Type': 'application/json', Location: '/captures/example' });
     res.write('{"id":');
     setTimeout(() => { ended = true; res.end('"example"}'); }, 20);
@@ -68,13 +68,17 @@ test('proxy loses first success after upstream body ends; retry forwards origina
   const proxy = createPracticeServer({ targetPort: upstream.address().port, dropSuccessOnce: true });
   await new Promise(r => proxy.listen(0, '127.0.0.1', r));
   const origin = `http://127.0.0.1:${proxy.address().port}`;
-  const options = { method: 'POST', headers: { 'Idempotency-Key': key, Origin: origin, 'X-Expected-Session': 's1' }, body: '{"originalText":"same"}' };
+  const options = { method: 'POST', headers: { 'Idempotency-Key': key, Origin: origin, 'X-Expected-Session': 's1', 'X-EPP-Request': '1' }, body: '{"originalText":"same"}' };
   try {
-    await assert.rejects(fetch(`${origin}/captures`, options)); assert.equal(ended, true);
+    await assert.rejects(async () => {
+      const interrupted = await fetch(`${origin}/captures`, options);
+      await interrupted.json();
+    });
+    assert.equal(ended, true); assert.equal(requests.length, 1);
     const retry = await fetch(`${origin}/captures`, options);
     assert.equal(retry.status, 201); assert.equal(retry.headers.get('location'), '/captures/example');
     assert.deepEqual(await retry.json(), { id: 'example' }); assert.deepEqual(requests[0], requests[1]);
-    assert.equal(requests[0].origin, origin); assert.equal(requests[0].expectedSession, 's1');
+    assert.equal(requests[0].origin, origin); assert.equal(requests[0].expectedSession, 's1'); assert.equal(requests[0].eppRequest, '1');
     const refused = await fetch(`${origin}/http://example.com/`); assert.equal(refused.status, 404);
   } finally { proxy.closeAllConnections(); upstream.closeAllConnections(); await Promise.all([new Promise(r => proxy.close(r)), new Promise(r => upstream.close(r))]); }
 });
@@ -120,6 +124,7 @@ test('session header binds to saved owner even if the cookie changes while fetch
   await x.model.initialize(); await x.model.submit('/captures', { originalText: 'only a' });
   assert.equal(calls[0].options.headers['X-Expected-Session'], 's1');
   assert.equal(calls[0].options.headers['X-CSRF-Token'], 'token-b');
+  assert.equal(calls[0].options.headers['X-EPP-Request'], '1');
   assert.equal(calls[0].cookie, 'session-b');
   assert.ok(x.memory.has(STORAGE_KEY));
   x.setIdentity({ userId: 'b', sessionId: 's2' }); await x.model.retry();
@@ -172,4 +177,30 @@ test('a rejected late response rechecks identity before exposing the old pending
   await x.model.initialize(); await x.model.submit('/captures', { originalText: 'only a' });
   assert.equal(x.model.state.pending, null); assert.equal(x.model.state.result, null);
   assert.equal(x.memory.size, 0); assert.equal(x.model.state.phase, 'identity-changed');
+});
+
+test('identity change with blocked removal keeps storage-error and prevents a new write', async () => {
+  const x = setup(); await x.model.initialize(); await x.model.submit('/captures', { originalText: 'secret' });
+  x.args.storage.removeItem = () => { throw Error('storage blocked'); };
+  x.setIdentity({ userId: 'b', sessionId: 's2' }); await x.model.retry();
+  assert.equal(x.model.state.phase, 'storage-error'); assert.equal(x.model.state.owner, null);
+  assert.equal(x.model.state.pending, null); assert.ok(x.memory.has(STORAGE_KEY));
+  await x.model.submit('/captures', { originalText: 'new b' }); assert.equal(x.sent.length, 1);
+  assert.equal(await x.model.verifyIdentity(), false);
+  await x.model.submit('/captures', { originalText: 'still blocked' }); assert.equal(x.sent.length, 1);
+});
+test('focus identity verification preserves an in-flight write under the same owner', async () => {
+  let finish; let context;
+  const x = setup({ send: async (_record, ctx) => { context = ctx; return new Promise(r => { finish = r; }); } });
+  await x.model.initialize(); const sending = x.model.submit('/captures', { originalText: 'a' });
+  while (!finish) await new Promise(r => setImmediate(r));
+  assert.equal(await x.model.verifyIdentity(), true);
+  assert.equal(x.model.state.phase, 'sending'); assert.equal(context.signal.aborted, false);
+  finish({ id: 'capture' }); await sending; assert.equal(x.model.state.phase, 'success');
+});
+test('focus confirms changed identity without revealing the prior pending record', async () => {
+  const x = setup(); await x.model.initialize(); await x.model.submit('/captures', { originalText: 'secret' });
+  x.setIdentity({ userId: 'b', sessionId: 's2' });
+  assert.equal(await x.model.verifyIdentity(), true);
+  assert.equal(x.model.state.phase, 'identity-changed'); assert.equal(x.model.state.pending, null);
 });
