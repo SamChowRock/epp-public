@@ -1,3 +1,5 @@
+import { CaptureCommands } from './capture-commands.js';
+import { DEVELOPMENT_USER_ID } from './database-config.js';
 import { Module } from '@nestjs/common';
 import { CapturesController } from './captures.controller.js';
 import { CapturesService } from './captures.service.js';
@@ -18,6 +20,9 @@ import { PrismaCandidateStore } from './prisma-candidate.store.js';
   imports: [DatabaseModule],
   controllers: [CapturesController, CandidatesController],
   providers: [
+    { provide: CaptureCommands,
+      useFactory: (database: DatabaseService, state: ApplicationState) => new CaptureCommands(database, state, DEVELOPMENT_USER_ID),
+      inject: [DatabaseService, ApplicationState] },
     { provide: PrismaCandidateStore,
       useFactory: (database: DatabaseService) => new PrismaCandidateStore(database),
       inject: [DatabaseService] },
