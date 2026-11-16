@@ -10,11 +10,10 @@
 
 按[维护任务运行说明](examples/maintenance/README.md)核对单笔资格，将原有清理入口交给 systemd，再按对象 ID 观察漏跑、重复领取及端点恢复。
 
-## 第七十二章　把服务交给另一台设备上的使用者
+## 第七十二章　让客户端通过可信入口访问服务
 
 按[同源练习页交付说明](examples/handoff-client/README.md)把两个公开文件放入已验的 HTTPS 入口，从使用端登录、写读素材、打开头像并核对通知。
 
-## 第七十二章　把 EPP 放到使用者能访问的 HTTPS 地址
 
 按[练习 CA 和 HTTPS 入口说明](examples/tls-trust/README.md)准备证书，在部署端将签名头像和 API 接到私网可达的带名入口。换证和回退在支线中演练。
 
