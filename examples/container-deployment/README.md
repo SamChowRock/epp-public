@@ -101,7 +101,6 @@ console.log("runtime UID can read both mounted files");'
 docker run -d --name epp73-api --network epp74-backend \
   --add-host api.epp.test:172.28.74.1 \
   --add-host epp-data.internal:172.28.74.1 \
-  --add-host objects.epp.test:172.28.74.1 \
   -e NODE_EXTRA_CA_CERTS=/run/epp/root.crt \
   --read-only --cap-drop ALL --security-opt no-new-privileges:true \
   --stop-timeout 40 \
