@@ -2,9 +2,11 @@
 
 第 31 章「一致性整合：完成可靠的候选采纳」使用 `git switch part-04/chapter-31`。迁移目录和请求集合请按下面的实际文件名打开。
 
+已继承[第30章的创建与修订重试](database/chapter-30/README.md)：两个POST可带Idempotency-Key，省略时保留原行为。
+
 ## 第三十一章 一致性整合
 
-当前分支 `part-04/chapter-31` 从第二十九章继续，按用户、规范化英文和义项复用表达；每次采纳保留自己的学习来源，原操作仍重放原201。迁移回填规范化字段，为旧重复选取复用代表，但不删除旧表达或改写旧回执。操作见[本章说明](database/chapter-27/README.md)，导入[chapter-27.postman_collection.json](requests/chapter-27.postman_collection.json)。
+当前分支 `part-04/chapter-31` 从第三十章继续，按用户、规范化英文和义项复用表达；每次采纳保留自己的学习来源，原操作仍重放原201。迁移回填规范化字段，为旧重复选取复用代表，但不删除旧表达或改写旧回执。操作见[本章说明](database/chapter-27/README.md)，导入[chapter-27.postman_collection.json](requests/chapter-27.postman_collection.json)。
 
 本章规范化v1为NFC、ASCII空白折叠和ASCII大小写折叠；相近说法不自动合并。采纳、放弃、未选择和旧修订各自保留原语义。当前没有真实登录、账号处置或语义推荐，成功回执不自动过期。此前章节说明只描述对应版本。
 
