@@ -1,5 +1,7 @@
 # EPP 配套实践代码
 
+已继承[第30章的创建与修订重试](examples/write-retry/README.md)：两个POST可带Idempotency-Key，省略时保留原行为。
+
 第 51 章「为什么需要独立 Worker」使用 `git switch part-06/chapter-51`。迁移目录和请求集合请按下面的实际文件名打开。
 
 ## 第五十一章　为什么需要独立 Worker
