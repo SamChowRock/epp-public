@@ -1,6 +1,6 @@
 # 第 71 章　服务身份与授权
 
-从第 70 章已经托管的 API、非空库、配对对象存储和旧账号接手。代码使用 Node 24.22.1、PostgreSQL 18，原[请求集合](../../requests/chapter-51.postman_collection.json)保持可用。三个 unit 安装在支持 systemd 的独立 Linux 练习目标。Mac 可作为 SSH 操作端。
+从第 70 章已在前台运行的 API、非空库、配对对象存储和旧账号接手。代码使用 Node 24.22.1、PostgreSQL 18，原[请求集合](../../requests/chapter-51.postman_collection.json)保持可用。三个 unit 安装在支持 systemd 的独立 Linux 练习目标。Mac 可作为 SSH 操作端。
 
 1. 在构建目录执行 `nvm use`、`npm ci`、`npm run ci:check`。先停止旧消费者，按[备份与独立恢复](../../database/chapter-22/backup-restore.md)保留非空库，将 .env.database-verify 指向本轮目标的迁移所有者。核对旧账号、旧收据、桶和邮件通道。
 2. 用 `env -u DATABASE_URL node --env-file=.env.database-verify scripts/deploy-verify.mjs deploy epp_ch72_handoff` 升级，库名换成交接单中的名称。空库使用 bootstrap。新增的[带锁视图](../../prisma/migrations/20261112010000_notification_recipient_lock/migration.sql)由有权锁定 users 的可信所有者创建。应用不需要当表所有者。
