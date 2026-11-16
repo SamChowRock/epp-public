@@ -38,6 +38,8 @@ const notModified: ResponseObject = {
 };
 
 export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject {
+  const expectedSession: ParameterObject = { name: 'X-Expected-Session', in: 'header', required: false,
+    schema: { type: 'string', format: 'uuid' }, description: 'Optional session identity from GET /auth/me. A different current session rejects pending writes with 401 SESSION_CHANGED before business execution. Omit for legacy clients.' };
   const idempotencyKey: ParameterObject = { name: 'Idempotency-Key', in: 'header', required: false,
     schema: { type: 'string', pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' },
     description: 'Save one lowercase UUID before sending. Reuse it only with the original parsed input and target. Scoped to current user and action; no automatic expiry. Matching success replays the original 201; changed input returns 409 OPERATION_CONFLICT. Missing header keeps legacy behavior.' };
@@ -188,7 +190,7 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
         },
         post: {
           operationId: 'createCapture', summary: 'Create a capture',
-          parameters: [idempotencyKey],
+          parameters: [idempotencyKey, expectedSession],
           description: 'originalText and optional chineseIntent are used. Missing or null intent is stored as null. Extra properties, including id and createdAt, are ignored. With Idempotency-Key, retries return the original capture and Location even after later edits; current ownership is rechecked. Without a key, each request creates a capture. Body limit: 16 KiB of bytes. Requires valid UTF-8 JSON without a BOM. URL query limit: 1000 ampersand-separated parts.',
           requestBody: { required: true, content: { 'application/json': {
             schema: { $ref: '#/components/schemas/CreateCapture' },
@@ -225,7 +227,7 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
         post: {
           operationId: 'appendCaptureRevision', summary: 'Append a complete content snapshot',
           description: 'Requires originalText and chineseIntent (null clears it); inputSource defaults to manual, chunks defaults to null. Unknown properties rejected. With Idempotency-Key, matching retries replay the original revision, including its ID and number; current ownership is rechecked. Without a key, repeating creates a new revision. Neither mode detects stale editors. Body limit 16 KiB; valid UTF-8 JSON without BOM.',
-          parameters: [idempotencyKey, { name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          parameters: [idempotencyKey, expectedSession, { name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
           requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/AppendRevision' } } } },
           responses: {
             '201': jsonResponse('Revision', 'The snapshot committed by this request; later writers may already exist'),
@@ -313,7 +315,7 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
   for (const [pathname, path] of Object.entries(document.paths)) {
     for (const operation of [path.get, path.post, path.patch, path.delete]) {
       if (!operation?.responses) continue;
-      if (!RECOVERY_PATHS.includes(pathname)) operation.responses['401'] ??= problem('Missing, expired or revoked session; code AUTH_REQUIRED');
+      if (!RECOVERY_PATHS.includes(pathname)) operation.responses['401'] ??= problem('Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED');
       if (!['/auth/logout', '/auth/csrf'].includes(pathname)) {
         operation.responses['403'] ??= problem('Account disabled or Web access denied; code ACCOUNT_DISABLED or WEB_ACCESS_DENIED. Write requests may also reject the Origin.');
       } else if (pathname === '/auth/logout') {
