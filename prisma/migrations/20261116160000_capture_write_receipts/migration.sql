@@ -1,3 +1,7 @@
+BEGIN;
+SET LOCAL lock_timeout = '2s';
+SET LOCAL statement_timeout = '10s';
+
 CREATE TABLE public.capture_write_receipts (
   user_id uuid NOT NULL,
   action text NOT NULL CHECK (action IN ('create-capture/v1', 'append-revision/v1')),
@@ -16,3 +20,5 @@ CREATE TABLE public.capture_write_receipts (
     OR (action = 'append-revision/v1' AND location IS NULL))
 );
 CREATE INDEX capture_write_receipts_capture_id_idx ON public.capture_write_receipts(capture_id);
+
+COMMIT;
