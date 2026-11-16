@@ -1,8 +1,8 @@
-import { PendingWrite, sendPendingWrite, writeHeaders } from './pending.mjs';
+import { PendingWrite, sendPendingWrite, writeHeaders, loginSession } from './pending.mjs';
 const $ = id => document.getElementById(id);
 const config = await fetch('/practice-config', { cache: 'no-store' }).then(r => r.json());
 $('mode').textContent = config.dropSuccessOnce
-  ? '丢响应练习已开启：每个操作键的第一次成功响应都会被丢弃。'
+  ? '丢响应练习已开启：每个操作键的第一次成功响应都会被截断。'
   : '保存原操作键和参数，在结果未知时继续同一次提交。';
 async function jsonRequest(path, options = {}) {
   const { expectedStatus, ...fetchOptions } = options;
@@ -19,6 +19,8 @@ const labels = { checking: '正在确认当前身份…', ready: '可以提交',
   unavailable: '无法确认当前身份或读取待办，请恢复连接后刷新。' };
 let visibleOwner = null;
 let concealed = true;
+let authenticating = false;
+let presentationEpoch = 0;
 const model = new PendingWrite({
   // Access sessionStorage lazily: a browser denying access can throw even at property access.
   storage: { getItem: k => sessionStorage.getItem(k), setItem: (k,v) => sessionStorage.setItem(k,v), removeItem: k => sessionStorage.removeItem(k) },
@@ -58,6 +60,7 @@ $('clear').onclick = () => { model.clearPending(); $('form').reset(); $('target-
 $('logout').hidden = !config.sessionMode;
 let logoutOwner = null;
 $('logout').onclick = async () => {
+  if (authenticating) return;
   // Keep only the expected identity for retrying a failed logout, never credentials.
   logoutOwner = model.state.owner ?? logoutOwner;
   const owner = logoutOwner;
@@ -71,6 +74,7 @@ $('logout').onclick = async () => {
 // Hide immediately on backgrounding. Refocusing confirms identity before showing
 // the draft again; it does not cancel a same-owner request already in flight.
 function conceal() {
+  presentationEpoch++;
   concealed = true;
   $('form').hidden = $('pending').hidden = $('result').hidden = true;
   $('retry').disabled = $('clear').disabled = true;
@@ -79,12 +83,14 @@ function conceal() {
 let resumePromise = null;
 let verifiedAt = 0;
 async function resume() {
-  if (document.hidden || resumePromise || (!concealed && performance.now() - verifiedAt < 500)) return;
+  if (authenticating || document.hidden || resumePromise || (!concealed && performance.now() - verifiedAt < 500)) return;
   conceal();
+  const viewEpoch = presentationEpoch;
   resumePromise = model.verifyIdentity();
   const verified = await resumePromise;
   resumePromise = null;
-  if (document.hidden) return;
+  if (document.hidden || authenticating) return;
+  if (viewEpoch !== presentationEpoch) { void resume(); return; }
   if (verified) {
     concealed = false; verifiedAt = performance.now(); model.update({});
   } else {
@@ -92,7 +98,32 @@ async function resume() {
       : '尚未确认当前身份，正文保持隐藏。恢复连接后重新进入本页或刷新。';
   }
 }
-document.addEventListener('visibilitychange', () => { if (document.hidden) conceal(); else void resume(); });
+$('login-region').hidden = !config.sessionMode || document.hidden;
+$('login-form').onsubmit = async event => {
+  event.preventDefault();
+  if (authenticating || !config.sessionMode) return;
+  const userId = $('login-user').value.trim();
+  const password = $('login-password').value;
+  $('login-password').value = ''; // Clear immediately, including failed requests.
+  authenticating = true; logoutOwner = null;
+  $('login-fields').disabled = true; $('logout').disabled = true;
+  conceal(); $('form').reset(); $('target-row').hidden = true;
+  try {
+    await loginSession(model, { userId, password, ...config, request: jsonRequest });
+    if (!document.hidden && ['ready', 'pending'].includes(model.state.phase)) {
+      concealed = false; verifiedAt = performance.now(); model.update({});
+    }
+  } catch {
+    $('status').textContent = model.state.phase === 'storage-error' ? labels['storage-error']
+      : '登录未完成，请检查用户 UUID、密码或连接后重试。';
+  } finally {
+    authenticating = false; $('login-fields').disabled = false; $('logout').disabled = false;
+  }
+};
+document.addEventListener('visibilitychange', () => {
+  $('login-region').hidden = !config.sessionMode || document.hidden;
+  if (document.hidden) conceal(); else void resume();
+});
 window.addEventListener('focus', () => void resume());
 await model.initialize();
 if (!document.hidden && ['ready', 'pending'].includes(model.state.phase)) {
