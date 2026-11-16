@@ -204,3 +204,64 @@ test('focus confirms changed identity without revealing the prior pending record
   assert.equal(await x.model.verifyIdentity(), true);
   assert.equal(x.model.state.phase, 'identity-changed'); assert.equal(x.model.state.pending, null);
 });
+
+test('login route is session-only and passes the real upstream Set-Cookie header', async () => {
+  const http = await import('node:http');
+  const { createPracticeServer } = await import('../examples/write-retry/server.mjs');
+  const requests = [];
+  const upstream = http.createServer(async (req, res) => {
+    let body = ''; for await (const chunk of req) body += chunk;
+    requests.push({ path: req.url, body: JSON.parse(body), marker: req.headers['x-epp-request'], origin: req.headers.origin,
+      csrf: req.headers['x-csrf-token'], expectedSession: req.headers['x-expected-session'] });
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Set-Cookie': 'practice=synthetic; HttpOnly; SameSite=Lax; Path=/' });
+    res.end(JSON.stringify({ userId: key, sessionId: key }));
+  });
+  await new Promise(r => upstream.listen(0, '127.0.0.1', r));
+  const closed = createPracticeServer({ targetPort: upstream.address().port });
+  const session = createPracticeServer({ targetPort: upstream.address().port, sessionMode: true, csrfMode: true });
+  await Promise.all([new Promise(r => closed.listen(0, '127.0.0.1', r)), new Promise(r => session.listen(0, '127.0.0.1', r))]);
+  const origin = `http://127.0.0.1:${session.address().port}`;
+  const body = { userId: key, password: 'synthetic-test-password', label: 'Write retry practice' };
+  const options = { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: origin, 'X-EPP-Request': '1' }, body: JSON.stringify(body) };
+  try {
+    const refused = await fetch(`http://127.0.0.1:${closed.address().port}/auth/login`, options);
+    assert.equal(refused.status, 404); assert.equal(requests.length, 0);
+    const result = await fetch(`${origin}/auth/login`, options);
+    assert.equal(result.status, 200); assert.equal(result.headers.get('set-cookie'), 'practice=synthetic; HttpOnly; SameSite=Lax; Path=/');
+    assert.deepEqual(await result.json(), { userId: key, sessionId: key });
+    assert.deepEqual(requests, [{ path: '/auth/login', body, marker: '1', origin, csrf: undefined, expectedSession: undefined }]);
+  } finally {
+    for (const server of [closed, session, upstream]) server.closeAllConnections();
+    await Promise.all([closed, session, upstream].map(server => new Promise(r => server.close(r))));
+  }
+});
+test('starting login clears old intent and suppresses its late response without storing credentials', async () => {
+  const { loginSession } = await import('../examples/write-retry/pending.mjs');
+  assert.equal(typeof loginSession, 'function');
+  let finish; const x = setup({ send: async () => new Promise(r => { finish = r; }) });
+  await x.model.initialize(); const sending = x.model.submit('/captures', { originalText: 'private a' });
+  while (!finish) await new Promise(r => setImmediate(r));
+  let loginCalls = 0;
+  await loginSession(x.model, { userId: 'b', password: 'ephemeral-only', sessionMode: true, csrfMode: true,
+    request: async (path, options) => {
+      assert.equal(x.model.state.pending, null); assert.equal(x.memory.size, 0);
+      assert.equal(path, '/auth/login'); assert.deepEqual(options.headers, { 'Content-Type': 'application/json', 'X-EPP-Request': '1' });
+      assert.deepEqual(JSON.parse(options.body), { userId: 'b', password: 'ephemeral-only', label: 'Write retry practice' });
+      finish({ id: 'old', originalText: 'private a' }); await sending;
+      assert.equal(x.model.state.result, null);
+      x.setIdentity({ userId: 'b', sessionId: 's2' }); loginCalls++; return { userId: 'b', sessionId: 's2' };
+    },
+  });
+  assert.equal(loginCalls, 1); assert.equal(x.model.state.phase, 'ready'); assert.equal(x.memory.size, 0);
+});
+test('login does not switch identity when old pending storage cannot be cleared', async () => {
+  const { loginSession } = await import('../examples/write-retry/pending.mjs');
+  const x = setup(); await x.model.initialize(); await x.model.submit('/captures', { originalText: 'private a' });
+  x.args.storage.removeItem = () => { throw Error('blocked'); };
+  let calls = 0;
+  await assert.rejects(loginSession(x.model, { userId: 'b', password: 'ephemeral-only', sessionMode: true,
+    csrfMode: false, request: async () => { calls++; },
+  }));
+  assert.equal(calls, 0); assert.equal(x.model.state.phase, 'storage-error');
+  assert.equal(x.model.state.pending, null); assert.ok(x.memory.has(STORAGE_KEY));
+});
