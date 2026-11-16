@@ -31,7 +31,7 @@ PORT=3030 TARGET_PORT=3000 DROP_SUCCESS_ONCE=true \
 node examples/write-retry/server.mjs
 ```
 
-在Chrome打开 `http://127.0.0.1:3030`。先填原文提交，首次成功响应会丢失；DBeaver运行 `database/chapter-30/inspect.sql`确认已提交，再刷新同一页签，点击“继续上次提交”，得到原ID。代理对每个键只丢第一次201，恢复过程中保持代理运行；重启代理会重置故障记录。默认不设 `DROP_SUCCESS_ONCE` 时正常转发。
+在Chrome打开 `http://127.0.0.1:3030`。先填原文提交，首次成功响应会在正文读取完成前被截断；DBeaver运行 `database/chapter-30/inspect.sql`确认已提交，再刷新同一页签，点击“继续上次提交”，得到原ID。代理先完整收完上游201，再发送201头和不完整JSON；浏览器可能已取得状态，但读取正文失败。代理对每个键只截断第一次201，恢复过程中保持代理运行；重启代理会重置故障记录。默认不设 `DROP_SUCCESS_ONCE` 时正常转发。
 
 追加操作填写原素材ID。再次提交也是新操作，会产生新键。旧操作尚待确认时不开始新操作；清除待办仅删除本地恢复依据，不会撤销已发送请求。
 
@@ -39,8 +39,42 @@ node examples/write-retry/server.mjs
 
 ## 真实会话章节
 
-第38章以后使用正式API，不运行固定身份fixture。将正式API的APP_ORIGIN设为页面源，在已登录的同源页面使用 `SESSION_MODE=true`；身份取 `/auth/me`。第40章以后再加 `CSRF_MODE=true`，写入携带当前会话CSRF与显式请求头。代理保留Cookie、Origin和预期会话，不伪造身份；真实登录需沿身份篇从同源入口完成。
+第38章以后停止固定身份fixture，使用正式API；第30章不能提前开启这些会话选项。先按第37～39章在独立VERIFY中准备密码凭据及所需Web资格，不重新初始化已有密码。Postman的Cookie jar与浏览器不同，不能用“Postman已经登录”代替页面登录。
 
-页面保存原owner、路径、键与规范化前的原Body；每次重试先确认身份，再原样发送。真实会话写入带 `X-Expected-Session`，服务端比较实际会话；Cookie在确认后被另一页签更换时拒绝。退出清理本地内容，迟到结果不能重新显示；退出请求失败明确提示尚未确认撤销。
+以下沿身份篇从 `.env.test` 读取VERIFY连接；先核对TEST_DATABASE_URL确实指向这份独立库，禁止指向日常库。API和页面都从当前章节的项目根运行，不把第30章旧dist当作身份篇正式API。
 
-`sessionStorage`不保存密码、Cookie或CSRF Token。它能跨本页签刷新，不是跨设备离线队列。源码中的PendingWrite状态机可单独测试，实际代理测试需要本机回环监听权限。
+```bash
+unset DATABASE_URL TEST_DATABASE_URL DB_QUERY_DEBUG APP_ORIGIN
+verify_url=$(node --env-file=.env.test -p 'process.env.TEST_DATABASE_URL || ""')
+if test -n "$verify_url"; then
+  DATABASE_URL="$verify_url" DB_QUERY_DEBUG=false PORT=3000 \
+  APP_ORIGIN=http://127.0.0.1:3030 npm run dev
+fi
+unset verify_url
+```
+
+第二个终端启动页面，浏览器打开 `http://127.0.0.1:3030`：
+
+```bash
+PORT=3030 TARGET_PORT=3000 SESSION_MODE=true DROP_SUCCESS_ONCE=true \
+node examples/write-retry/server.mjs
+```
+
+页面显示用户UUID、密码和登录按钮。用VERIFY已有账号登录，提交时立即清空密码框，浏览器处理HttpOnly Set-Cookie，页面随后请求 `/auth/me` 确认身份。开始登录先清除旧输入与待办，并抑制旧请求的迟到结果；密码只进入本次登录POST正文，不写storage或日志。业务正文不能指定作者。登录后的创建／追加仍先保存原owner、路径、键和原Body，再发送。
+
+第40章以后保留正式API的 `APP_ORIGIN=http://127.0.0.1:3030`，停止旧页面代理，以同端口增加CSRF模式启动：
+
+```bash
+PORT=3030 TARGET_PORT=3000 SESSION_MODE=true CSRF_MODE=true DROP_SUCCESS_ONCE=true \
+node examples/write-retry/server.mjs
+```
+
+登录POST只加JSON类型和 `X-EPP-Request: 1`，Origin由浏览器产生，不要求尚未建立会话的CSRF Token。之后业务POST先取 `/auth/csrf`，携带 `X-CSRF-Token`、`X-EPP-Request: 1`、原 `Idempotency-Key` 与原 `X-Expected-Session`。代理保留Cookie、Origin和这些头，只连接固定回环上游，不伪造身份。登录路由只在SESSION_MODE开启时转发；生产API不挂载这份实验页或故障开关。
+
+每次刷新或重试先确认身份，真实会话owner包含userId和sessionId，同用户重新登录得到新sessionId也清旧待办。`X-Expected-Session`来自原待办，服务端先认证实际Cookie再比较，不符返回401/SESSION_CHANGED，阻止另一页签换Cookie后把旧正文写入新用户。它不是CSRF替代品；来源或Token失败时不能删操作键自动改成新请求。
+
+退出先清本地内容，再请求正式 `/auth/logout`；迟到结果不能重新显示，退出请求失败会明确提示尚未确认服务端撤销。隐藏页签时隐藏正文，返回后复核身份再显示；不能瞬间知道另一页签何时换Cookie。存储读取或清除失败时保持错误，不把未删除的待办称为已删除，也不发送无法可靠保存的新操作。
+
+`sessionStorage`不保存密码、Cookie或CSRF Token；owner中的sessionId用于期望身份比较，不作为认证凭据。它能跨本页签刷新，不是跨设备离线队列。恢复过程中保持代理运行，重新启动代理会清除故障键集合。页面检查201及创建／修订的必要正文字段，创建Location另用Postman核对；代理会原样转发该头。
+
+源码中的PendingWrite状态机与代理可用 `node --test test/write-retry-browser.test.mjs` 验证；HTTP代理测试需要本机回环监听权限。真实账号资格、CSRF拒绝与数据库零写入按各章在独立VERIFY检查，不把纯页面测试当作真实会话集成验收。
