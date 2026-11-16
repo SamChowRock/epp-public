@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>继续上次提交 · EPP</title>
+<style>
+:root{font:17px/1.65 system-ui,sans-serif;color:#1c2939;background:#f1f4f7}body{max-width:820px;margin:40px auto;padding:0 24px}header{display:flex;align-items:center;justify-content:space-between}h1{font-size:30px;margin:0}small{color:#586779}section{background:white;border:1px solid #d8e1ea;border-radius:14px;padding:25px;margin:20px 0}label{display:block;margin:12px 0 5px;font-weight:600}textarea,input,select{box-sizing:border-box;width:100%;padding:10px;border:1px solid #adbbc9;border-radius:6px;font:inherit}textarea{height:110px}button{padding:10px 18px;margin:12px 8px 0 0;border:1px solid #9dabb9;border-radius:6px;background:white;font:inherit;cursor:pointer}button.primary{background:#215cc5;color:white;border-color:#215cc5}button:disabled{opacity:.5;cursor:default}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.6 ui-monospace,monospace;background:#f2f5f8;padding:16px;border-radius:6px}#status{font-weight:650}#mode{color:#755121}fieldset{border:0;padding:0;margin:0} [hidden]{display:none!important}
+</style>
+<header><div><small>EPP · 写入恢复</small><h1>继续上次提交</h1></div><button id="logout" hidden>退出登录</button></header>
+<p id="mode"></p>
+<section><form id="form"><fieldset id="editor" disabled>
+<label for="action">操作</label><select id="action"><option value="create">创建素材</option><option value="revision">追加修订</option></select>
+<div id="target-row" hidden><label for="target">素材 ID</label><input id="target" autocomplete="off" placeholder="粘贴要追加修订的素材 ID"></div>
+<label for="original">原文</label><textarea id="original" required maxlength="2000" placeholder="输入这次要提交的原文"></textarea>
+<label for="intent">中文意图（可留空）</label><textarea id="intent" maxlength="2000"></textarea>
+<button class="primary" type="submit">提交</button></fieldset></form>
+<button id="retry" disabled>继续上次提交</button><button id="clear" disabled>清除待办</button>
+<small style="display:block;margin-top:12px">清除待办只删除本页保存的记录，不能取消已经发送的请求。结果未知时，继续上次提交会使用原操作键和原参数。</small></section>
+<section aria-live="polite"><div id="status">正在确认当前身份…</div><pre id="pending" hidden></pre><pre id="result" hidden></pre></section>
+<script type="module" src="/page.mjs"></script></html>
