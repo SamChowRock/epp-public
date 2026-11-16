@@ -1,3 +1,4 @@
+import { CapturePages } from './capture-pages.js';
 import { CaptureCommands } from './capture-commands.js';
 import { DEVELOPMENT_USER_ID } from './database-config.js';
 import { APP_CONFIG } from './config.js';
@@ -24,6 +25,9 @@ import { PrismaCandidateStore } from './prisma-candidate.store.js';
   imports: [DatabaseModule],
   controllers: [CapturesController, CandidatesController, LearningController],
   providers: [
+    { provide: CapturePages,
+      useFactory: (database: DatabaseService, state: ApplicationState, config: AppConfig) => new CapturePages(database, state, config.cursorKey, DEVELOPMENT_USER_ID),
+      inject: [DatabaseService, ApplicationState, APP_CONFIG] },
     { provide: CaptureCommands,
       useFactory: (database: DatabaseService, state: ApplicationState) => new CaptureCommands(database, state, DEVELOPMENT_USER_ID),
       inject: [DatabaseService, ApplicationState] },
