@@ -35,7 +35,7 @@ export function httpBoundary(
       : ['/auth/me', '/auth/sessions', '/auth/csrf'].includes(url.pathname) ? ['GET'] : sessionDetail ? ['DELETE']
       : url.pathname === '/notifications' ? ['GET'] : notificationRead ? ['POST'] : notificationDetail ? ['DELETE']
       : url.pathname === '/captures' ? ['GET', 'POST']
-      : detail ? ['GET', 'PATCH'] : revisions || candidates ? ['GET', 'POST'] : discard ? ['POST']
+      : url.pathname === '/captures/page' ? ['GET'] : detail ? ['GET', 'PATCH'] : revisions || candidates ? ['GET', 'POST'] : discard ? ['POST']
       : learningDetail || ['/learning-records', '/star-map'].includes(url.pathname) ? ['GET'] : undefined;
     if (!allowed) throw new HttpError(404, 'Route not found', 'ROUTE_NOT_FOUND');
     if (!allowed.includes(request.method)) {
