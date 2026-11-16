@@ -277,7 +277,7 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
   for (const [pathname, path] of Object.entries(document.paths)) {
     for (const operation of [path.get, path.post, path.patch, path.delete]) {
       if (!operation?.responses) continue;
-      operation.responses['401'] ??= problem('Missing, expired or revoked session; code AUTH_REQUIRED');
+      operation.responses['401'] ??= problem('Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED');
       if (!['/auth/logout', '/auth/csrf'].includes(pathname)) {
         operation.responses['403'] = problem('Account disabled or Web access denied; code ACCOUNT_DISABLED or WEB_ACCESS_DENIED. Write requests may also reject the Origin.');
       } else if (pathname === '/auth/logout') {
