@@ -339,7 +339,7 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
         operation.responses['403'] = problem('Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED, WEB_ACCESS_DENIED, MINI_ACCESS_DENIED or SESSION_CHANNEL_DENIED');
       }
       if (RECOVERY_PATHS.includes(pathname)) operation.responses['403'] = problem('Origin or explicit request header rejected');
-      operation.responses['503'] = problem('Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.');
+      operation.responses['503'] = problem('Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.');
       if (operation.responses['429'] && !('$ref' in operation.responses['429'])) {
         operation.responses['429'].headers = { 'Retry-After': { schema: { type: 'string' }, description: 'Seconds for AUTH_RATE_LIMIT only; other limits require their own recovery.' } };
       }
