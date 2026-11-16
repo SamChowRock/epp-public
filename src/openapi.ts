@@ -41,6 +41,9 @@ const notModified: ResponseObject = {
 };
 
 export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject {
+  const idempotencyKey: ParameterObject = { name: 'Idempotency-Key', in: 'header', required: false,
+    schema: { type: 'string', pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' },
+    description: 'Save one lowercase UUID before sending. Reuse it only with the original parsed input and target. Scoped to current user and action; no automatic expiry. Matching success replays the original 201; changed input returns 409 OPERATION_CONFLICT. Missing header keeps legacy behavior.' };
   const avatarBody = { required: true, content: {
     'image/jpeg': { schema: { type: 'string', format: 'binary' } },
     'image/png': { schema: { type: 'string', format: 'binary' } },
