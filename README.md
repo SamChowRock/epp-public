@@ -56,7 +56,7 @@
 - [第 63 章　为后台操作提供可靠的管理命令](https://github.com/SamChowRock/epp-public/tree/part-08/chapter-63)
 - [第 64 章　构建与持续集成](https://github.com/SamChowRock/epp-public/tree/part-08/chapter-64)
 - [第 66 章　调试性能与资源问题](https://github.com/SamChowRock/epp-public/tree/part-08/chapter-66)
-- [第 70 章　在目标环境运行已有应用](https://github.com/SamChowRock/epp-public/tree/part-09/chapter-70)
+- [第 70 章　把应用和数据交给目标环境](https://github.com/SamChowRock/epp-public/tree/part-09/chapter-70)
 
 ## 部署、观测与维护
 
