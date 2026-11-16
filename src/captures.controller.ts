@@ -1,3 +1,5 @@
+import { CapturePages, CapturePageQuerySchema, CapturePageSchema } from './capture-pages.js';
+import type { CapturePageQuery } from './capture-pages.js';
 import { Body, Headers, Controller, Get, Param, Patch, Post, Query, Res, UseInterceptors } from '@nestjs/common';
 import type { Response } from 'express';
 import { CaptureCommands } from './capture-commands.js';
@@ -14,7 +16,13 @@ import { ResponseSchemaInterceptor } from './response-schema.interceptor.js';
 
 @Controller('captures')
 export class CapturesController {
-  constructor(private readonly captures: CapturesService, private readonly commands: CaptureCommands) {}
+  constructor(private readonly captures: CapturesService, private readonly commands: CaptureCommands, private readonly pages: CapturePages) {}
+
+  @Get('page')
+  @UseInterceptors(new ResponseSchemaInterceptor(CapturePageSchema))
+  page(@Query(new SchemaPipe(CapturePageQuerySchema)) query: CapturePageQuery) {
+    return this.pages.list(query);
+  }
 
   @Get()
   @UseInterceptors(new ResponseSchemaInterceptor(CaptureListResponseSchema))
