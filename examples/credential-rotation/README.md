@@ -1,6 +1,6 @@
 # 两个 API 实例的凭据轮换练习
 
-沿用第 74 章的平台制品、受限角色和配置。核对制品摘要后直接运行。客户端使用第 72 章交接的 HTTPS 名称、端口、可信根和原会话，保留一条旧素材 ID。已有会话过期时，在这个 HTTPS 来源重新登录一次。将练习入口的上游接到本次隔离副本；数据库使用第 74 章停机集群的独立副本，配对恢复对象桶。角色属于整个 PostgreSQL 实例。没有新迁移。
+沿用第 76 章的平台制品、受限角色和配置。核对制品摘要后直接运行。客户端使用第 72 章交接的 HTTPS 名称、端口、可信根和原会话，保留一条旧素材 ID。已有会话过期时，在这个 HTTPS 来源重新登录一次。将练习入口的上游接到本次隔离副本；数据库使用第 76 章停机集群的独立副本，配对恢复对象桶。角色属于整个 PostgreSQL 实例。没有新迁移。
 
 ### 先记下原身份和业务基线
 
@@ -102,3 +102,8 @@ next_page A candidate accepted-page.json
 - [会话观察 SQL](activity.sql)可在 DBeaver 执行。连接两个 API 的同一数据库观察账号，自动提交下刷新；查询保留了其他库的行，便于发现意外交叉使用。
 - 新通知身份刻意漏掉收件箱 INSERT。正常领取事务应整体回滚：同一 job 仍 pending，收件箱没有该 ID。核对 PG 错误及列授权后，在原管理员 psql 执行 `\i examples/credential-rotation/repair-notify.sql`，再启动同一入口消费原任务。[恢复正式通知授权](repair-notify.sql)
 - [按角色启动、只读收据与退出](../portable-release/README.md)、[邮件占用处置](../../database/chapter-45/README.md)、[清理任务单笔运行](../maintenance/README.md)都沿用原来的入口。正文 75.4 在验证新配置后禁止旧登录并观察仍活着的旧会话。留存原角色作为权限来源，撤销其登录与删除角色产生不同结果。
+
+
+容器部署沿用[第 76 章系统级目录](../container-deployment/cleanup.md) `/opt/epp-container` 与 `compose.env`。新 API、邮件、通知、清理登录须分别加入实际数据库对 `172.28.74.0/24` 的精确 HBA 许可；先核对新连接，再撤旧入口。容器不会因宿主改 env 文件自动更换已建立连接，配置切换用明确项目目录的 Compose `up -d --force-recreate` 重建对应角色。邮件先停旧消费者、核对 unknown 后再接管，保持 `restart: "no"`。API 的 CURSOR_HMAC_KEY 在并行期间须按正文验证旧 Cookie、CSRF 与游标；同库并不意味着密钥相同。
+
+清理 timer 的下一次运行读取 `secrets/cleanup.env`，无常驻容器也要更新它。保持 root:10001、0640；原子替换配置文件后重建长期容器，避免已绑定旧 inode 的容器继续读旧文件。只读收据 CLI 仍单独交付与授权，不能拿 API 镜像默认入口当成它。撤销旧登录之前，按本章活动连接查询逐个确认所有使用者，包括计时器、手动 CLI、另一台主机和旧容器。

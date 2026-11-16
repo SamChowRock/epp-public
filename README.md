@@ -1,14 +1,22 @@
 # EPP 配套实践代码
 
-第 75 章「让 API 和后台进程更换凭据与签名密钥」使用 `git switch part-10/chapter-75`。沿用第 74 章的受限身份、已验运行制品和非空副本，经第 72 章交接的 HTTPS 入口与原会话验收。
+第 77 章「让 API 和后台进程更换凭据与签名密钥」使用 `git switch part-10/chapter-77`。继承第 76 章受限原生与容器身份、计时器、已验镜像和非空副本，通过原 HTTPS 入口及会话验收。
 
-## 第七十五章　让 API 和后台进程更换凭据与签名密钥
+## 第七十七章　让 API 和后台进程更换凭据与签名密钥
 
-按[凭据轮换练习](examples/credential-rotation/README.md)准备新登录，用原 HTTPS 入口验收，分开诊断密钥不一致和旧数据库连接。
+按[凭据轮换练习](examples/credential-rotation/README.md)准备新登录，分别验证签名密钥和数据库连接，并更新下一轮会读取的清理配置。
 
-## 第七十四章　定时维护漏跑或同时启动两次以后怎么办
+## 第七十六章　定时维护漏跑或同时启动两次以后怎么办
 
-按[维护任务运行说明](examples/maintenance/README.md)核对单笔资格，将原有清理入口交给 systemd，再按对象 ID 观察漏跑、重复领取及端点恢复。
+按[维护任务运行说明](examples/maintenance/README.md)核对单笔资格与漏跑、重复领取；容器部署继续按[一次性维护容器](examples/container-deployment/cleanup.md)安装独立配置和宿主计时器。
+
+## 第七十四章　用 Compose 接手应用部署
+
+按[应用编排与已有数据通路](examples/container-deployment/compose.md)从空部署目录配置专用网络、独立身份、公开 CA、日志与停止预算，再用旧账号、收据和头像验收。第 75 章观测沿用本阶段。
+
+## 第七十三章　把应用交付为可验证的容器镜像
+
+按[镜像构建与交接说明](examples/container-deployment/README.md)构建同平台镜像，验证 Node、Prisma 客户端、argon2、sharp 和私有工作目录。第 74 章再接应用编排和既有数据通路。
 
 ## 第七十二章　让客户端通过可信入口访问服务
 

@@ -1,4 +1,4 @@
-# 第 74 章　运行一批头像清理，再按 ID 交接
+# 第 76 章　运行一批头像清理，再按 ID 交接
 
 保留[第 72 章建立的 HTTPS 入口](../tls-trust/README.md)及其对应会话，沿用[跨环境部署交接记录](../portable-release/README.md)和[第 71 章的服务身份](../service-roles/README.md)。在本轮恢复的独立副本中保留原账号、收据及配对桶。运行角色、计时器和逐项日志是本次新增内容，原有[头像清理命令](../../database/chapter-51/clean.mjs)及可选的单笔 ID 继续使用。以下文件的部署目标是 Debian 13 的系统级 systemd。
 
@@ -9,3 +9,5 @@
 5. 核对[一次性服务](epp-avatar-clean.service)中的路径、用户、预期目标，和[每分钟计时器](epp-avatar-clean.timer)一起装入 /etc/systemd/system。运行 `sudo systemd-analyze verify /etc/systemd/system/epp-avatar-clean.{timer,service}`、`sudo systemctl daemon-reload`。手动 `sudo systemctl start epp-avatar-clean.service` 看逐项结果，再 `sudo systemctl start epp-avatar-clean.timer`。`systemctl list-timers --all epp-avatar-clean.timer` 显示计划与上次触发，`sudo journalctl -u epp-avatar-clean.service --since '10 minutes ago' -o short-iso` 显示实际执行。一批最多 20 项，`TimeoutStartSec=120s` 给整次执行设上限。
 6. 等有过一次计划触发后停 timer，等 service 结束。再产生一笔旧版，跨过原来的 NEXT；用[到期量与最老时刻](backlog.sql)留基线。重新 start timer，按 ID 查补跑及下一轮。做并发对照时再次停 timer，让一个带指定 ID 的前台进程在 dist/src/avatar-cleanup.js 的 `await objects.remove(id)` 暂停。第二个进程分别检查这笔、另一笔到期项与当前项；自然等满第一笔的五分钟，再处理它并恢复前一个进程。
 7. 在新的旧版到期后单独断开清理端到本轮对象端点的连接，手动 start service。用失败 ID 对照 journal 的错误、退出状态与库内下次时刻。恢复原端点后在期限前、期限后各观察一次，最终用同一 ID 核对 deleted-or-absent、旧键不可见及当前键可读。做完停 timer 并等 service 退出。若已启用开机启动，使用 `sudo systemctl disable --now epp-avatar-clean.timer`。
+
+容器路线见[一次性维护容器](../container-deployment/cleanup.md)，它复用本章实际清理脚本、授权和单笔核对，独立于前述原生托管选择。
