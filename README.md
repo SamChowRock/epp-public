@@ -1,5 +1,7 @@
 # EPP 配套实践代码
 
+已继承[第30章的创建与修订重试](examples/write-retry/README.md)：两个POST可带Idempotency-Key，省略时保留原行为。
+
 第 56 章「用 SSE 传递实时更新」使用 `git switch part-06/chapter-56`。迁移目录和请求集合请按下面的实际文件名打开。
 
 ## 第五十六章　用 SSE 传递实时更新
