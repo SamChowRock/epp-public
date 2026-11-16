@@ -53,6 +53,14 @@ export class DatabaseService {
         || constraint.condeferrable) throw Object.assign(new Error('Acceptance constraint is missing'), {
           code: 'ACCEPTANCE_CONSTRAINT_MISSING',
         });
+      await this.client.captureWriteReceipt.findMany({ take: 1 });
+      const writeKeys = await this.client.$queryRaw<{ definition: string; condeferrable: boolean }[]>`
+        SELECT pg_get_constraintdef(oid) AS definition, condeferrable
+        FROM pg_constraint WHERE conrelid = 'public.capture_write_receipts'::regclass
+          AND conname = 'capture_write_receipts_pkey' AND contype = 'p' AND convalidated
+      `;
+      if (writeKeys.length !== 1 || writeKeys[0]?.definition !== 'PRIMARY KEY (user_id, action, operation_id)'
+        || writeKeys[0].condeferrable) throw new StorageFailureError();
       await this.client.commandReceipt.findMany({ take: 1 });
       const receiptKeys = await this.client.$queryRaw<{ definition: string; condeferrable: boolean }[]>`
         SELECT pg_get_constraintdef(oid) AS definition, condeferrable

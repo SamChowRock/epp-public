@@ -36,11 +36,14 @@ const notModified: ResponseObject = {
 };
 
 export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject {
+  const idempotencyKey: ParameterObject = { name: 'Idempotency-Key', in: 'header', required: false,
+    schema: { type: 'string', pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' },
+    description: 'Save one lowercase UUID before sending. Reuse it only with the original parsed input and target. Scoped to current user and action; no automatic expiry. Matching success replays the original 201; changed input returns 409 OPERATION_CONFLICT. Missing header keeps legacy behavior.' };
   const document: OpenAPIObject = {
     openapi: '3.0.3',
     info: {
       title: 'EPP Capture API', version: '0.13.0',
-      description: 'PostgreSQL records belonging to the authenticated session user. Errors use Problem Details. Capture creation is not idempotent; candidate acceptance supports operation identity.',
+      description: 'PostgreSQL records belonging to the authenticated session user. Errors use Problem Details. Capture creation and revision POST optionally accept Idempotency-Key; candidate acceptance supports operation identity.',
     },
     security: [{ sessionCookie: [] }],
     paths: {
@@ -161,13 +164,16 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
         },
         post: {
           operationId: 'createCapture', summary: 'Create a capture',
-          description: 'originalText and optional chineseIntent are used. Missing or null intent is stored as null. Extra properties, including id and createdAt, are ignored. Body limit: 16 KiB of bytes. Requires valid UTF-8 JSON without a BOM. URL query limit: 1000 ampersand-separated parts.',
+          parameters: [idempotencyKey],
+          description: 'originalText and optional chineseIntent are used. Missing or null intent is stored as null. Extra properties, including id and createdAt, are ignored. With Idempotency-Key, retries return the original capture and Location even after later edits; current ownership is rechecked. Without a key, each request creates a capture. Body limit: 16 KiB of bytes. Requires valid UTF-8 JSON without a BOM. URL query limit: 1000 ampersand-separated parts.',
           requestBody: { required: true, content: { 'application/json': {
             schema: { $ref: '#/components/schemas/CreateCapture' },
             example: { originalText: 'I want to explain this clearly.' },
           } } },
           responses: {
-            '201': { ...jsonResponse('Capture', 'Saved record'), headers: {
+            '409': problem('Operation identity reused with changed content; code OPERATION_CONFLICT'),
+            '404': problem('Previously created capture is no longer owned; code CAPTURE_NOT_FOUND'),
+            '201': { ...jsonResponse('Capture', 'Saved or replayed record'), headers: {
               Location: { description: 'Relative URL of the new record', schema: { type: 'string' } },
             } },
             '400': problem('Malformed UTF-8/JSON or invalid input/query; code INVALID_JSON, VALIDATION_ERROR or QUERY_TOO_LARGE'),
@@ -194,13 +200,13 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
         },
         post: {
           operationId: 'appendCaptureRevision', summary: 'Append a complete content snapshot',
-          description: 'Requires originalText and chineseIntent (null clears it); inputSource defaults to manual, chunks defaults to null. Unknown properties rejected. Repeating creates a new revision; no idempotency or stale editor detection. Body limit 16 KiB; valid UTF-8 JSON without BOM.',
-          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          description: 'Requires originalText and chineseIntent (null clears it); inputSource defaults to manual, chunks defaults to null. Unknown properties rejected. With Idempotency-Key, matching retries replay the original revision, including its ID and number; current ownership is rechecked. Without a key, repeating creates a new revision. Neither mode detects stale editors. Body limit 16 KiB; valid UTF-8 JSON without BOM.',
+          parameters: [idempotencyKey, { name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
           requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/AppendRevision' } } } },
           responses: {
             '201': jsonResponse('Revision', 'The snapshot committed by this request; later writers may already exist'),
             '400': problem('Invalid input'), '404': problem('Capture not found'),
-            '409': problem('Revision number taken; code REVISION_CONFLICT. Read latest content before deciding to submit again.'),
+            '409': problem('Changed input with the same key: OPERATION_CONFLICT; revision number taken: REVISION_CONFLICT. Read latest content before deciding to submit again.'),
             '413': problem('Body exceeds 16 KiB'), '415': problem('Expected application/json'), '500': problem('Unexpected failure'),
           },
         },
@@ -269,7 +275,7 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
       if (operation === path.post || operation === path.patch || operation === path.delete) {
         operation.responses['403'] = problem('Request origin is not allowed; code ORIGIN_REJECTED');
       }
-      operation.responses['503'] = problem('Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots.');
+      operation.responses['503'] = problem('Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. For capture creation and revision POST carrying Idempotency-Key, keep the same key and original input after bounded backoff; never replace the key for an unknown outcome.');
       for (const response of Object.values(operation.responses)) {
         if (!response || '$ref' in response) continue;
         response.headers = { ...response.headers, 'Cache-Control': { schema: { type: 'string' }, description: 'private, no-store' }, 'X-Request-Id': {
