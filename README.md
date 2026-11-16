@@ -1,5 +1,7 @@
 # EPP 配套实践代码
 
+已继承[第30章的创建与修订重试](examples/write-retry/README.md)：两个POST可带Idempotency-Key，省略时保留原行为。
+
 第 71 章「让 API 和后台进程以各自身份持续运行」使用 `git switch part-09/chapter-71`。保留第 70 章前台运行的已验程序供比对，以 part-09/chapter-70 为起点构建本章分权版本。先升级迁移和权限，再用旧账号与原收据核对新部署。
 
 ## 第七十一章　让 API 和后台进程以各自身份持续运行
