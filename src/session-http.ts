@@ -59,6 +59,10 @@ export function sessionBoundary(service: SessionService, config: AppConfig): Req
       if (mini && !/^Bearer [A-Za-z0-9_-]{43}$/.test(authorization)) throw new HttpError(401, 'Bearer token is invalid', 'AUTH_REQUIRED');
       const token = mini ? authorization.slice(7) : cookie;
       const identity = token === undefined ? undefined : await service.authenticate(token, mini ? 'mini' : 'web');
+      if (identity && path !== '/auth/logout' && request.headers['x-expected-session'] !== undefined
+        && request.headers['x-expected-session'] !== identity.sessionId) {
+        throw new HttpError(401, 'Session changed; confirm the current identity before retrying', 'SESSION_CHANGED');
+      }
       if (identity) {
         if (mini && ['/auth/csrf', '/auth/password'].includes(path ?? '')) throw new HttpError(403, 'This operation requires a Web session', 'SESSION_CHANNEL_DENIED');
         if (mini) {
