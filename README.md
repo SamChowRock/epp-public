@@ -34,7 +34,7 @@
 - [第 31 章　一致性整合：完成可靠的候选采纳](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-31)
 - [第 32 章　构建可供客户端使用的查询接口](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-32)
 - [第 33 章　分页与时间：下一页从哪里继续](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-33)
-- [第 34 章　已有素材列表怎样从全量读取迁到分页](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-34)
+- 第 34 章　已有素材列表怎样从全量读取迁到分页：`part-04/chapter-34`
 - [第 35 章　索引与执行计划：查询为什么变慢](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-35)
 - [第 36 章　第四篇回顾：让采纳经得起竞争与重试](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-36)
 - [第 37 章　安全地保存密码与秘密](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-37)
@@ -61,7 +61,7 @@
 - [第 66 章　调试性能与资源问题](https://github.com/SamChowRock/epp-public/tree/part-08/chapter-66)
 - [第 70 章　把应用和数据交给目标环境](https://github.com/SamChowRock/epp-public/tree/part-09/chapter-70)
 
-第 34 章从 `part-04/chapter-33` 接续，完成代码在 `part-04/chapter-34`：保留旧素材全量列表，新增独立签名游标分页，附 105 条隔离合成素材 SQL、手动续页集合与浏览器迁移练习页。当前已本地完成，尚未推送；远端链接待本轮发布后可用。后续已有实现分支的传播与验证状态见书稿主线记录。
+第 34 章从 `part-04/chapter-33` 接续，完成代码在 `part-04/chapter-34`：保留旧素材全量列表，新增独立签名游标分页，附 105 条隔离合成素材 SQL、手动续页集合与浏览器迁移练习页。后续章节继续保留两种读取入口。
 
 ## 部署、观测与维护
 
