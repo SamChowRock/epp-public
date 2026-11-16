@@ -154,3 +154,16 @@ export async function sendPendingWrite(record, { request, sessionMode, csrfMode,
   if (!validSuccess(result, record.path)) throw Error('Invalid success response');
   return result;
 }
+
+export async function loginSession(model, { userId, password, sessionMode, csrfMode, request }) {
+  if (!sessionMode) throw Error('Login is unavailable in fixed-identity practice');
+  // Clear before issuing login, including the callbacks of an earlier write.
+  if (!model.clearIdentity()) throw Error('Cannot clear the previous operation');
+  const headers = { 'Content-Type': 'application/json' };
+  if (csrfMode) headers['X-EPP-Request'] = '1';
+  // Login has no existing session to bind and requires no CSRF token. The
+  // browser supplies Origin and handles HttpOnly Set-Cookie without JS access.
+  await request('/auth/login', { method: 'POST', headers, expectedStatus: 200,
+    body: JSON.stringify({ userId, password, label: 'Write retry practice' }) });
+  await model.initialize();
+}
