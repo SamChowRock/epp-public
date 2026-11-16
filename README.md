@@ -2,11 +2,25 @@
 
 已继承[第30章的创建与修订重试](examples/write-retry/README.md)：两个POST可带Idempotency-Key，省略时保留原行为。
 
-第 33 章「分页与时间：下一页从哪里继续」使用 `git switch part-04/chapter-33`。迁移目录和请求集合请按下面的实际文件名打开。
+第 34 章「已有素材列表怎样从全量读取迁到分页」的跟写起点是 `part-04/chapter-33`，完成代码为当前 `part-04/chapter-34`。需要对照完整实现时执行 `git switch part-04/chapter-34`；迁移、SQL 和请求集合按下面的实际文件名打开。
+
+## 第三十四章 素材列表分页迁移
+
+本章保留旧 `GET /captures` 的全量默认语义，新增 `GET /captures/page`，默认每页 20 条、最大 100 条。两者都按素材创建时间和 ID 升序，先取最新修订、筛选再限制条数。新入口只接受 q、limit、cursor；q 保留空白、区分大小写，末页明确返回 `nextCursor: null`。新素材游标独立绑定用户、排序、实际 limit 和 q，整轮 30 分钟有效；每次仍核对归属，读取实时数据，不提供快照。本章没有新迁移、依赖或索引；第 33 章的学习记录／星图接口和原游标格式继续保持。
+
+先按[第 33 章已有数据库准备说明](database/chapter-29/README.md)核对迁移及固定开发用户，沿用 DATABASE_URL 与 CURSOR_HMAC_KEY。旧库升级本章不新增迁移；空库仍需完整应用已有迁移。保持同一密钥可在重启后续页，开发／测试未设置时的进程随机密钥会使旧游标失效，生产必须显式配置。
+
+在隔离练习库的同一个 SQL 编辑器连接中，依次执行[本轮合成数据](database/chapter-34/01-seed.sql)、[有序 ID 与修订观察](database/chapter-34/02-observe.sql)、[实时成员变化](database/chapter-34/03-live-membership.sql)和[本轮清理](database/chapter-34/04-cleanup.sql)。01 新建 105 条素材，其中 101 条最新修订命中本轮 q，另有边界前后非匹配和仅历史修订命中的对照；每轮新 UUID 标记及临时 ID 映射只修改本轮目标。02 先比较稳定数据，接受第一页后才执行 03；04 只清理本轮映射。临时表依赖同一连接，不能在不同 SQL 会话之间拆开；不要在生产库运行，也不要对旧素材批量改正文来造样本。
+
+导入[第 34 章素材分页请求集合](requests/chapter-34-capture-pages.postman_collection.json)，将 01 输出的本轮 q 手动填入集合变量。先核对旧全量 101 条和显式 limit=100 的 100 条，再读新分页；每次完整接受 200 响应后才手动保存 nextCursor，失败保留原请求游标，末页 null 时停止。集合不自动推进游标。
+
+[浏览器迁移练习页](examples/paging-upgrade/README.md)逐项比较两套有序 ID，展示已接受页、累计条数和下一页状态。按说明启动回环代理即可使用；[两个默认关闭的隔离模拟](examples/paging-upgrade/README.md#两个独立且默认关闭的隔离模拟)分别复现旧列表 100 条截断和一次续页 503，正式 API 的旧默认行为保持完整。第 34 章仍是固定身份；[后续真实会话模式](examples/paging-upgrade/README.md#后续真实会话模式)用于第 38 章起的实际 Cookie 会话，第 40 章起同时启用 CSRF_MODE，并配置准确的 APP_ORIGIN。
+
+以下保留既有章节的说明，按其对应快照理解。
 
 ## 第三十三章 分页与时间
 
-当前分支 `part-04/chapter-33` 从第三十二章继续，为学习记录和星图提供显式Offset／Cursor分页与UTC半开时间区间。旧请求不传mode时保持原结构；模型、迁移与依赖不变。操作与密钥配置见[本章说明](database/chapter-29/README.md)，导入[请求集合](requests/chapter-29.postman_collection.json)。
+`part-04/chapter-33` 快照从第三十二章继续，为学习记录和星图提供显式Offset／Cursor分页与UTC半开时间区间。旧请求不传mode时保持原结构；模型、迁移与依赖不变。操作与密钥配置见[本章说明](database/chapter-29/README.md)，导入[请求集合](requests/chapter-29.postman_collection.json)。
 
 游标绑定资源、用户、排序、limit和筛选，整轮有效期30分钟；分页读取实时数据，不承诺固定快照。生产启动新增必填CURSOR_HMAC_KEY；开发／测试未设置时使用进程内随机值，重建应用后旧游标失效。此前章节说明只描述对应版本。
 
@@ -24,7 +38,7 @@ nvm use
 node --version
 npm ci
 npm run check
-# 先按第 33 章说明核对已有迁移，并在 .env 配置运行连接，再启动。
+# 先按第 34 章说明核对已有迁移，并在 .env 配置运行连接，再启动。
 npm run dev
 ```
 
