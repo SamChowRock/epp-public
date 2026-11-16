@@ -1,5 +1,6 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, Res, UseInterceptors } from '@nestjs/common';
+import { Body, Headers, Controller, Get, Param, Patch, Post, Query, Res, UseInterceptors } from '@nestjs/common';
 import type { Response } from 'express';
+import { CaptureCommands } from './capture-commands.js';
 import { CapturesService } from './captures.service.js';
 import type { CaptureListOptions } from './capture.js';
 import { CaptureListQueryPipe } from './capture-query.js';
@@ -13,7 +14,7 @@ import { ResponseSchemaInterceptor } from './response-schema.interceptor.js';
 
 @Controller('captures')
 export class CapturesController {
-  constructor(private readonly captures: CapturesService) {}
+  constructor(private readonly captures: CapturesService, private readonly commands: CaptureCommands) {}
 
   @Get()
   @UseInterceptors(new ResponseSchemaInterceptor(CaptureListResponseSchema))
@@ -26,8 +27,10 @@ export class CapturesController {
   async create(
     @Body(new SchemaPipe(CreateCaptureSchema)) input: CreateCaptureInput,
     @Res({ passthrough: true }) response: Response,
+    @Headers('idempotency-key') key: string | undefined,
   ) {
-    const capture = await this.captures.create(input.originalText, input.chineseIntent);
+    const capture = key === undefined ? await this.captures.create(input.originalText, input.chineseIntent)
+      : await this.commands.create(key, input);
     response.setHeader('Location', `/captures/${capture.id}`);
     return capture;
   }
@@ -46,7 +49,8 @@ export class CapturesController {
   appendRevision(
     @Param('id') id: string,
     @Body(new SchemaPipe(AppendRevisionSchema)) input: AppendRevisionInput,
-  ) { return this.captures.appendRevision(id, input); }
+    @Headers('idempotency-key') key: string | undefined,
+  ) { return key === undefined ? this.captures.appendRevision(id, input) : this.commands.appendRevision(id, key, input); }
 
   @Get(':id/revisions')
   @UseInterceptors(new ResponseSchemaInterceptor(RevisionPageSchema))

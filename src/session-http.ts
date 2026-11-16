@@ -62,6 +62,10 @@ export function sessionBoundary(service: SessionService, config: AppConfig): Req
       if (path === '/auth/login') return;
       const token = readCookie(request.headers.cookie, sessionCookieName(config));
       const identity = token === undefined ? undefined : await service.authenticate(token);
+      if (identity && path !== '/auth/logout' && request.headers['x-expected-session'] !== undefined
+        && request.headers['x-expected-session'] !== identity.sessionId) {
+        throw new HttpError(401, 'Session changed; confirm the current identity before retrying', 'SESSION_CHANGED');
+      }
       if (identity) {
         if (path !== '/auth/logout') requireWebAccess(identity);
         request.auth = Object.freeze({ userId: identity.userId, sessionId: identity.sessionId });
