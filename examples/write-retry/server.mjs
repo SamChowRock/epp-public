@@ -22,7 +22,7 @@ export function createPracticeServer({ targetPort, sessionMode = false, csrfMode
       response.end(JSON.stringify({ sessionMode, csrfMode, dropSuccessOnce })); return;
     }
     const path = request.url ?? '';
-    const permitted = (request.method === 'POST' && (validPath(path) || path === '/auth/logout'))
+    const permitted = (request.method === 'POST' && (validPath(path) || path === '/auth/logout' || (sessionMode && path === '/auth/login')))
       || (request.method === 'GET' && (/^\/captures(?:\/[0-9a-f-]{36}(?:\/revisions)?)?(?:\?[^#]*)?$/.test(path)
         || ['/lab/identity', '/auth/me', '/auth/csrf'].includes(path)));
     if (!permitted) { response.writeHead(404); response.end(); return; }
