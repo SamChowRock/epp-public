@@ -1,5 +1,7 @@
 # EPP 配套实践代码
 
+已继承[第30章的创建与修订重试](examples/write-retry/README.md)：两个POST可带Idempotency-Key，省略时保留原行为。
+
 第 74 章「用 Compose 接手应用部署」使用 `git switch part-09/chapter-74`。继承第 73 章镜像，接管 API、邮件和通知三个角色，继续使用已有原生数据库、对象存储和 HTTPS 入口。
 
 ## 第七十四章　用 Compose 接手应用部署

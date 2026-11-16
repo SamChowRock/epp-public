@@ -16,6 +16,12 @@ GRANT INSERT ON public.sessions, public.password_credentials, public.captures,
   public.capture_revisions, public.candidates, public.expressions, public.expression_forms,
   public.learning_records, public.command_receipts, public.verified_emails,
   public.verification_intents, public.nickname_changes, public.avatar_writes TO epp_api;
+-- Durable write receipts are append-only for the API; row locking also needs one UPDATE column.
+GRANT SELECT (user_id,action,operation_id,capture_id,fingerprint,status_code,response,location,recorded_at)
+  ON public.capture_write_receipts TO epp_api;
+GRANT INSERT (user_id,action,operation_id,capture_id,fingerprint,status_code,response,location,recorded_at)
+  ON public.capture_write_receipts TO epp_api;
+GRANT UPDATE (chinese_intent) ON public.captures TO epp_api;
 GRANT INSERT (id,intent_id,generation,purpose,recipient) ON public.verification_outbox TO epp_api;
 GRANT INSERT (id,user_id,kind) ON public.notification_jobs TO epp_api;
 GRANT INSERT (id) ON public.users TO epp_api;
