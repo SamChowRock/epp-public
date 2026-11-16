@@ -6,6 +6,12 @@
 </style>
 <header><div><small>EPP · 写入恢复</small><h1>继续上次提交</h1></div><button id="logout" hidden>退出登录</button></header>
 <p id="mode"></p>
+<section id="login-region" hidden><form id="login-form"><fieldset id="login-fields">
+<label for="login-user">用户 UUID</label><input id="login-user" autocomplete="username" required pattern="[0-9a-fA-F-]{36}" placeholder="输入已有练习用户的 UUID">
+<label for="login-password">密码</label><input id="login-password" type="password" autocomplete="current-password" required>
+<button type="submit" class="primary">登录</button>
+<small style="display:block;margin-top:12px">使用已有账号登录。开始登录会清除当前页面的输入与待办；密码仅用于本次登录请求。</small>
+</fieldset></form></section>
 <section><form id="form"><fieldset id="editor" disabled>
 <label for="action">操作</label><select id="action"><option value="create">创建素材</option><option value="revision">追加修订</option></select>
 <div id="target-row" hidden><label for="target">素材 ID</label><input id="target" autocomplete="off" placeholder="粘贴要追加修订的素材 ID"></div>
