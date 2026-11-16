@@ -158,6 +158,17 @@ erDiagram
     String db_actor
     DateTime recorded_at
   }
+  capture_write_receipts {
+    String user_id PK,FK
+    String action PK
+    String operation_id PK
+    String capture_id FK
+    String fingerprint
+    Int status_code
+    String location "nullable"
+    Json response
+    DateTime recorded_at
+  }
   users |o..o| avatar_writes : "avatar_id, id to id, user_id"
   sessions }o..|| users : "user_id to id"
   password_credentials |o--|| users : "user_id to id"
@@ -178,4 +189,6 @@ erDiagram
   nickname_changes }o..|| users : "user_id to id"
   avatar_writes }o..|| users : "user_id to id"
   web_access_receipts }o--|| users : "user_id to id"
+  capture_write_receipts }o--|| users : "user_id to id"
+  capture_write_receipts }o..|| captures : "capture_id to id"
 ```
