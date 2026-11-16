@@ -16,6 +16,7 @@
 - [第 13 章　请求经过 Nest 时发生了什么](https://github.com/SamChowRock/epp-public/tree/part-02/chapter-13)
 - [第 14 章　配置与生命周期：让应用可靠地启动和退出](https://github.com/SamChowRock/epp-public/tree/part-02/chapter-14)
 - [第 15 章　第二篇回顾：沿一次请求解释职责与生命周期](https://github.com/SamChowRock/epp-public/tree/part-02/chapter-15)
+- [第 16 章　两次都写成功，JSON 文件里为什么少了一条素材](https://github.com/SamChowRock/epp-public/tree/part-03/chapter-16)
 - [第 17 章　PostgreSQL 运行环境：安装、连接与实例管理](https://github.com/SamChowRock/epp-public/tree/part-03/chapter-17)
 - [第 18 章　关系建模：为已有记录设计第一组表](https://github.com/SamChowRock/epp-public/tree/part-03/chapter-18)
 - [第 19 章　SQL：查询、筛选和修改自己的记录](https://github.com/SamChowRock/epp-public/tree/part-03/chapter-19)
