@@ -1,5 +1,7 @@
 # EPP 配套实践代码
 
+已继承[第30章的创建与修订重试](examples/write-retry/README.md)：两个POST可带Idempotency-Key，省略时保留原行为。
+
 第 49 章「Transactional Outbox：业务和消息如何一起提交」使用 `git switch part-06/chapter-49`。迁移目录和请求集合请按下面的实际文件名打开。
 
 ## 第四十九章　Transactional Outbox
