@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>素材列表分页迁移练习</title>
+<style>
+body{font:17px/1.65 system-ui,sans-serif;color:#1d2939;background:#f3f6fa;margin:0}main{max-width:1050px;margin:36px auto;padding:28px;background:white;border-radius:14px}h1{font-size:29px;margin-top:0}h2{font-size:21px}button,input{font:inherit;padding:8px 12px;margin:5px 6px 5px 0}button{cursor:pointer;background:#164b8c;color:white;border:0;border-radius:5px}button:disabled{background:#788697;cursor:default}input{border:1px solid #8795a5;max-width:90%}section{padding:16px;border:1px solid #cad3df;border-radius:8px;margin:18px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f1f4f8;padding:12px;font:14px/1.6 ui-monospace,monospace}#simulation{border-left:5px solid #b7790b;padding:12px;background:#fff7e0}#status{font-weight:600}fieldset{border:0;padding:0}[hidden]{display:none!important}.muted{color:#516172}label{display:inline-block}
+</style><main>
+<h1>素材列表：从全量读取迁到分页</h1>
+<p>先读旧列表，再逐页读取同一筛选范围，最后比较两套有序 ID。翻页读取实时数据；比较期间请保持数据稳定。</p>
+<p id="simulation" role="note"></p><p id="identity"></p><p id="status" role="status" aria-live="polite">正在确认身份…</p>
+<section id="login-region" hidden><h2>本页真实会话登录</h2><form id="login-form"><fieldset id="login-fields"><label>用户 UUID <input id="login-user" required autocomplete="username"></label><label>密码 <input id="login-password" type="password" required autocomplete="off"></label><button>登录</button></fieldset></form><button id="logout" type="button">退出会话</button><p class="muted">密码提交后立即清空。本页不保存密码、Cookie 或 CSRF。</p></section>
+<div id="work" hidden><label>字面子串 q（保留空白） <input id="filter" autocomplete="off" placeholder="输入本轮种子标记"></label><p class="muted">每页 20 条。改变筛选会清空两套结果；失败保留当前请求游标，不会自动从第一页追加。</p>
+<section><h2>1 · 旧客户端 GET /captures</h2><button id="legacy" type="button">读取旧全量列表</button><p id="legacy-count">尚未读取</p><details><summary>旧列表有序 ID</summary><pre id="legacy-ids"></pre></details></section>
+<section><h2>2 · 新客户端 GET /captures/page</h2><button id="next" type="button">读取第一页</button><button id="restart" type="button">从第一页重新开始</button><p id="progress">尚未接受页面</p><p id="cursor-state"></p><div id="pages"></div><details><summary>累计已接受的有序 ID</summary><pre id="accepted-ids"></pre></details></section>
+<section><h2>3 · 比较两套有序 ID</h2><p id="comparison" aria-live="polite">两套读取都完成后比较。</p></section></div>
+<p class="muted">仅用于本机开发练习。旧入口仍保留完整语义；模拟截断和一次续页故障仅发生在隔离代理。</p>
+</main><script type="module" src="/page.mjs"></script></html>
