@@ -28,7 +28,7 @@ test('capture pages preserve old all-results semantics, latest matching, ties an
     return { status: r.status, allow: r.headers.get('allow'), body: await r.json() };
   };
   assert.equal((await req('/captures/page')).status, 200);
-  await db.user.create({ data: { id: foreign } });
+  await db.user.create({ data: { id: foreign, webEnabled: true } });
   async function seed(text, userId = DEVELOPMENT_USER_ID) {
     const id = randomUUID(); ids.push(id);
     await db.capture.create({ data: { id, userId, originalText: 'initial preserved', createdAt: new Date('2026-01-01T00:00:00.000Z'),
@@ -98,6 +98,8 @@ test('capture pages preserve old all-results semantics, latest matching, ties an
   const foreignReplay = await foreignFetch(base + root + '&cursor=' + first.nextCursor);
   assert.equal(foreignReplay.status, 400); assert.equal((await foreignReplay.json()).code, 'INVALID_CURSOR');
   assert.equal((await globalThis.fetch(base + '/captures/page')).status, 401);
+  await db.user.update({ where: { id: foreign }, data: { webEnabled: false } });
+  assert.equal((await foreignFetch(base + '/captures/page')).status, 403);
   assert.equal((await req('/captures/page', 'POST')).status, 405);
   assert.equal((await req('/captures/page', 'PATCH')).allow, 'GET');
   assert.equal((await req('/captures/%70age')).status, 404);
