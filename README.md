@@ -60,12 +60,14 @@
 
 ## 部署、观测与维护
 
-第 70 章沿用第 69 章已验产物，在目标平台接通程序与数据。第 71 章建立服务身份与托管，第 72 章完成 HTTPS 入口和客户端交付。
+第 70 章沿用第 69 章已验产物，在目标平台接通程序与数据。第 71 章建立服务身份与原生托管，第 72 章完成 HTTPS 入口和客户端交付；第 73、74 章再把同一应用交给镜像与 Compose，第 75 章接续观测。原生服务与容器部署的维护、轮换均继续保留。
 
 | 章 | 本章交付什么 | 配套入口 |
 | --- | --- | --- |
 | 70 | 目标环境、运行目录与前台启动 | `git switch part-09/chapter-70` |
 | 71 | 运行身份、配置与进程托管 | `git switch part-09/chapter-71` |
-| 72、73 | HTTPS、同源页面与交付；73观测为提要 | `git switch part-09/chapter-72` |
-| 74 | 定时维护 | `git switch part-10/chapter-74` |
-| 75 | 凭据轮换 | `git switch part-10/chapter-75` |
+| 72 | HTTPS、同源页面与客户端交付 | `git switch part-09/chapter-72` |
+| 73 | 可验证的 Linux 应用镜像 | `git switch part-09/chapter-73` |
+| 74、75 | Compose 应用编排、既有数据通路与运行观测 | `git switch part-09/chapter-74` |
+| 76 | 原生与容器定时维护 | `git switch part-10/chapter-76` |
+| 77 | 原生与容器凭据轮换 | `git switch part-10/chapter-77` |
