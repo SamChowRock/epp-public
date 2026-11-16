@@ -11,6 +11,10 @@
 
 本章分支实现公开注册。按[本章说明](database/chapter-36/README.md)升级非空VERIFY，保留旧用户与密码；用[请求集合](requests/chapter-36.postman_collection.json)和本地Mailpit走完注册、资格检查与邮箱登录。新增Nodemailer 10.3.1、邮箱与意图两表及凭据版本。两个匿名注册动作仍有来源／固定头／JSON／限流保护；旧ID登录保留，已验证邮箱也可登录。发送同步等待，202不保证送达，第六篇继续可靠投递。
 
+## 第四十一章 两个API实例共用登录额度
+
+按[本章数据库与故障恢复说明](database/chapter-41-shared-auth-limit/README.md)迁移独立VERIFY，再启动两个正式API进程。用[观察页](examples/shared-auth-limit/README.md)或[本章集合](requests/chapter-41-shared-auth-limit.postman_collection.json)交替请求，同一来源合计十次/60秒，重启保持窗口。表不可用时密码入口503/AUTH_RATE_UNAVAILABLE，普通会话读取不因单表撤权失效。本机两份密码计算占位仍保留。后文第40章说明描述旧版本。
+
 ## 第四十章 保护浏览器入口
 
 分支 `part-05/chapter-40` 从第39章继续，无新增迁移或依赖。按[本章实验](examples/browser-boundary/README.md)使用独立VERIFY与真实浏览器，观察同源CSRF拒绝、同站跨源Cookie、预检和响应不可读。所有写请求新增固定头，已有会话写请求还需Token；[本章集合](requests/chapter-35.postman_collection.json)先登录再取Token。代理默认不可信，限流仍为有界单进程实现，生产交付不包含实验页面。
