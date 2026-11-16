@@ -92,7 +92,7 @@ test('capture pages preserve old all-results semantics, latest matching, ties an
   assert.equal(liveSeen.includes(before), false); assert.equal(liveSeen.includes(after), true);
   assert.equal((await req('/captures?' + new URLSearchParams({ q: marker }))).body.items.length, 103);
 
-  const foreignFetch = await sessionFetch(t, app, foreign);
+  const foreignFetch = await sessionFetch({ after() {} }, app, foreign);
   const foreignPage = await foreignFetch(base + root); assert.equal(foreignPage.status, 200);
   assert.equal((await foreignPage.json()).items.length, 1);
   const foreignReplay = await foreignFetch(base + root + '&cursor=' + first.nextCursor);
