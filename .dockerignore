@@ -1,0 +1,21 @@
+# Only the following source/build inputs may enter the build context.
+**
+!Dockerfile
+!.dockerignore
+!package.json
+!package-lock.json
+!.npmrc
+!prisma.config.ts
+!tsconfig.json
+!tsconfig.build.json
+!prisma/
+!prisma/**
+!scripts/
+!scripts/**
+!src/
+!src/**
+!config/
+!config/service.json
+# Generated clients are recreated on the target platform by prebuild.
+src/generated/
+src/generated/**

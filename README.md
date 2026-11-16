@@ -1,6 +1,10 @@
 # EPP 配套实践代码
 
-第 72 章「让客户端通过可信入口访问服务」使用 `git switch part-09/chapter-72`。沿用第 71 章的 API 和迁移，接入 HTTPS 入口与同源交付页。
+第 73 章「把应用交付为可验证的容器镜像」使用 `git switch part-09/chapter-73`。从第 72 章继续，新增 Linux 镜像构建与无数据库检查，应用和迁移保持不变。
+
+## 第七十三章　把应用交付为可验证的容器镜像
+
+按[镜像构建与交接说明](examples/container-deployment/README.md)构建同平台镜像，验证 Node、Prisma 客户端、argon2、sharp 和私有工作目录。第 74 章再接应用编排和既有数据通路。
 
 ## 第七十二章　让客户端通过可信入口访问服务
 
