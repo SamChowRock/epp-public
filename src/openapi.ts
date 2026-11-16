@@ -1,3 +1,4 @@
+import { CapturePageQuerySchema, CapturePageSchema } from './capture-pages.js';
 import { OidcStart } from './oidc.controller.js';
 import { MINI_PUBLIC_PATHS, MiniLoginSchema, MiniLinkSchema, MiniLoginResultSchema } from './mini-contract.js';
 import { RECOVERY_PATHS, RecoveryRequestSchema, RecoveryConfirmSchema, RecoveryAcceptedSchema, RegistrationSchema } from './recovery-contract.js';
@@ -155,6 +156,17 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
             '415': problem('Expected application/json'), '500': problem('Unexpected failure') },
         },
       },
+      '/captures/page': {
+        get: {
+          operationId: 'listCapturePage', summary: 'Read one page of matching captures',
+          description: 'Latest revision originalText, case-sensitive literal q with whitespace preserved. Filter before limit; immutable capture createdAt then UUID ascending. Default limit 20, maximum 100. Unknown and repeated query keys rejected. nextCursor always appears and is null at the end. Signed capture-list/v1 cursors bind user, sort, q and effective limit, expire 30 minutes after the first page, and cannot cross resources. Invalid or expired cursors return 400 INVALID_CURSOR; restart explicitly. Reads live data, not a snapshot. Ownership is checked on every page. Legacy GET /captures retains its unbounded default.',
+          parameters: [ifNoneMatch, ...Object.entries(CapturePageQuerySchema.shape).map(([name, value]) => ({
+            name, in: 'query', required: false, schema: schema(value.unwrap(), 'input'),
+          } as ParameterObject))],
+          responses: { '200': { ...jsonResponse('CapturePage', 'Matching page'), headers: etagHeaders },
+            '304': notModified, '400': problem('Invalid query or INVALID_CURSOR'), '500': problem('Unexpected failure') },
+        },
+      },
       '/captures': {
         get: {
           operationId: 'listCaptures', summary: 'List captures',
@@ -276,6 +288,7 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
       CreateCapture: schema(CreateCaptureSchema, 'input'),
       UpdateCaptureIntent: schema(UpdateCaptureIntentSchema, 'input'),
       Capture: schema(CaptureResponseSchema, 'output'),
+      CapturePage: schema(CapturePageSchema, 'output'),
       CaptureList: schema(CaptureListResponseSchema, 'output'),
       Problem: schema(ProblemSchema, 'output'),
     } },
