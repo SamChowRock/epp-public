@@ -22,6 +22,22 @@
 
 本章分支 `part-04/chapter-35` 从第三十四章继续。给学习记录追加一份有序索引，保留接口和旧数据。先按[本章操作说明](database/chapter-30/README.md)在已有数据的校验库保存计划，然后迁移、重读并比较。
 
+## 第三十四章 素材列表分页迁移
+
+本章保留旧 `GET /captures` 的全量默认语义，新增 `GET /captures/page`，默认每页 20 条、最大 100 条。两者都按素材创建时间和 ID 升序，先取最新修订、筛选再限制条数。新入口只接受 q、limit、cursor；q 保留空白、区分大小写，末页明确返回 `nextCursor: null`。新素材游标独立绑定用户、排序、实际 limit 和 q，整轮 30 分钟有效；每次仍核对归属，读取实时数据，不提供快照。本章没有新迁移、依赖或索引；第 33 章的学习记录／星图接口和原游标格式继续保持。
+
+先按[第 33 章已有数据库准备说明](database/chapter-29/README.md)核对迁移及固定开发用户，沿用 DATABASE_URL 与 CURSOR_HMAC_KEY。旧库升级本章不新增迁移；空库仍需完整应用已有迁移。保持同一密钥可在重启后续页，开发／测试未设置时的进程随机密钥会使旧游标失效，生产必须显式配置。
+
+在隔离练习库的同一个 SQL 编辑器连接中，先执行[本轮合成数据](database/chapter-34/01-seed.sql)和[有序 ID 与修订观察](database/chapter-34/02-observe.sql)。01 新建 105 条素材，其中 101 条最新修订命中本轮 q，另有边界前后非匹配和仅历史修订命中的对照；每轮新 UUID 标记及临时 ID 映射只修改本轮目标。保持稳定数据先做分页比较，再接受新一轮第一页。
+
+书稿主线通过正式修订 POST 为本轮 #0 与 #102 追加匹配内容，两个不同的 Idempotency-Key 各重放一次，保持 revisionNo=3。[实时成员 SQL](database/chapter-34/03-live-membership.sql)仅为替代HTTP的选做，**两条路线不能同时执行**，否则会追加到第4版。SQL路线不产生写入回执。
+
+[本轮清理](database/chapter-34/04-cleanup.sql)只按临时映射删除；正式HTTP路线已有写入回执时外键会拒绝，执行ROLLBACK并保留本轮样本和回执，不删约束或清空回执表。临时表依赖同一连接，不能在不同 SQL 会话之间拆开；按正文先导出本轮ID映射，断线后不要凭原文广泛删除。不要在生产库运行，也不要对旧素材批量改正文来造样本。
+
+导入[第 34 章素材分页请求集合](requests/chapter-34-capture-pages.postman_collection.json)，将 01 输出的本轮 q 手动填入集合变量。先核对旧全量 101 条和显式 limit=100 的 100 条，再读新分页；每次完整接受 200 响应后才手动保存 nextCursor，失败保留原请求游标，末页 null 时停止。集合不自动推进游标。
+
+[浏览器迁移练习页](examples/paging-upgrade/README.md)逐项比较两套有序 ID，展示已接受页、累计条数和下一页状态。按说明启动回环代理即可使用；[两个默认关闭的隔离模拟](examples/paging-upgrade/README.md#两个独立且默认关闭的隔离模拟)分别复现旧列表 100 条截断和一次续页 503，正式 API 的旧默认行为保持完整。第 34 章仍是固定身份；[后续真实会话模式](examples/paging-upgrade/README.md#后续真实会话模式)用于第 38 章起的实际 Cookie 会话，第 40 章起同时启用 CSRF_MODE，并配置准确的 APP_ORIGIN。
+
 ## 第三十三章 分页与时间
 
 前置分支 `part-04/chapter-33` 从第三十二章继续，为学习记录和星图提供显式Offset／Cursor分页与UTC半开时间区间。旧请求不传mode时保持原结构；模型、迁移与依赖不变。操作与密钥配置见[本章说明](database/chapter-29/README.md)，导入[请求集合](requests/chapter-29.postman_collection.json)。
@@ -201,7 +217,7 @@ curl -sS http://127.0.0.1:3000/captures
 NODE_ENV=development node --watch --watch-preserve-output --inspect=127.0.0.1:9229 examples/event-loop-server.js
 ```
 
-在 Postman 导入 [requests/event-loop.postman_collection.json](requests/event-loop.postman_collection.json)，集合变量 experimentBaseUrl 为 http://127.0.0.1:3002，与主线集合分开。四条 GET 请求分别观察 /quick、/wait、/block、/slice，逐条 Send；集合不自动运行或重放请求。Chrome 的 chrome://inspect 可连接实验；观察处理分支时使用断点，测量并发和耗时时先禁用断点并恢复执行。
+在 Postman 导入 [requests/event-loop.postman_collection.json](requests/event-loop.postman_collection.json)，集合变量 experimentBaseUrl 为 `http://127.0.0.1:3002`，与主线集合分开。四条 GET 请求分别观察 /quick、/wait、/block、/slice，逐条 Send；集合不自动运行或重放请求。Chrome 的 `chrome://inspect` 可连接实验；观察处理分支时使用断点，测量并发和耗时时先禁用断点并恢复执行。
 
 保存源码后 Node 会重启实验进程，待监听日志重新出现再发请求；语法或启动错误时先读终端错误，修复保存后确认监听，不能拿旧结果页当作已恢复。运行中途停止后，下次使用同一命令和已保存的请求继续。
 
@@ -306,7 +322,7 @@ node examples/modules/consumer.js require
 
 前两次成功；后三次分别刻意触发包子路径未导出、缺少扩展名、ESM 中裸 require 不存在，均返回非零状态。包自引用依赖 `examples/modules/package.json` 的名称与公开入口，不是全局安装。
 
-完成服务构建后，在独立目录核对运行单元。先停止上一轮占用 3001 的产物服务；Postman 使用集合副本，将 baseUrl 设为 http://127.0.0.1:3001：
+完成服务构建后，在独立目录核对运行单元。先停止上一轮占用 3001 的产物服务；Postman 使用集合副本，将 baseUrl 设为 `http://127.0.0.1:3001`：
 
 ```bash
 npm run build &&
@@ -570,7 +586,7 @@ ESM 默认输出 A，eager 在初始化前读取类而失败。双向类程序 l
 
 学习和日常修改默认使用 `npm run dev`。scripts/dev.mjs 使用项目锁定的 TypeScript watch 与 tsconfig.dev.json 编译到 .dev，成功后复制配置并启动开启本机 Inspector 的服务；保存源码、修改 tsconfig.json 或 config/service.json 后自动重启。类型错误时停止旧服务，修复保存后恢复；终端的 Build succeeded 只表示编译成功，还要看到服务监听日志。重启保留数据库记录，浏览器页面不会自动刷新，需要重新发请求。
 
-先在终端运行 dev，再在 VS Code 选择 `EPP: attach to npm run dev`；`restart: true` 会在服务重启后尝试重连，断点保留。Chrome 可从 chrome://inspect 连接，但重启后可能需要重新选择目标。只有排查启动第一行才使用 `npm run build` 和 `npm run debug`；dev与debug不要同时占用9229或业务端口。dev 使用 .dev，build/clean 使用 dist，二者不会相互清理；并行检查不会自动重启开发服务。依赖、package.json、开发脚本及环境变量改变后手动重启dev。此时的自动重启不保留进程内状态。
+先在终端运行 dev，再在 VS Code 选择 `EPP: attach to npm run dev`；`restart: true` 会在服务重启后尝试重连，断点保留。Chrome 可从 `chrome://inspect` 连接，但重启后可能需要重新选择目标。只有排查启动第一行才使用 `npm run build` 和 `npm run debug`；dev与debug不要同时占用9229或业务端口。dev 使用 .dev，build/clean 使用 dist，二者不会相互清理；并行检查不会自动重启开发服务。依赖、package.json、开发脚本及环境变量改变后手动重启dev。此时的自动重启不保留进程内状态。
 
 生产方式先 `npm ci`、`npm run build`，再按第六章准备运行目录，仅安装运行依赖（`npm ci --omit=dev`），执行 `npm start`。start只运行构建产物，不开启Inspector或文件监听；生产环境不运行dev/debug。配置已复制进dist，修改源配置不会自动更新生产产物。环境变量按部署目标提供；NODE_ENV=production本身不会替代构建或自动关闭调试。完整进程托管、HTTPS与发布恢复在部署篇展开。
 
@@ -649,7 +665,7 @@ npm test
 
 第四章起可将 `.env.example` 复制为 `.env`，填写开发 PORT。dev/debug 通过 Node 的 --env-file-if-exists 加载它，已存在的进程环境变量优先；NODE_ENV 由对应脚本明确指定。`.env` 不进入版本控制或交付目录，生产进程由启动环境提供 DATABASE_URL、CURSOR_HMAC_KEY、APP_ORIGIN、PORT 等配置，npm start 不自动读取开发文件。修改 .env 后手动重新启动 dev；复制示例不会自动改变已经运行的进程。
 
-`npm run check` 是本章的静态检查入口。检查代码后，仍需用已保存的 Postman 请求核对合法创建、错误拒绝、列表与详情；静态检查不能证明 HTTP 可用。生产模式核对请使用另外的端口和请求集合副本，避免把请求发到开发进程。采用第六章构建布局后，在独立运行目录执行 npm ci --omit=dev，再用 PORT=3001 npm start 启动产物，Postman 中将该集合副本的 baseUrl 设为 http://127.0.0.1:3001；核对依赖、配置、正常与失败响应，最后停止该进程。
+`npm run check` 是本章的静态检查入口。检查代码后，仍需用已保存的 Postman 请求核对合法创建、错误拒绝、列表与详情；静态检查不能证明 HTTP 可用。生产模式核对请使用另外的端口和请求集合副本，避免把请求发到开发进程。采用第六章构建布局后，在独立运行目录执行 npm ci --omit=dev，再用 PORT=3001 npm start 启动产物，Postman 中将该集合副本的 baseUrl 设为 `http://127.0.0.1:3001`；核对依赖、配置、正常与失败响应，最后停止该进程。
 
 
 第十二章起，Swagger 在 development 默认开启，在 test/production 默认关闭。NODE_ENV 只接受 development/test/production；DOCS_ENABLED 只接受 true/false，非法值在创建应用前失败。确需开启文档时由目标环境显式提供 DOCS_ENABLED=true；开放文档是一项有意的入口配置，不代表已有访问权限控制。生产关闭时 /docs 和 /openapi.json 返回路由不存在，业务接口照常可用；静态契约仍可用 scripts/export-openapi.mjs 导出。
