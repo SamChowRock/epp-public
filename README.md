@@ -4,6 +4,12 @@
 
 已继承[第30章的创建与修订重试](examples/write-retry/README.md)：两个POST可带Idempotency-Key，省略时保留原行为。
 
+第41章「两个API实例共用登录额度」使用 `git switch part-05/chapter-41`，从最新40继续，新增共享额度表，无新依赖。
+
+## 第四十一章 两个API实例共用登录额度
+
+按[本章数据库与故障恢复说明](database/chapter-41-shared-auth-limit/README.md)迁移独立VERIFY，再启动两个正式API进程。用[观察页](examples/shared-auth-limit/README.md)或[本章集合](requests/chapter-41-shared-auth-limit.postman_collection.json)交替请求，同一来源合计十次/60秒，重启保持窗口。表不可用时密码入口503/AUTH_RATE_UNAVAILABLE，普通会话读取不因单表撤权失效。本机两份密码计算占位仍保留。后文第40章说明描述旧版本。
+
 第 40 章「保护基于浏览器的服务入口」使用 `git switch part-05/chapter-40`。迁移目录和请求集合请按下面的实际文件名打开。
 
 ## 第四十章 保护浏览器入口

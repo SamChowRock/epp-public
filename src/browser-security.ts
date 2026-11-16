@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import type { RequestHandler } from 'express';
 import type { AppConfig } from './config.js';
+import type { SharedAuthRateLimiter } from './shared-auth-rate-limiter.js';
 import { HttpError } from './http.js';
 
 export function csrfToken(key: string, sessionId: string): string {
@@ -40,23 +41,19 @@ export function browserBoundary(config: AppConfig): RequestHandler {
   };
 }
 
-export function authRateLimit(): RequestHandler {
-  // shortcut: bounded per-process buckets; use a shared atomic store before multiple API instances.
-  const attempts = new Map<string, { until: number; count: number }>();
-  return (request, response, next) => {
+export function authRateLimit(limiter: SharedAuthRateLimiter): RequestHandler {
+  return async (request, response, next) => {
     if (request.method !== 'POST' || !['/auth/login', '/auth/password'].includes(request.path)) { next(); return; }
-    const now = performance.now();
-    for (const [key, value] of attempts) if (value.until <= now) attempts.delete(key);
-    const key = request.ip ?? request.socket.remoteAddress ?? 'unknown';
-    let entry = attempts.get(key);
-    if (!entry && attempts.size < 1000) {
-      entry = { until: now + 60000, count: 0 }; attempts.set(key, entry);
-    }
-    if (!entry || ++entry.count > 10) {
-      response.setHeader('Retry-After', String(entry ? Math.max(1, Math.ceil((entry.until - now) / 1000)) : 60));
+    try {
+      const result = await limiter.consume(request.ip ?? request.socket.remoteAddress ?? 'unknown');
+      if (!result.allowed) {
+        response.setHeader('Retry-After', String(result.retryAfter));
+        throw new HttpError(429, 'Try again later', 'AUTH_RATE_LIMIT');
+      }
+      next(); // consume resolves only after the transaction committed.
+    } catch (error) {
       response.setHeader('Connection', 'close');
-      next(new HttpError(429, 'Try again later', 'AUTH_RATE_LIMIT')); return;
+      next(error);
     }
-    next();
   };
 }
