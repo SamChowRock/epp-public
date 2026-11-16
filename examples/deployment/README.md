@@ -21,7 +21,7 @@ run_with_api_config "$release/dist/src/account-admin.js" "$db" receipt "$user_id
 
 核对原收据后执行 `run_with_api_config "$release/dist/src/server.js"`。原账号登录，先读本人资料，再发一次头像预览，检查 work/.avatar-tmp 的属主、模式。签发并实际打开旧头像，保留字节摘要。Ctrl-C 后观察 app.stopped、退出码与监听释放。第 70 章在目标机直接交付这份程序。若换成 Debian，从该 release 取 dist、package.json、package-lock.json 和 .npmrc，在目标平台按锁安装生产依赖；已有验过的同平台整包则按原摘要交付。
 
-第 64 章代码分支还提供可选的 LISTEN_HOST 和 LOCAL_SMTP_HOST，两者默认均为 127.0.0.1。需要更换监听地址或练习收件主机时，再构建并验收含这些配置的版本。第 69、70 章的回环主线可继续运行最初的第 66 章产物。
+第 70 章代码分支还提供可选的 LISTEN_HOST 和 LOCAL_SMTP_HOST，两者默认均为 127.0.0.1。需要更换监听地址或练习收件主机时，再构建并验收含这些配置的版本。第 70 章的回环入口可继续运行最初的第 66 章产物。
 
 ## 支线 70B　在 Mac 托管服务并追查意外退出
 

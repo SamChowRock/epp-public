@@ -14,15 +14,15 @@
 
 按[服务身份与授权](examples/service-roles/README.md)升级非空副本，用三个系统用户和数据库角色完成注册、寄信和通知。按[分角色交接说明](examples/portable-release/README.md)核对目标平台归档、收据 CLI、头像签名地址和 API 可写目录。
 
-## 第六十四章　在目标环境运行已有应用
+## 第七十章　目标环境与可选 Mac 托管
 
-按[运行目录和数据库身份说明](examples/deployment/README.md)，直接用第 69 章验过的 release（顺序跟做时来自第 66 章）启动 API。第 70 章配套提供授权脚本和可配置监听地址的实现。第 70 章继续交付已验程序，跨平台时在目标机安装生产依赖。需要 Mac 托管时再做支线 70B。
+按[目标环境与 Mac 托管说明](examples/deployment/README.md)取得授权和可选宿主脚本。第 70 章直接接手第 69 章验过的产物；第 71 章在 Debian 建立最终服务身份与托管。
 
 ## 第六十六章　调试性能与资源问题
 
 按[本章实验](examples/performance/README.md)对照两次慢登录，采集 CPU 与堆快照，在请求结束前区分连接池排队和数据库等锁，再用受限并发验证判断。
 
-## 第六十四章　构建与持续集成
+## 第七十章　目标环境与可选 Mac 托管
 
 按[本章运行说明](database/chapter-54/README.md)从干净目录构建，在一次性数据库上验证 API、Worker 与账号 CLI，比较 ERD 和 OpenAPI 快照，并把同样的命令接入持续集成。
 
