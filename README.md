@@ -1,5 +1,7 @@
 # EPP 配套实践代码
 
+已继承[第34章的既有素材列表分页迁移](examples/paging-upgrade/README.md)：保留旧列表，新增 GET /captures/page；游标绑定当前身份、筛选与页大小。
+
 已继承[第30章的创建与修订重试](examples/write-retry/README.md)：两个POST可带Idempotency-Key，省略时保留原行为。
 
 第 77 章「让 API 和后台进程更换凭据与签名密钥」使用 `git switch part-10/chapter-77`。继承第 76 章受限原生与容器身份、计时器、已验镜像和非空副本，通过原 HTTPS 入口及会话验收。
@@ -113,7 +115,7 @@
 
 ## 第三十五章 索引与执行计划
 
-本章分支 `part-04/chapter-35` 从第三十三章继续。给学习记录追加一份有序索引，保留接口和旧数据。先按[本章操作说明](database/chapter-30/README.md)在已有数据的校验库保存计划，然后迁移、重读并比较。
+本章分支 `part-04/chapter-35` 从第三十四章继续。给学习记录追加一份有序索引，保留接口和旧数据。先按[本章操作说明](database/chapter-30/README.md)在已有数据的校验库保存计划，然后迁移、重读并比较。
 
 ## 第三十三章 分页与时间
 
