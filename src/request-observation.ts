@@ -16,7 +16,7 @@ export function requestObservation(logger: AppLogger, state: ApplicationState, k
     // Route labels are constants, never raw paths or resource IDs.
     const route = ['/auth/login', '/auth/logout', '/auth/password', '/auth/csrf', '/auth/me', '/auth/sessions', ...RECOVERY_PATHS, ...MINI_PUBLIC_PATHS].includes(path) ? path
       : /^\/auth\/sessions\/[^/]+$/.test(path) ? '/auth/sessions/:id'
-      : knownPaths.includes(path) ? path : path === '/captures' ? '/captures'
+      : knownPaths.includes(path) ? path : ['/captures', '/captures/page'].includes(path) ? path
       : ['/learning-records', '/star-map'].includes(path) ? path
       : /^\/learning-records\/[^/]+$/.test(path) ? '/learning-records/:id'
       : /^\/revisions\/[^/]+\/candidates$/.test(path) ? '/revisions/:revisionId/candidates'
