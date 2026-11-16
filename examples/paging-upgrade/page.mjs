@@ -29,9 +29,10 @@ function conceal(){viewEpoch++;visible=false;legacyTicket=null;if(model.active)m
 function forget(){conceal();owner=null;identity=null;$('filter').value='';clearResults(null,'');$('identity').textContent='当前身份未确认。';}
 async function verify(){
  if(authenticating||document.hidden)return false;
- if(verifying)return verifying;
  const epoch=viewEpoch;
- verifying=(async()=>{try{
+ if(verifying?.epoch===epoch)return verifying.promise;
+ const pending={epoch,promise:null};verifying=pending;
+ pending.promise=(async()=>{try{
   const result=await request(config.sessionMode?'/auth/me':'/practice/identity');
   if(typeof result.userId!=='string'||(config.sessionMode&&(typeof result.sessionId!=='string'||!result.sessionId)))throw Error('Invalid identity');
   if(epoch!==viewEpoch)return false;
@@ -41,7 +42,7 @@ async function verify(){
   $('identity').textContent=config.sessionMode?`真实登录用户：${result.userId}`:`固定身份阶段：${result.userId}（此声明只用于本页清理结果；API 自行限定用户）`;
   $('status').textContent='身份已确认，可以读取。';render();return true;
  }catch(e){if(epoch===viewEpoch){forget();$('status').textContent=e.status===401?'尚未登录，旧结果已清空。':'无法确认身份，结果保持隐藏。';}return false;}
- })();try{return await verifying;}finally{verifying=null;}
+ })();try{return await pending.promise;}finally{if(verifying===pending)verifying=null;}
 }
 async function checkedRead(){const epoch=viewEpoch;const ok=await verify();return ok&&epoch===viewEpoch&&visible;}
 $('filter').oninput=()=>{clearResults();$('status').textContent='筛选已变化，两套结果已清空。';};
