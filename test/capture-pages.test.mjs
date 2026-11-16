@@ -1,3 +1,4 @@
+import { sessionFetch } from './session-fixture.mjs';
 import './database-env.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -13,10 +14,12 @@ import { DEVELOPMENT_USER_ID } from '../dist/src/database-config.js';
 test('capture pages preserve old all-results semantics, latest matching, ties and signed scope', async t => {
   const key = 'ab'.repeat(32);
   const app = await createApp({ ...await loadConfig(), cursorKey: key }); const db = app.get(DatabaseService).client;
+  const fetch = await sessionFetch(t, app);
   const ids = [], foreign = randomUUID(), marker = 'page34 ' + randomUUID();
   t.after(async () => { try {
     await db.captureRevision.deleteMany({ where: { captureId: { in: ids } } });
     await db.capture.deleteMany({ where: { id: { in: ids } } });
+    await db.session.deleteMany({ where: { userId: foreign } });
     await db.user.deleteMany({ where: { id: foreign } });
   } finally { await app.close(); } });
   await app.listen(0, '127.0.0.1'); const base = await app.getUrl();
@@ -88,6 +91,13 @@ test('capture pages preserve old all-results semantics, latest matching, ties an
   }
   assert.equal(liveSeen.includes(before), false); assert.equal(liveSeen.includes(after), true);
   assert.equal((await req('/captures?' + new URLSearchParams({ q: marker }))).body.items.length, 103);
+
+  const foreignFetch = await sessionFetch(t, app, foreign);
+  const foreignPage = await foreignFetch(base + root); assert.equal(foreignPage.status, 200);
+  assert.equal((await foreignPage.json()).items.length, 1);
+  const foreignReplay = await foreignFetch(base + root + '&cursor=' + first.nextCursor);
+  assert.equal(foreignReplay.status, 400); assert.equal((await foreignReplay.json()).code, 'INVALID_CURSOR');
+  assert.equal((await globalThis.fetch(base + '/captures/page')).status, 401);
   assert.equal((await req('/captures/page', 'POST')).status, 405);
   assert.equal((await req('/captures/page', 'PATCH')).allow, 'GET');
   assert.equal((await req('/captures/%70age')).status, 404);
