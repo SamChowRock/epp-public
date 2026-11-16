@@ -1,0 +1,90 @@
+{
+  "info": {
+    "name": "第34章 素材列表分页迁移",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "纯读取；游标由读者确认完整响应后手动保存。q保留原始空白、区分大小写字面搜索。"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000"
+    },
+    {
+      "key": "q",
+      "value": "替换为SQL输出的本轮q"
+    },
+    {
+      "key": "limit",
+      "value": "20"
+    },
+    {
+      "key": "cursor",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 旧全量列表",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/captures?q={{q}}",
+        "description": "先运行SQL，手动将本轮q保存为集合变量。稳定数据应101条；无limit保持旧语义。"
+      }
+    },
+    {
+      "name": "02 显式100条对照",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/captures?q={{q}}&limit=100",
+        "description": "只显示显式上限的结果；正式旧入口默认仍全量。隔离代理cap模式另见示例。"
+      }
+    },
+    {
+      "name": "03 新第一页",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/captures/page?q={{q}}&limit={{limit}}",
+        "description": "核对完整200响应及items/limit/hasMore/nextCursor；手动复制nextCursor到集合变量cursor。不要在Tests自动推进。"
+      }
+    },
+    {
+      "name": "04 续页或原页重试",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/captures/page?q={{q}}&limit={{limit}}&cursor={{cursor}}",
+        "description": "成功接受本页后才手动替换cursor；失败保留原cursor重试。nextCursor为null时停止，不把null文本当游标。"
+      }
+    },
+    {
+      "name": "05 改筛选拒绝原游标",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/captures/page?q={{q}}-changed&limit={{limit}}&cursor={{cursor}}",
+        "description": "预期400 INVALID_CURSOR。清空待办并显式重开第一页，不追加第一页到旧结果。"
+      }
+    },
+    {
+      "name": "06 空集",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/captures/page?q={{q}}-absent",
+        "description": "预期items空，hasMore=false，nextCursor=null。"
+      }
+    },
+    {
+      "name": "07 重复参数拒绝",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/captures/page?limit=20&limit=20",
+        "description": "新入口严格拒绝重复和未知参数。"
+      }
+    }
+  ]
+}
