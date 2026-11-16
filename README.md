@@ -2,7 +2,7 @@
 
 第 31 章「一致性整合：完成可靠的候选采纳」使用 `git switch part-04/chapter-31`。迁移目录和请求集合请按下面的实际文件名打开。
 
-已继承[第30章的创建与修订重试](database/chapter-30/README.md)：两个POST可带Idempotency-Key，省略时保留原行为。
+已继承[第30章的创建与修订重试](examples/write-retry/README.md)：两个POST可带Idempotency-Key，省略时保留原行为。
 
 ## 第三十一章 一致性整合
 
