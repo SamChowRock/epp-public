@@ -18,7 +18,8 @@
     "check": "npm run typecheck && npm run build",
     "dev:lifecycle": "NODE_ENV=development PORT=3007 node --env-file-if-exists=.env scripts/dev.mjs .dev/src/labs/lifecycle-server.js",
     "dev:express": "NODE_ENV=development node --env-file-if-exists=.env --watch --watch-preserve-output --inspect=127.0.0.1:9229 examples/express-pipeline.js",
-    "dev:responses": "NODE_ENV=development node --env-file-if-exists=.env scripts/dev.mjs .dev/examples/controller-responses/main.js examples/controller-responses/tsconfig.dev.json"
+    "dev:responses": "NODE_ENV=development node --env-file-if-exists=.env scripts/dev.mjs .dev/examples/controller-responses/main.js examples/controller-responses/tsconfig.dev.json",
+    "dev:json-file": "NODE_ENV=development PORT=3016 node --env-file-if-exists=.env scripts/dev.mjs .dev/src/labs/json-file/server.js"
   },
   "devDependencies": {
     "@types/node": "24.13.3",
