@@ -25,7 +25,7 @@ export function httpBoundary(
     const discard = /^\/candidates\/([^/]+)\/(?:discard|accept)$/.exec(url.pathname);
     const learningDetail = /^\/learning-records\/([^/]+)$/.exec(url.pathname);
     const allowed = url.pathname === '/captures' ? ['GET', 'POST']
-      : detail ? ['GET', 'PATCH'] : revisions || candidates ? ['GET', 'POST'] : discard ? ['POST']
+      : url.pathname === '/captures/page' ? ['GET'] : detail ? ['GET', 'PATCH'] : revisions || candidates ? ['GET', 'POST'] : discard ? ['POST']
       : learningDetail || ['/learning-records', '/star-map'].includes(url.pathname) ? ['GET'] : undefined;
     if (!allowed) throw new HttpError(404, 'Route not found', 'ROUTE_NOT_FOUND');
     if (!allowed.includes(request.method)) {
