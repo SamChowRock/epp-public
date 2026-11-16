@@ -117,6 +117,22 @@
 
 本章分支 `part-04/chapter-35` 从第三十四章继续。给学习记录追加一份有序索引，保留接口和旧数据。先按[本章操作说明](database/chapter-30/README.md)在已有数据的校验库保存计划，然后迁移、重读并比较。
 
+## 第三十四章 素材列表分页迁移
+
+本章保留旧 `GET /captures` 的全量默认语义，新增 `GET /captures/page`，默认每页 20 条、最大 100 条。两者都按素材创建时间和 ID 升序，先取最新修订、筛选再限制条数。新入口只接受 q、limit、cursor；q 保留空白、区分大小写，末页明确返回 `nextCursor: null`。新素材游标独立绑定用户、排序、实际 limit 和 q，整轮 30 分钟有效；每次仍核对归属，读取实时数据，不提供快照。本章没有新迁移、依赖或索引；第 33 章的学习记录／星图接口和原游标格式继续保持。
+
+先按[第 33 章已有数据库准备说明](database/chapter-29/README.md)核对迁移及固定开发用户，沿用 DATABASE_URL 与 CURSOR_HMAC_KEY。旧库升级本章不新增迁移；空库仍需完整应用已有迁移。保持同一密钥可在重启后续页，开发／测试未设置时的进程随机密钥会使旧游标失效，生产必须显式配置。
+
+在隔离练习库的同一个 SQL 编辑器连接中，先执行[本轮合成数据](database/chapter-34/01-seed.sql)和[有序 ID 与修订观察](database/chapter-34/02-observe.sql)。01 新建 105 条素材，其中 101 条最新修订命中本轮 q，另有边界前后非匹配和仅历史修订命中的对照；每轮新 UUID 标记及临时 ID 映射只修改本轮目标。保持稳定数据先做分页比较，再接受新一轮第一页。
+
+书稿主线通过正式修订 POST 为本轮 #0 与 #102 追加匹配内容，两个不同的 Idempotency-Key 各重放一次，保持 revisionNo=3。[实时成员 SQL](database/chapter-34/03-live-membership.sql)仅为替代HTTP的选做，**两条路线不能同时执行**，否则会追加到第4版。SQL路线不产生写入回执。
+
+[本轮清理](database/chapter-34/04-cleanup.sql)只按临时映射删除；正式HTTP路线已有写入回执时外键会拒绝，执行ROLLBACK并保留本轮样本和回执，不删约束或清空回执表。临时表依赖同一连接，不能在不同 SQL 会话之间拆开；按正文先导出本轮ID映射，断线后不要凭原文广泛删除。不要在生产库运行，也不要对旧素材批量改正文来造样本。
+
+导入[第 34 章素材分页请求集合](requests/chapter-34-capture-pages.postman_collection.json)，将 01 输出的本轮 q 手动填入集合变量。先核对旧全量 101 条和显式 limit=100 的 100 条，再读新分页；每次完整接受 200 响应后才手动保存 nextCursor，失败保留原请求游标，末页 null 时停止。集合不自动推进游标。
+
+[浏览器迁移练习页](examples/paging-upgrade/README.md)逐项比较两套有序 ID，展示已接受页、累计条数和下一页状态。按说明启动回环代理即可使用；[两个默认关闭的隔离模拟](examples/paging-upgrade/README.md#两个独立且默认关闭的隔离模拟)分别复现旧列表 100 条截断和一次续页 503，正式 API 的旧默认行为保持完整。第 34 章仍是固定身份；[后续真实会话模式](examples/paging-upgrade/README.md#后续真实会话模式)用于第 38 章起的实际 Cookie 会话，第 40 章起同时启用 CSRF_MODE，并配置准确的 APP_ORIGIN。
+
 ## 第三十三章 分页与时间
 
 前置分支 `part-04/chapter-33` 从第三十二章继续，为学习记录和星图提供显式Offset／Cursor分页与UTC半开时间区间。旧请求不传mode时保持原结构；模型、迁移与依赖不变。操作与密钥配置见[本章说明](database/chapter-29/README.md)，导入[请求集合](requests/chapter-29.postman_collection.json)。
