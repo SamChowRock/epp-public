@@ -30,6 +30,7 @@
 - [第 27 章　事务：让多次修改成为一次业务动作](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-27)
 - [第 28 章　并发控制：两个请求同时到来怎么办](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-28)
 - [第 29 章　幂等与审计：响应丢失后如何安全重试](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-29)
+- [第 30 章　创建素材与追加修订怎样承受重试](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-30)
 - [第 31 章　一致性整合：完成可靠的候选采纳](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-31)
 - [第 32 章　构建可供客户端使用的查询接口](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-32)
 - [第 33 章　分页与时间：下一页从哪里继续](https://github.com/SamChowRock/epp-public/tree/part-04/chapter-33)
