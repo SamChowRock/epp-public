@@ -232,7 +232,7 @@
             }
           },
           "401": {
-            "description": "Missing, expired or revoked session; code AUTH_REQUIRED",
+            "description": "Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -315,7 +315,7 @@
             }
           },
           "401": {
-            "description": "Missing, expired or revoked session; code AUTH_REQUIRED",
+            "description": "Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -424,7 +424,7 @@
             }
           },
           "401": {
-            "description": "Missing, expired or revoked session; code AUTH_REQUIRED",
+            "description": "Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -582,7 +582,7 @@
             }
           },
           "401": {
-            "description": "Missing, expired or revoked session; code AUTH_REQUIRED",
+            "description": "Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -720,7 +720,7 @@
             }
           },
           "401": {
-            "description": "Missing, expired or revoked session; code AUTH_REQUIRED",
+            "description": "Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -879,7 +879,7 @@
             }
           },
           "401": {
-            "description": "Missing, expired or revoked session; code AUTH_REQUIRED",
+            "description": "Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1084,7 +1084,7 @@
             }
           },
           "401": {
-            "description": "Missing, expired or revoked session; code AUTH_REQUIRED",
+            "description": "Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1413,7 +1413,7 @@
             }
           },
           "401": {
-            "description": "Missing, expired or revoked session; code AUTH_REQUIRED",
+            "description": "Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1722,7 +1722,7 @@
             }
           },
           "401": {
-            "description": "Missing, expired or revoked session; code AUTH_REQUIRED",
+            "description": "Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1880,7 +1880,7 @@
             }
           },
           "401": {
-            "description": "Missing, expired or revoked session; code AUTH_REQUIRED",
+            "description": "Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2021,7 +2021,7 @@
             }
           },
           "401": {
-            "description": "Missing, expired or revoked session; code AUTH_REQUIRED",
+            "description": "Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2187,7 +2187,7 @@
             }
           },
           "401": {
-            "description": "Missing, expired or revoked session; code AUTH_REQUIRED",
+            "description": "Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2345,7 +2345,7 @@
             }
           },
           "401": {
-            "description": "Missing, expired or revoked session; code AUTH_REQUIRED",
+            "description": "Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2512,7 +2512,7 @@
             }
           },
           "401": {
-            "description": "Missing, expired or revoked session; code AUTH_REQUIRED",
+            "description": "Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2709,7 +2709,7 @@
             }
           },
           "401": {
-            "description": "Missing, expired or revoked session; code AUTH_REQUIRED",
+            "description": "Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2886,7 +2886,7 @@
             }
           },
           "401": {
-            "description": "Missing, expired or revoked session; code AUTH_REQUIRED",
+            "description": "Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3218,7 +3218,7 @@
             }
           },
           "401": {
-            "description": "Missing, expired or revoked session; code AUTH_REQUIRED",
+            "description": "Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3375,7 +3375,7 @@
             }
           },
           "401": {
-            "description": "Missing, expired or revoked session; code AUTH_REQUIRED",
+            "description": "Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3628,7 +3628,7 @@
             }
           },
           "401": {
-            "description": "Missing, expired or revoked session; code AUTH_REQUIRED",
+            "description": "Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3836,7 +3836,7 @@
             }
           },
           "401": {
-            "description": "Missing, expired or revoked session; code AUTH_REQUIRED",
+            "description": "Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -4121,7 +4121,7 @@
             }
           },
           "401": {
-            "description": "Missing, expired or revoked session; code AUTH_REQUIRED",
+            "description": "Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -4329,7 +4329,7 @@
             }
           },
           "401": {
-            "description": "Missing, expired or revoked session; code AUTH_REQUIRED",
+            "description": "Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -4551,7 +4551,7 @@
             }
           },
           "401": {
-            "description": "Missing, expired or revoked session; code AUTH_REQUIRED",
+            "description": "Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -4850,7 +4850,7 @@
             }
           },
           "401": {
-            "description": "Missing, expired or revoked session; code AUTH_REQUIRED",
+            "description": "Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -5149,7 +5149,7 @@
             }
           },
           "401": {
-            "description": "Missing, expired or revoked session; code AUTH_REQUIRED",
+            "description": "Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -5469,7 +5469,7 @@
             }
           },
           "401": {
-            "description": "Missing, expired or revoked session; code AUTH_REQUIRED",
+            "description": "Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -5585,6 +5585,16 @@
             "description": "Save one lowercase UUID before sending. Reuse it only with the original parsed input and target. Scoped to current user and action; no automatic expiry. Matching success replays the original 201; changed input returns 409 OPERATION_CONFLICT. Missing header keeps legacy behavior."
           },
           {
+            "name": "X-Expected-Session",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Optional session identity from GET /auth/me. A different current session rejects pending writes with 401 SESSION_CHANGED before business execution. Omit for legacy clients."
+          },
+          {
             "name": "X-EPP-Request",
             "in": "header",
             "required": true,
@@ -5677,7 +5687,7 @@
             }
           },
           "401": {
-            "description": "Missing, expired or revoked session; code AUTH_REQUIRED",
+            "description": "Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -6003,7 +6013,7 @@
             }
           },
           "401": {
-            "description": "Missing, expired or revoked session; code AUTH_REQUIRED",
+            "description": "Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -6145,6 +6155,16 @@
             "description": "Save one lowercase UUID before sending. Reuse it only with the original parsed input and target. Scoped to current user and action; no automatic expiry. Matching success replays the original 201; changed input returns 409 OPERATION_CONFLICT. Missing header keeps legacy behavior."
           },
           {
+            "name": "X-Expected-Session",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Optional session identity from GET /auth/me. A different current session rejects pending writes with 401 SESSION_CHANGED before business execution. Omit for legacy clients."
+          },
+          {
             "name": "id",
             "in": "path",
             "required": true,
@@ -6235,7 +6255,7 @@
             }
           },
           "401": {
-            "description": "Missing, expired or revoked session; code AUTH_REQUIRED",
+            "description": "Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -6538,7 +6558,7 @@
             }
           },
           "401": {
-            "description": "Missing, expired or revoked session; code AUTH_REQUIRED",
+            "description": "Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -6844,7 +6864,7 @@
             }
           },
           "401": {
-            "description": "Missing, expired or revoked session; code AUTH_REQUIRED",
+            "description": "Missing, expired or revoked session; code AUTH_REQUIRED; a mismatching optional X-Expected-Session returns SESSION_CHANGED",
             "content": {
               "application/problem+json": {
                 "schema": {
