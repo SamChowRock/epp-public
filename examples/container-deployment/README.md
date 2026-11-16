@@ -31,8 +31,8 @@ Dockerfile 有四个阶段：
 
 1. `base` 固定 Node 和 Debian 基础，安装公开 CA 信任包。
 2. `build` 安装原生模块可能需要的编译工具，`npm ci` 按锁安装，再执行 `npm run build`。它的 `prebuild` 离线生成 `src/generated/prisma`，TypeScript 将其编译进 `dist`；构建脚本另把 `config/service.json` 复制到 `dist/config/service.json`。整个过程不需要 DATABASE_URL 或数据库访问。
-3. `production-deps` 从已构建阶段执行 `npm prune --omit=dev --omit=peer`。只省略不再作为独立生产依赖需要的开发包和 peer 安装项；显式生产依赖继续保留。`@prisma/client` 7.10.1 的可选 peer 会让仅用 `--omit=dev` 时仍留下 Prisma CLI 与 TypeScript，因此还要省略 peer，并按下一节实际导入生成客户端、计算 Argon2、渲染 sharp 图像及检查工具缺席。不要追加 `--omit=optional`：sharp 的平台原生包属于需要保留的 optional 依赖。
-4. `runtime` 只取得生产依赖、完整 `dist` 和声明 ESM 的 `package.json`，不带编译器、Prisma CLI、迁移管理员口令或原始源码目录。镜像内文件由 root 拥有，应用使用 UID/GID `10001:10001`，工作目录是 `/work`。
+3. `production-deps` 从已构建阶段执行 `npm prune --omit=dev`，按 npm 解析出的生产依赖树整理安装目录。包写在顶层 `devDependencies` 不代表它只具有开发用途：`@prisma/client` 7.10.1 同时通过 optional peer 关系关联 Prisma CLI 与 TypeScript，本项目实测 prune 后它们仍保留，不能据此声称镜像不含这些工具，也不要手工删包破坏已解析的依赖树。不要追加 `--omit=optional`：sharp 的平台原生包属于需要保留的 optional 依赖。交付验证关注生成客户端可导入、Argon2 和 sharp 能实际运算，以及构建阶段的系统编译器没有进入最终镜像。
+4. `runtime` 只取得生产依赖、完整 `dist` 和声明 ESM 的 `package.json`，不复制构建阶段安装的系统编译器、迁移管理员口令或原始源码目录。node_modules 仍以 npm 解析的生产依赖树为准。镜像内文件由 root 拥有，应用使用 UID/GID `10001:10001`，工作目录是 `/work`。
 
 `.dockerignore` 采用输入白名单：开发机的 `node_modules`、`dist`、旧生成客户端、`.git`、`.env*`、私钥、备份与本地工具不会随项目根目录进入上下文。源代码目录仍须保持没有秘密文件。不要把凭据放进 `ARG`、`ENV` 或 `COPY`。argon2 和 sharp 要在目标 Linux 镜像里安装；Mac 的依赖目录不能搬进来。如果目标架构与构建机不同，还需要已配置的跨平台构建能力，实际交接仍须在目标架构验收。
 
@@ -65,8 +65,7 @@ await mkdir(".avatar-tmp", { mode: 0o700 });
 const temp = await stat(".avatar-tmp");
 assert.equal(temp.uid, 10001);
 assert.equal(temp.mode & 0o777, 0o700);
-await assert.rejects(access("/opt/epp/node_modules/typescript"));
-await assert.rejects(access("/opt/epp/node_modules/prisma"));
+await assert.rejects(access("/usr/bin/g++"));
 console.log("Node, Prisma client, argon2, sharp and private work directory: OK");
 '
 ```
