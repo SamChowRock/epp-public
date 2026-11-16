@@ -41,7 +41,7 @@ export function createOpenApiDocument(): OpenAPIObject {
     openapi: '3.0.3',
     info: {
       title: 'EPP Capture API', version: '0.10.0',
-      description: 'PostgreSQL records for one fixed development user; no authentication. Errors use Problem Details. Capture creation is not idempotent; candidate acceptance supports operation identity.',
+      description: 'PostgreSQL records for one fixed development user; no authentication. Errors use Problem Details. Capture creation and revision append optionally replay by Idempotency-Key; unkeyed writes retain legacy behavior. Candidate acceptance uses its own operation identity.',
     },
     paths: {
       '/revisions/{revisionId}/candidates': {
