@@ -15,6 +15,7 @@ model User {
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
   status    String    @default("active") @db.Text
   webEnabled Boolean @default(false) @map("web_enabled")
+  captureWriteReceipts CaptureWriteReceipt[]
   commandReceipts CommandReceipt[]
   expressions Expression[]
   captures  Capture[]
@@ -55,6 +56,7 @@ model Capture {
   originalText String   @map("original_text") @db.Text
   chineseIntent String? @map("chinese_intent") @db.Text
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  captureWriteReceipts CaptureWriteReceipt[]
   revisions    CaptureRevision[]
   user         User     @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "captures_user_id_fkey")
 
@@ -151,4 +153,22 @@ model CommandReceipt {
 
   @@id([userId, operationId], map: "command_receipts_pkey")
   @@map("command_receipts")
+}
+
+/// Independent identities for capture creation and revision append.
+model CaptureWriteReceipt {
+  userId String @map("user_id") @db.Uuid
+  action String @db.Text
+  operationId String @map("operation_id") @db.Uuid
+  captureId String @map("capture_id") @db.Uuid
+  fingerprint String @db.Text
+  statusCode Int @map("status_code")
+  location String? @db.Text
+  response Json @db.JsonB
+  recordedAt DateTime @default(now()) @map("recorded_at") @db.Timestamptz(3)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "capture_write_receipts_user_id_fkey")
+  capture Capture @relation(fields: [captureId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "capture_write_receipts_capture_id_fkey")
+  @@id([userId, action, operationId], map: "capture_write_receipts_pkey")
+  @@index([captureId], map: "capture_write_receipts_capture_id_idx")
+  @@map("capture_write_receipts")
 }
