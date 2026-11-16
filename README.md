@@ -1,6 +1,10 @@
 # EPP 配套实践代码
 
-第 29 章「幂等与审计：响应丢失后如何安全重试」使用 `git switch part-04/chapter-29`。迁移目录和请求集合请按下面的实际文件名打开。
+第 30 章「创建素材与追加修订怎样承受重试」使用 `git switch part-04/chapter-30`，从第29章继续。创建和追加支持可选 `Idempotency-Key`，同键重放原201、原ID及版号；无键旧请求保留原行为。
+
+本章迁移、浏览器恢复和甲乙固定身份对照见[第30章实践说明](examples/write-retry/README.md)。导入[第30章请求集合](requests/chapter-30.postman_collection.json)，首次发送前手动保存键；数据库观察与末步回滚脚本在 `database/chapter-30/`。正式开发入口仍为 `npm run dev`，产物入口仍为 `npm start`；专用页面和故障夹具只用于开发副本。
+
+以下各章旧说明描述其对应版本；第30章新增创建与追加的回执，不改变采纳既有操作身份。
 
 ## 第二十九章 幂等与审计
 
