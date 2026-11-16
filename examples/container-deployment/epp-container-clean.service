@@ -1,0 +1,11 @@
+[Unit]
+Description=Run one EPP cleanup container
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/opt/epp-container
+ExecStart=/usr/bin/docker compose --project-directory /opt/epp-container --env-file /opt/epp-container/compose.env -f /opt/epp-container/compose.yaml run --rm --no-deps cleanup
+TimeoutStartSec=infinity

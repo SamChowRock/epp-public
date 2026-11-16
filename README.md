@@ -1,10 +1,18 @@
 # EPP 配套实践代码
 
-第 74 章「定时维护漏跑或同时启动两次以后怎么办」使用 `git switch part-10/chapter-74`。程序接续第 72 章快照，保留同源交付页。第 73 章是沿用该部署的观测规划。
+第 76 章「定时维护漏跑或同时启动两次以后怎么办」使用 `git switch part-10/chapter-76`。继承第 74 章容器部署与第 75 章观测，保留原生清理任务，并加入同一镜像的一次性清理入口。
 
-## 第七十四章　定时维护漏跑或同时启动两次以后怎么办
+## 第七十六章　定时维护漏跑或同时启动两次以后怎么办
 
-按[维护任务运行说明](examples/maintenance/README.md)核对单笔资格，将原有清理入口交给 systemd，再按对象 ID 观察漏跑、重复领取及端点恢复。
+按[维护任务运行说明](examples/maintenance/README.md)核对单笔资格与漏跑、重复领取；容器部署继续按[一次性维护容器](examples/container-deployment/cleanup.md)安装独立配置和宿主计时器。
+
+## 第七十四章　用 Compose 接手应用部署
+
+按[应用编排与已有数据通路](examples/container-deployment/compose.md)从空部署目录配置专用网络、独立身份、公开 CA、日志与停止预算，再用旧账号、收据和头像验收。第 75 章观测沿用本阶段。
+
+## 第七十三章　把应用交付为可验证的容器镜像
+
+按[镜像构建与交接说明](examples/container-deployment/README.md)构建同平台镜像，验证 Node、Prisma 客户端、argon2、sharp 和私有工作目录。第 74 章再接应用编排和既有数据通路。
 
 ## 第七十二章　让客户端通过可信入口访问服务
 

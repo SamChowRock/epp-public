@@ -1,0 +1,121 @@
+name: epp74
+
+x-runtime: &runtime
+  image: ${EPP_IMAGE:?Set EPP_IMAGE to the verified chapter 73 image}
+  user: "10001:10001"
+  working_dir: /work
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  stop_grace_period: 40s
+  tmpfs:
+    - /work:rw,nosuid,nodev,noexec,size=16m,uid=10001,gid=10001,mode=0700
+  networks: [backend]
+  extra_hosts:
+    - "epp-data.internal:172.28.74.1"
+    - "api.epp.test:172.28.74.1"
+    - "objects.epp.test:172.28.74.1"
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+services:
+  api:
+    <<: *runtime
+    command: ["--env-file=/run/epp/api.env", "/opt/epp/dist/src/server.js"]
+    environment:
+      NODE_ENV: production
+      LISTEN_HOST: "0.0.0.0"
+      PORT: "3000"
+      NODE_EXTRA_CA_CERTS: /run/epp/root.crt
+      TRUST_PROXY_IPS: ${EPP_TRUST_PROXY_IP:?Set the observed controlled proxy peer IP}
+    volumes:
+      - type: bind
+        source: ./secrets/api.env
+        target: /run/epp/api.env
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./trust/root.crt
+        target: /run/epp/root.crt
+        read_only: true
+        bind: {create_host_path: false}
+    ports: ["127.0.0.1:3374:3000"]
+    restart: unless-stopped
+    mem_limit: 1g
+    cpus: 1.0
+    pids_limit: 128
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - --input-type=module
+        - -e
+        - 'try { const r = await fetch("http://127.0.0.1:3000/profile/me", { signal: AbortSignal.timeout(2000) }); const b = await r.json(); process.exit(r.status === 401 && b.code === "AUTH_REQUIRED" ? 0 : 1); } catch { process.exit(1); }'
+      interval: 30s
+      timeout: 3s
+      start_period: 20s
+      retries: 3
+
+  mail:
+    <<: *runtime
+    command: ["--env-file=/run/epp/mail.env", "/opt/epp/dist/src/mail-worker.js", "${EPP_DATABASE:?Set the expected existing database name}"]
+    environment:
+      NODE_ENV: production
+    volumes:
+      - type: bind
+        source: ./secrets/mail.env
+        target: /run/epp/mail.env
+        read_only: true
+        bind: {create_host_path: false}
+    restart: "no"
+    mem_limit: 256m
+    cpus: 0.5
+    pids_limit: 64
+
+  notify:
+    <<: *runtime
+    command: ["--env-file=/run/epp/notify.env", "/opt/epp/dist/src/mail-worker.js", "${EPP_DATABASE:?Set the expected existing database name}", "notifications"]
+    environment:
+      NODE_ENV: production
+    volumes:
+      - type: bind
+        source: ./secrets/notify.env
+        target: /run/epp/notify.env
+        read_only: true
+        bind: {create_host_path: false}
+    restart: unless-stopped
+    mem_limit: 256m
+    cpus: 0.5
+    pids_limit: 64
+
+
+  cleanup:
+    <<: *runtime
+    profiles: [maintenance]
+    command: ["--env-file=/run/epp/cleanup.env", "/opt/epp/database/chapter-51/clean.mjs", "${EPP_DATABASE:?Set the expected existing database name}", "${EPP_S3_ENDPOINT:?Set the independently expected S3 endpoint}", "${EPP_S3_BUCKET:?Set the independently expected bucket}"]
+    environment:
+      NODE_ENV: production
+      NODE_EXTRA_CA_CERTS: /run/epp/root.crt
+    volumes:
+      - type: bind
+        source: ./secrets/cleanup.env
+        target: /run/epp/cleanup.env
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./trust/root.crt
+        target: /run/epp/root.crt
+        read_only: true
+        bind: {create_host_path: false}
+    restart: "no"
+    mem_limit: 256m
+    cpus: 0.5
+    pids_limit: 64
+
+networks:
+  backend:
+    external: true
+    name: epp74-backend
