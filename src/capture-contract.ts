@@ -1,12 +1,17 @@
 import { z } from 'zod';
 import type { Capture } from './capture.js';
+import { MAX_NEW_ORIGINAL_TEXT_LENGTH } from './capture-policy.js';
 
 export const OriginalTextSchema = z.string()
   .regex(/\S/, 'originalText must contain a non-whitespace character')
   .refine(text => text.length <= 2000, 'originalText must be at most 2000 code units')
   .describe('Original text; whitespace is preserved. Maximum 2000 UTF-16 code units.');
 
-export const CreateCaptureSchema = z.object({ originalText: OriginalTextSchema });
+export const NewOriginalTextSchema = OriginalTextSchema
+  .refine(text => text.length <= MAX_NEW_ORIGINAL_TEXT_LENGTH,
+    `originalText must be at most ${MAX_NEW_ORIGINAL_TEXT_LENGTH} code units`)
+  .describe(`New original text; whitespace is preserved. Maximum ${MAX_NEW_ORIGINAL_TEXT_LENGTH} UTF-16 code units.`);
+export const CreateCaptureSchema = z.object({ originalText: NewOriginalTextSchema });
 export type CreateCaptureInput = z.infer<typeof CreateCaptureSchema>;
 
 export const ListQuerySchema = z.object({

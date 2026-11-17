@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { MAX_NEW_ORIGINAL_TEXT_LENGTH } from './capture-policy.js';
 import type { Capture, CaptureListOptions } from './capture.js';
 import type { CaptureStore } from './capture-store.js';
 
@@ -12,8 +13,8 @@ export class CapturesService {
     if (typeof originalText !== 'string' || !originalText.trim()) {
       throw new InvalidCaptureError('originalText must be a non-empty string');
     }
-    if (originalText.length > 2000) {
-      throw new InvalidCaptureError('originalText must be at most 2000 code units');
+    if (originalText.length > MAX_NEW_ORIGINAL_TEXT_LENGTH) {
+      throw new InvalidCaptureError(`originalText must be at most ${MAX_NEW_ORIGINAL_TEXT_LENGTH} code units`);
     }
     const capture: Capture = {
       id: randomUUID(),

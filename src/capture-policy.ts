@@ -1,0 +1,1 @@
+export const MAX_NEW_ORIGINAL_TEXT_LENGTH = 1200;
