@@ -10,7 +10,7 @@
 
 分支 `part-05/chapter-47` 从第 44 章继续。以该章非空数据库的独立 VERIFY 副本开始，让 .env.database-verify 和 .env.test 分别提供对应的 DATABASE_URL 与 TEST_DATABASE_URL。核对库名、旧用户和具体素材，运行 `npm ci`、`node --env-file=.env.database-verify scripts/deploy-verify.mjs deploy epp_ch40_verify`、`npm run db:verify -- migrate status`、`npm run check`。本章只追加 browser_login_tickets。日常库先备份并核对副本，再单独应用迁移。
 
-使用 Node 24.22.1，从项目根运行 `node --env-file=.env.test --inspect=127.0.0.1:9470 examples/mini-login-local.mjs epp_ch40_verify`。浏览器访问 http://127.0.0.1:3370/auth/scan，Postman 本地导入脚本生成的环境和[扫码集合](requests/chapter-40.postman_collection.json)，把 start 响应中的 scene 放入集合变量。先 inspect，后 confirm；在原浏览器轮询完成后查 /auth/me 和 /captures/本轮captureId。DBeaver 在同库执行[只读投影](database/chapter-40/observe.sql)。按 Return 清理样本。小程序真机使用 [mini-program](mini-program/README.md) 里的扫码按钮、合法 HTTPS 请求域名和实际 mini 会话。API 自动测试使用 `npm test`，同样需要已迁移的独立 VERIFY。
+使用 Node 24.22.1，从项目根运行 `node --env-file=.env.test --inspect=127.0.0.1:9470 examples/mini-login-local.mjs epp_ch40_verify`。浏览器访问 `http://127.0.0.1:3370/auth/scan`，Postman 本地导入脚本生成的环境和[扫码集合](requests/chapter-40.postman_collection.json)，把 start 响应中的 scene 放入集合变量。先 inspect，后 confirm；在原浏览器轮询完成后查 /auth/me 和 /captures/本轮captureId。DBeaver 在同库执行[只读投影](database/chapter-40/observe.sql)。按 Return 清理样本。小程序真机使用 [mini-program](mini-program/README.md) 里的扫码按钮、合法 HTTPS 请求域名和实际 mini 会话。API 自动测试使用 `npm test`，同样需要已迁移的独立 VERIFY。
 
 命令末尾换成建库时独立选定的 VERIFY 名称。先执行 `unset DATABASE_URL SHADOW_DATABASE_URL TEST_DATABASE_URL`，再按相应命令加载本地文件。实验启动在真实连接核对库名后才写样本。若从本章分支的一份全新空库起步，先 `npm ci`，配置 .env.database-verify 后运行 `node --env-file=.env.database-verify scripts/deploy-verify.mjs bootstrap epp_ch40_verify` 和 `npm run db:verify -- migrate status`。已有第 40 章以后基线的副本用 deploy 模式正常追加。
 
