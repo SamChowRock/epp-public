@@ -1,0 +1,1 @@
+.page { padding: 32rpx; line-height: 1.7; } input { margin: 24rpx 0; padding: 12rpx; border: 1rpx solid #777; } button { margin: 16rpx 0; }

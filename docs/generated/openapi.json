@@ -8,6 +8,9 @@
   "security": [
     {
       "sessionCookie": []
+    },
+    {
+      "miniBearer": []
     }
   ],
   "paths": {
@@ -104,7 +107,7 @@
             }
           },
           "403": {
-            "description": "Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED or WEB_ACCESS_DENIED",
+            "description": "Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED, WEB_ACCESS_DENIED, MINI_ACCESS_DENIED or SESSION_CHANNEL_DENIED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -160,7 +163,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -257,7 +260,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -281,7 +284,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
       }
     },
     "/auth/me": {
@@ -365,7 +373,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -474,7 +482,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -530,11 +538,11 @@
           {
             "name": "X-CSRF-Token",
             "in": "header",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string"
             },
-            "description": "From GET /auth/csrf for this session. Logout requires it when a live session exists."
+            "description": "Required for a live Cookie session on writes; obtain from GET /auth/csrf. Bearer sessions do not use CSRF tokens."
           }
         ],
         "responses": {
@@ -607,7 +615,7 @@
             }
           },
           "403": {
-            "description": "Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED or WEB_ACCESS_DENIED",
+            "description": "Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED, WEB_ACCESS_DENIED, MINI_ACCESS_DENIED or SESSION_CHANNEL_DENIED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -632,7 +640,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -745,7 +753,7 @@
             }
           },
           "403": {
-            "description": "Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED or WEB_ACCESS_DENIED",
+            "description": "Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED, WEB_ACCESS_DENIED, MINI_ACCESS_DENIED or SESSION_CHANNEL_DENIED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -770,7 +778,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -814,7 +822,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "From GET /auth/csrf for this session. Logout requires it when a live session exists."
+            "description": "Required for a live Cookie session on writes; obtain from GET /auth/csrf. Bearer sessions do not use CSRF tokens."
           }
         ]
       }
@@ -904,7 +912,7 @@
             }
           },
           "403": {
-            "description": "Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED or WEB_ACCESS_DENIED",
+            "description": "Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED, WEB_ACCESS_DENIED, MINI_ACCESS_DENIED or SESSION_CHANNEL_DENIED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -960,7 +968,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -985,6 +993,11 @@
             }
           }
         },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
         "parameters": [
           {
             "name": "X-EPP-Request",
@@ -1004,7 +1017,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "From GET /auth/csrf for this session. Logout requires it when a live session exists."
+            "description": "Required for a live Cookie session on writes; obtain from GET /auth/csrf. Bearer sessions do not use CSRF tokens."
           }
         ]
       }
@@ -1109,26 +1122,11 @@
             }
           },
           "403": {
-            "description": "Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED or WEB_ACCESS_DENIED",
+            "description": "Web session required; code SESSION_CHANNEL_DENIED",
             "content": {
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/Problem"
-                }
-              }
-            },
-            "headers": {
-              "Cache-Control": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "private, no-store"
-              },
-              "X-Request-Id": {
-                "description": "Server-generated correlation ID; not an idempotency key.",
-                "schema": {
-                  "type": "string",
-                  "format": "uuid"
                 }
               }
             }
@@ -1290,7 +1288,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1330,11 +1328,16 @@
           {
             "name": "X-CSRF-Token",
             "in": "header",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string"
             },
-            "description": "From GET /auth/csrf for this session. Logout requires it when a live session exists."
+            "description": "Required for a live Cookie session on writes; obtain from GET /auth/csrf. Bearer sessions do not use CSRF tokens."
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
           }
         ]
       }
@@ -1438,26 +1441,11 @@
             }
           },
           "403": {
-            "description": "Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED or WEB_ACCESS_DENIED",
+            "description": "Web session required; code SESSION_CHANNEL_DENIED",
             "content": {
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/Problem"
-                }
-              }
-            },
-            "headers": {
-              "Cache-Control": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "private, no-store"
-              },
-              "X-Request-Id": {
-                "description": "Server-generated correlation ID; not an idempotency key.",
-                "schema": {
-                  "type": "string",
-                  "format": "uuid"
                 }
               }
             }
@@ -1659,11 +1647,16 @@
           {
             "name": "X-CSRF-Token",
             "in": "header",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string"
             },
-            "description": "From GET /auth/csrf for this session. Logout requires it when a live session exists."
+            "description": "Required for a live Cookie session on writes; obtain from GET /auth/csrf. Bearer sessions do not use CSRF tokens."
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
           }
         ]
       },
@@ -1747,26 +1740,11 @@
             }
           },
           "403": {
-            "description": "Account disabled or Web access denied; code ACCOUNT_DISABLED or WEB_ACCESS_DENIED. Write requests may also reject the Origin.",
+            "description": "Web session required; code SESSION_CHANNEL_DENIED",
             "content": {
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/Problem"
-                }
-              }
-            },
-            "headers": {
-              "Cache-Control": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "private, no-store"
-              },
-              "X-Request-Id": {
-                "description": "Server-generated correlation ID; not an idempotency key.",
-                "schema": {
-                  "type": "string",
-                  "format": "uuid"
                 }
               }
             }
@@ -1821,7 +1799,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
       }
     },
     "/profile/avatar/visibility": {
@@ -1905,32 +1888,17 @@
             }
           },
           "403": {
-            "description": "Account disabled or Web access denied; code ACCOUNT_DISABLED or WEB_ACCESS_DENIED. Write requests may also reject the Origin.",
+            "description": "Web session required; code SESSION_CHANNEL_DENIED",
             "content": {
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/Problem"
                 }
               }
-            },
-            "headers": {
-              "Cache-Control": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "private, no-store"
-              },
-              "X-Request-Id": {
-                "description": "Server-generated correlation ID; not an idempotency key.",
-                "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              }
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1954,7 +1922,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
       },
       "patch": {
         "operationId": "setAvatarVisibility",
@@ -2046,32 +2019,17 @@
             }
           },
           "403": {
-            "description": "Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED or WEB_ACCESS_DENIED",
+            "description": "Web session required; code SESSION_CHANNEL_DENIED",
             "content": {
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/Problem"
                 }
               }
-            },
-            "headers": {
-              "Cache-Control": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "private, no-store"
-              },
-              "X-Request-Id": {
-                "description": "Server-generated correlation ID; not an idempotency key.",
-                "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              }
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2111,11 +2069,16 @@
           {
             "name": "X-CSRF-Token",
             "in": "header",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string"
             },
-            "description": "From GET /auth/csrf for this session. Logout requires it when a live session exists."
+            "description": "Required for a live Cookie session on writes; obtain from GET /auth/csrf. Bearer sessions do not use CSRF tokens."
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
           }
         ]
       }
@@ -2212,26 +2175,11 @@
             }
           },
           "403": {
-            "description": "Account disabled or Web access denied; code ACCOUNT_DISABLED or WEB_ACCESS_DENIED. Write requests may also reject the Origin.",
+            "description": "Web session required; code SESSION_CHANNEL_DENIED",
             "content": {
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/Problem"
-                }
-              }
-            },
-            "headers": {
-              "Cache-Control": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "private, no-store"
-              },
-              "X-Request-Id": {
-                "description": "Server-generated correlation ID; not an idempotency key.",
-                "schema": {
-                  "type": "string",
-                  "format": "uuid"
                 }
               }
             }
@@ -2286,7 +2234,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
       }
     },
     "/profile/me": {
@@ -2370,26 +2323,11 @@
             }
           },
           "403": {
-            "description": "Account disabled or Web access denied; code ACCOUNT_DISABLED or WEB_ACCESS_DENIED. Write requests may also reject the Origin.",
+            "description": "Web session required; code SESSION_CHANNEL_DENIED",
             "content": {
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/Problem"
-                }
-              }
-            },
-            "headers": {
-              "Cache-Control": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "private, no-store"
-              },
-              "X-Request-Id": {
-                "description": "Server-generated correlation ID; not an idempotency key.",
-                "schema": {
-                  "type": "string",
-                  "format": "uuid"
                 }
               }
             }
@@ -2420,7 +2358,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2444,7 +2382,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
       },
       "patch": {
         "operationId": "patchOwnProfile",
@@ -2537,26 +2480,11 @@
             }
           },
           "403": {
-            "description": "Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED or WEB_ACCESS_DENIED",
+            "description": "Web session required; code SESSION_CHANNEL_DENIED",
             "content": {
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/Problem"
-                }
-              }
-            },
-            "headers": {
-              "Cache-Control": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "private, no-store"
-              },
-              "X-Request-Id": {
-                "description": "Server-generated correlation ID; not an idempotency key.",
-                "schema": {
-                  "type": "string",
-                  "format": "uuid"
                 }
               }
             }
@@ -2593,7 +2521,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2633,11 +2561,16 @@
           {
             "name": "X-CSRF-Token",
             "in": "header",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string"
             },
-            "description": "From GET /auth/csrf for this session. Logout requires it when a live session exists."
+            "description": "Required for a live Cookie session on writes; obtain from GET /auth/csrf. Bearer sessions do not use CSRF tokens."
+          }
+        ],
+        "security": [
+          {
+            "sessionCookie": []
           }
         ]
       }
@@ -2734,26 +2667,11 @@
             }
           },
           "403": {
-            "description": "Account disabled or Web access denied; code ACCOUNT_DISABLED or WEB_ACCESS_DENIED. Write requests may also reject the Origin.",
+            "description": "Web session required; code SESSION_CHANNEL_DENIED",
             "content": {
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/Problem"
-                }
-              }
-            },
-            "headers": {
-              "Cache-Control": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "private, no-store"
-              },
-              "X-Request-Id": {
-                "description": "Server-generated correlation ID; not an idempotency key.",
-                "schema": {
-                  "type": "string",
-                  "format": "uuid"
                 }
               }
             }
@@ -2784,7 +2702,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2808,7 +2726,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
       }
     },
     "/notifications": {
@@ -2936,7 +2859,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3045,26 +2968,11 @@
             }
           },
           "403": {
-            "description": "Origin or account denied",
+            "description": "Web session required; code SESSION_CHANNEL_DENIED",
             "content": {
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/Problem"
-                }
-              }
-            },
-            "headers": {
-              "Cache-Control": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "private, no-store"
-              },
-              "X-Request-Id": {
-                "description": "Server-generated correlation ID; not an idempotency key.",
-                "schema": {
-                  "type": "string",
-                  "format": "uuid"
                 }
               }
             }
@@ -3101,7 +3009,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3125,7 +3033,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
       }
     },
     "/notifications/{id}/read": {
@@ -3156,11 +3069,11 @@
           {
             "name": "X-CSRF-Token",
             "in": "header",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string"
             },
-            "description": "From GET /auth/csrf for this session. Logout requires it when a live session exists."
+            "description": "Required for a live Cookie session on writes; obtain from GET /auth/csrf. Bearer sessions do not use CSRF tokens."
           }
         ],
         "requestBody": {
@@ -3243,7 +3156,7 @@
             }
           },
           "403": {
-            "description": "Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED or WEB_ACCESS_DENIED",
+            "description": "Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED, WEB_ACCESS_DENIED, MINI_ACCESS_DENIED or SESSION_CHANNEL_DENIED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3268,7 +3181,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3323,11 +3236,11 @@
           {
             "name": "X-CSRF-Token",
             "in": "header",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string"
             },
-            "description": "From GET /auth/csrf for this session. Logout requires it when a live session exists."
+            "description": "Required for a live Cookie session on writes; obtain from GET /auth/csrf. Bearer sessions do not use CSRF tokens."
           }
         ],
         "responses": {
@@ -3400,7 +3313,7 @@
             }
           },
           "403": {
-            "description": "Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED or WEB_ACCESS_DENIED",
+            "description": "Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED, WEB_ACCESS_DENIED, MINI_ACCESS_DENIED or SESSION_CHANNEL_DENIED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3425,7 +3338,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3703,7 +3616,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3936,7 +3849,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -4196,7 +4109,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -4429,7 +4342,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -4482,11 +4395,11 @@
           {
             "name": "X-CSRF-Token",
             "in": "header",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string"
             },
-            "description": "From GET /auth/csrf for this session. Logout requires it when a live session exists."
+            "description": "Required for a live Cookie session on writes; obtain from GET /auth/csrf. Bearer sessions do not use CSRF tokens."
           }
         ],
         "requestBody": {
@@ -4576,7 +4489,7 @@
             }
           },
           "403": {
-            "description": "Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED or WEB_ACCESS_DENIED",
+            "description": "Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED, WEB_ACCESS_DENIED, MINI_ACCESS_DENIED or SESSION_CHANNEL_DENIED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -4726,7 +4639,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -4781,11 +4694,11 @@
           {
             "name": "X-CSRF-Token",
             "in": "header",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string"
             },
-            "description": "From GET /auth/csrf for this session. Logout requires it when a live session exists."
+            "description": "Required for a live Cookie session on writes; obtain from GET /auth/csrf. Bearer sessions do not use CSRF tokens."
           }
         ],
         "requestBody": {
@@ -4875,7 +4788,7 @@
             }
           },
           "403": {
-            "description": "Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED or WEB_ACCESS_DENIED",
+            "description": "Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED, WEB_ACCESS_DENIED, MINI_ACCESS_DENIED or SESSION_CHANNEL_DENIED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -5080,11 +4993,11 @@
           {
             "name": "X-CSRF-Token",
             "in": "header",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string"
             },
-            "description": "From GET /auth/csrf for this session. Logout requires it when a live session exists."
+            "description": "Required for a live Cookie session on writes; obtain from GET /auth/csrf. Bearer sessions do not use CSRF tokens."
           }
         ],
         "requestBody": {
@@ -5174,7 +5087,7 @@
             }
           },
           "403": {
-            "description": "Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED or WEB_ACCESS_DENIED",
+            "description": "Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED, WEB_ACCESS_DENIED, MINI_ACCESS_DENIED or SESSION_CHANNEL_DENIED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -5324,7 +5237,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -5553,7 +5466,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -5773,7 +5686,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -5837,11 +5750,11 @@
           {
             "name": "X-CSRF-Token",
             "in": "header",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string"
             },
-            "description": "From GET /auth/csrf for this session. Logout requires it when a live session exists."
+            "description": "Required for a live Cookie session on writes; obtain from GET /auth/csrf. Bearer sessions do not use CSRF tokens."
           }
         ],
         "description": "originalText and optional chineseIntent are used. Missing or null intent is stored as null. Extra properties, including id and createdAt, are ignored. With Idempotency-Key, retries return the original capture and Location even after later edits; current ownership is rechecked. Without a key, each request creates a capture. Body limit: 16 KiB of bytes. Requires valid UTF-8 JSON without a BOM. URL query limit: 1000 ampersand-separated parts.",
@@ -5941,7 +5854,7 @@
             }
           },
           "403": {
-            "description": "Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED or WEB_ACCESS_DENIED",
+            "description": "Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED, WEB_ACCESS_DENIED, MINI_ACCESS_DENIED or SESSION_CHANNEL_DENIED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -6091,7 +6004,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -6342,7 +6255,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -6415,11 +6328,11 @@
           {
             "name": "X-CSRF-Token",
             "in": "header",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string"
             },
-            "description": "From GET /auth/csrf for this session. Logout requires it when a live session exists."
+            "description": "Required for a live Cookie session on writes; obtain from GET /auth/csrf. Bearer sessions do not use CSRF tokens."
           }
         ],
         "requestBody": {
@@ -6509,7 +6422,7 @@
             }
           },
           "403": {
-            "description": "Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED or WEB_ACCESS_DENIED",
+            "description": "Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED, WEB_ACCESS_DENIED, MINI_ACCESS_DENIED or SESSION_CHANNEL_DENIED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -6659,7 +6572,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -6715,11 +6628,11 @@
           {
             "name": "X-CSRF-Token",
             "in": "header",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string"
             },
-            "description": "From GET /auth/csrf for this session. Logout requires it when a live session exists."
+            "description": "Required for a live Cookie session on writes; obtain from GET /auth/csrf. Bearer sessions do not use CSRF tokens."
           }
         ],
         "requestBody": {
@@ -6812,7 +6725,7 @@
             }
           },
           "403": {
-            "description": "Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED or WEB_ACCESS_DENIED",
+            "description": "Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED, WEB_ACCESS_DENIED, MINI_ACCESS_DENIED or SESSION_CHANNEL_DENIED",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -6962,7 +6875,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -7193,7 +7106,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -7218,6 +7131,434 @@
             }
           }
         }
+      }
+    },
+    "/auth/mini/login": {
+      "post": {
+        "operationId": "loginMini",
+        "security": [],
+        "summary": "Exchange a fresh platform code and create a mini-program session",
+        "description": "The server fixes the AppID. Link shares the password source quota (ten attempts per 60 seconds across instances, before body parsing); platform-only login does not consume this password quota. Link additionally requires the existing local user ID and current password; it never merges two mapped accounts. First login records a disabled-by-default mini entry eligibility; 200 with userId and miniEnabled=false records a pending mapping without a token. Missing provider configuration returns 503. Obtain a new code after any lost response, inspect owned sessions after login, and revoke unused ones. No cookies are set; do not send Cookie with Authorization.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MiniLogin"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Either a pending account identity without a token, or an opaque token returned once; do not log or synchronize",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MiniLoginResult"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "X-Request-Id": {
+                "description": "Server-generated correlation ID; not an idempotency key.",
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "X-Request-Id": {
+                "description": "Server-generated correlation ID; not an idempotency key.",
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Password or platform code invalid",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "X-Request-Id": {
+                "description": "Server-generated correlation ID; not an idempotency key.",
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED, WEB_ACCESS_DENIED, MINI_ACCESS_DENIED or SESSION_CHANNEL_DENIED",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "X-Request-Id": {
+                "description": "Server-generated correlation ID; not an idempotency key.",
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Platform identity already belongs to another user, or user has another identity in this AppID",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "X-Request-Id": {
+                "description": "Server-generated correlation ID; not an idempotency key.",
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Attempt, provider concurrency, password concurrency or session limit",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Seconds for AUTH_RATE_LIMIT only; other limits require their own recovery."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "X-Request-Id": {
+                "description": "Server-generated correlation ID; not an idempotency key.",
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "X-Request-Id": {
+                "description": "Server-generated correlation ID; not an idempotency key.",
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-EPP-Request",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "/auth/mini/link": {
+      "post": {
+        "operationId": "linkMiniAccount",
+        "security": [],
+        "summary": "Exchange a fresh platform code and create a mini-program session",
+        "description": "The server fixes the AppID. Link shares the password source quota (ten attempts per 60 seconds across instances, before body parsing); platform-only login does not consume this password quota. Link additionally requires the existing local user ID and current password; it never merges two mapped accounts. First login records a disabled-by-default mini entry eligibility; 200 with userId and miniEnabled=false records a pending mapping without a token. Missing provider configuration returns 503. Obtain a new code after any lost response, inspect owned sessions after login, and revoke unused ones. No cookies are set; do not send Cookie with Authorization.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MiniLink"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Either a pending account identity without a token, or an opaque token returned once; do not log or synchronize",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MiniLoginResult"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "X-Request-Id": {
+                "description": "Server-generated correlation ID; not an idempotency key.",
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "X-Request-Id": {
+                "description": "Server-generated correlation ID; not an idempotency key.",
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Password or platform code invalid",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "X-Request-Id": {
+                "description": "Server-generated correlation ID; not an idempotency key.",
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin, explicit header, CSRF or account permission rejected; code ORIGIN_REJECTED, REQUEST_HEADER_REQUIRED, CSRF_REJECTED, ACCOUNT_DISABLED, WEB_ACCESS_DENIED, MINI_ACCESS_DENIED or SESSION_CHANNEL_DENIED",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "X-Request-Id": {
+                "description": "Server-generated correlation ID; not an idempotency key.",
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Platform identity already belongs to another user, or user has another identity in this AppID",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "X-Request-Id": {
+                "description": "Server-generated correlation ID; not an idempotency key.",
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Attempt, provider concurrency, password concurrency or session limit",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Seconds for AUTH_RATE_LIMIT only; other limits require their own recovery."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "X-Request-Id": {
+                "description": "Server-generated correlation ID; not an idempotency key.",
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "private, no-store"
+              },
+              "X-Request-Id": {
+                "description": "Server-generated correlation ID; not an idempotency key.",
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-EPP-Request",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            }
+          }
+        ]
       }
     },
     "/auth/register/request": {
@@ -7369,7 +7710,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -7558,7 +7899,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -7747,7 +8088,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -7929,7 +8270,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -7972,6 +8313,11 @@
   },
   "components": {
     "securitySchemes": {
+      "miniBearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Opaque mini-program session token; never use a Web token here."
+      },
       "sessionCookie": {
         "type": "apiKey",
         "in": "cookie",
@@ -8137,6 +8483,116 @@
           "nextCursor"
         ],
         "additionalProperties": false
+      },
+      "MiniLogin": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256,
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "label": {
+            "default": "Mini program",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60,
+            "pattern": "\\S"
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "additionalProperties": false
+      },
+      "MiniLink": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256,
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "label": {
+            "default": "Mini program",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60,
+            "pattern": "\\S"
+          },
+          "userId": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        },
+        "required": [
+          "code",
+          "userId",
+          "password"
+        ],
+        "additionalProperties": false
+      },
+      "MiniLoginResult": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "userId": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              "miniEnabled": {
+                "type": "boolean",
+                "enum": [
+                  false
+                ]
+              }
+            },
+            "required": [
+              "userId",
+              "miniEnabled"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "userId": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              "sessionId": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "token": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_-]{43}$"
+              },
+              "expiresIn": {
+                "type": "number",
+                "enum": [
+                  28800
+                ]
+              }
+            },
+            "required": [
+              "userId",
+              "sessionId",
+              "token",
+              "expiresIn"
+            ],
+            "additionalProperties": false
+          }
+        ]
       },
       "RecoveryRequest": {
         "type": "object",
@@ -8331,6 +8787,13 @@
                 "label": {
                   "type": "string"
                 },
+                "channel": {
+                  "type": "string",
+                  "enum": [
+                    "web",
+                    "mini"
+                  ]
+                },
                 "createdAt": {
                   "type": "string",
                   "format": "date-time",
@@ -8348,6 +8811,7 @@
               "required": [
                 "id",
                 "label",
+                "channel",
                 "createdAt",
                 "expiresAt",
                 "current"
