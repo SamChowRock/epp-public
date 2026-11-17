@@ -8,11 +8,12 @@
 
 ## 第五十一章　为什么需要独立 Worker
 
-从 `part-06/chapter-49` 继续，分支 `part-06/chapter-51` 追加验证邮件通道控制表，重启后保留停发状态。按[双进程启动说明](database/chapter-43/README.md)配置 API 与寄信进程，导入[本章集合](requests/chapter-43.postman_collection.json)，用当前身份和邮箱对照重置前后的事实。
+从 `part-06/chapter-50` 继续，分支 `part-06/chapter-51` 追加验证邮件通道控制表，重启后保留停发状态。按[双进程启动说明](database/chapter-43/README.md)配置 API 与寄信进程，导入[本章集合](requests/chapter-43.postman_collection.json)，用当前身份和邮箱对照重置前后的事实。
 
-## 第四十九章　Transactional Outbox
+已继承第 50 章：登录入口与邮件出站队列的统一交付。
+从第49章接续，合并第44章的小程序身份与渠道边界；两个阶段的历史均保留。
 
-分支 `part-06/chapter-49` 从密码路线第 43 章继续。按[本章说明](database/chapter-42/README.md)升级 VERIFY，用原注册／重置请求提交业务意图与寄信任务，关闭 API 后运行一次性程序向 Mailpit 寄信。第 43 章标题下的同步投递说明描述旧分支。
+按[50章实践](database/chapter-50-login-outbox/README.md)迁移并核对两条旧历史；[完整请求集合](requests/chapter-50-login-outbox.postman_collection.json)与[可选本机观察页](examples/login-outbox/README.md)随本分支提供。
 
 ## 第四十三章 恢复已有账号并撤销旧会话
 
@@ -86,9 +87,12 @@ nvm use
 node --version
 npm ci
 npm run check
-# 先按第 42 章说明完成迁移，在 .env 配置 DATABASE_URL、APP_ORIGIN和LOCAL_SMTP_PORT。
+# 先按下方第50章统一准备入口升级：已有非空副本用deploy，专用空库用bootstrap。
+# .env 中 DATABASE_URL 指向已完成相应准备的开发库。
 npm run dev
 ```
+
+启动前按[第50章统一数据库准备](database/chapter-50-login-outbox/README.md#从已有非空库升级)选择入口：从44或49继续的非空副本用 `scripts/deploy-verify.mjs deploy`，专用空库用同脚本的 `bootstrap`；命令末尾须填写实际预期库名。先完成独立VERIFY核对，再升级开发库并配置API连接。不要对空库直接运行 `migrate deploy`。
 
 `.nvmrc` 固定 Node.js 为 `24.22.1`，`node --version` 应输出 `v24.22.1`。`nvm install` 按文件安装并切换版本；每次新开终端后，在项目内执行 `nvm use`。单独进入目录不会自动切换版本。
 
