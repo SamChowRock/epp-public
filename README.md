@@ -49,7 +49,7 @@
 - [第 46 章　微信网站扫码登录](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-46)
 - [第 47 章　用已登录的小程序扫码确认网站登录](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-47)
 - [第 49 章　Transactional Outbox：业务和消息如何一起提交](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-49)
-- [第 50 章　把登录入口与邮件出站队列合到一起](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-50)
+- [第 50 章　选读：让小程序登录与事务发件箱在同一服务工作](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-50)
 - [第 51 章　为什么需要独立 Worker](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-51)
 - [第 52 章　安全领取任务与识别过期执行者](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-52)
 - [第 53 章　失败、重试与未知结果](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-53)
