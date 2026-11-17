@@ -120,7 +120,7 @@
 
 前置章节是第四篇第25章（`part-04/chapter-25`），该章从 `part-03/chapter-24` 最终状态继续。保留旧记录并回填初始修订，新增追加修订和历史查询，旧PATCH改为追加快照，详情／列表读取最新内容。先完成第三篇环境与迁移，再按[第二十五章说明](database/chapter-22/README.md)停写、迁移、核对和切换，旧字段保留初始副本，不再代表当前内容。
 
-第十五章的 1200 单元新建限制、旧记录读取兼容与数组存储属于隔离练习，参考补丁和图形请求仍保留在下方“第十五章综合实践”，不作为当前主服务行为。
+第十五章的 1200 单元新建限制、旧记录读取兼容与数组存储属于隔离练习，参考源码和图形请求说明见下方“第十五章综合实践”，不作为当前主服务行为。
 
 主服务集中解析启动配置，提供结构化日志与服务端 X-Request-Id；SIGINT/SIGTERM 先停止接收，再等待已有工作并释放资源。既有三个接口增加可空意图响应，另提供追加意图修改、完整修订和历史读取接口；Problem 契约沿用，关闭期间明确拒绝的新请求使用 503／SERVICE_DRAINING。Swagger 开发默认开启，生产默认关闭。记录保存在 PostgreSQL；API 退出会释放连接并保留已提交行。当前用户由数据库会话确定，旧资源仍检查原归属；本章先在本机同源入口实践。
 
@@ -152,7 +152,7 @@ NODE_ENV=production APP_ORIGIN=http://127.0.0.1:3001 PORT=3001 node --enable-sou
 
 `PORT` 必须为十进制数字字符串，转换后的整数范围是 1～65535；缺失时使用默认端口，空值或错误值会在监听前退出并返回非零状态。即使指定 `PORT`，默认配置文件仍必须存在且有效。配置由每个服务进程在启动时读取；dev 会在源配置变化后复制并重启，生产产物则需要重新构建，修改生产运行目录的默认配置后需重启；绑定地址始终为 `127.0.0.1`。改端口后同步修改请求地址。
 
-沿用第二十五章的[修订历史请求集合](requests/chapter-22.postman_collection.json)，逐项核对完整追加、旧PATCH、最新读取和历史翻页。前章集合仍可观察原有输入边界；第二十四章三版本实验与补丁应回到对应章节分支操作，不能对当前修订库运行旧写入者。
+沿用第二十五章的[修订历史请求集合](requests/chapter-22.postman_collection.json)，逐项核对完整追加、旧PATCH、最新读取和历史翻页。前章集合仍可观察原有输入边界；第二十四章三版本源码实验应回到对应章节分支操作，不能对当前修订库运行旧写入者。
 
 ## 用 Postman 发送和保存请求
 
@@ -430,7 +430,7 @@ git worktree add -b practice/chapter-06-source ../epp-chapter-06-source origin/p
 
 进入 `../epp-chapter-06-source`，执行 `nvm use`、`npm ci`，按正文独立实现。远程分支记录 `origin/part-01/chapter-06` 已由显式 fetch 建立，不依赖同名本地分支；原项目无需初始化 Git。
 
-查看参考：`git show origin/part-01/chapter-07:examples/chapter-06-source.patch`。需要运行参考时，在资料目录执行 `git worktree add -b practice/chapter-06-reference ../epp-chapter-06-reference origin/part-01/chapter-06`；成功后进入该目录，执行 `git show origin/part-01/chapter-07:examples/chapter-06-source.patch | git apply -`，然后安装依赖、类型检查、构建与启动。不要在已有个人成果上直接应用补丁。结束后用 `cd "$main_dir"` 回到原项目；重开终端后用自己记录的原路径。详细需求、隔离步骤与响应观察见第七章。
+来源标签完整参考为 `codex/reference/chapter-07-source-label`。保留个人实现后，独立执行 `git clone --single-branch --branch codex/reference/chapter-07-source-label https://github.com/SamChowRock/epp-public.git ../epp07-source-reference`，成功后进入该新目录，执行 `nvm use`、`npm ci`、`npm run check`、`npm run build`、`npm start`。目录已存在时另取名字，勿覆盖个人成果；先停原服务避免端口冲突。结束后返回原项目，下一章仍从 `part-01/chapter-06` 接续；来源标签不进入后续主线。
 
 ## 第八章建立的 Nest 组装与业务边界
 
@@ -781,53 +781,15 @@ node examples/request-context.mjs
 
 前者观察初始化与关闭钩子；后者对照全局变量串值、AsyncLocalStorage 与事件绑定。第十一章直接消费 CapturesModule 的示例已在自身根模块登记 RuntimeModule，容器之间不共享 global 模块。主服务使用数据库；独立生命周期实验仍只管理自己的文件资源，不连接数据库。build 排除全部 src/labs；dev:lifecycle 与 dev:pipeline 都只运行 .dev 产物。
 
-## 第十五章综合实践（在第十五章快照进行）
+## 第十五章综合实践
 
-先独立完成需求，再对照参考：新建 originalText 上限收紧为 1200 个 UTF-16 代码单元，旧记录仍可按原有 2000 单元范围读取；用数组替换 Map，同时保留 CAPTURE_STORE、观测包装、顺序、副本与失败约定。练习使用 `part-02/chapter-15` 快照；不要在本章持久化分支套用旧 Map／数组补丁。
+先从 `part-02/chapter-14` 独立完成练习：新输入 originalText 上限1200个UTF-16单元，保留旧2000单元读取；数组实现保留CAPTURE_STORE、观测包装、顺序、副本和失败约定。练习功能不进入正式主线。
 
-停止已有 dev，保留原项目；无论自己跟写还是使用配套代码，都另建本章资料目录：
-
-```bash
-git clone --single-branch --branch part-02/chapter-15 \
-  https://github.com/SamChowRock/epp-public.git ../epp-chapter-14-materials
-```
-
-克隆成功后继续；失败或目录已存在时先处理原因，不继续下一条。已有练习按下文恢复，不重新应用补丁。
+需要对照时，保留个人成果，另取完整参考源码：
 
 ```bash
-cd ../epp-chapter-14-materials
-review_root=$(pwd)
-git fetch origin refs/heads/part-02/chapter-14:refs/remotes/origin/part-02/chapter-14
-git worktree add -b practice/chapter-14 ../epp-chapter-14-practice origin/part-02/chapter-14
-```
-
-确认创建成功后进入目录，按第十五章实现自己的版本；已存在的目录或分支应保留，换新名称。review_root 只保存在当前 shell，后面仍使用这个终端回到原目录。
-
-```bash
-cd ../epp-chapter-14-practice
-nvm use
-npm ci
-npm run check
-PORT=3008 LOG_LEVEL=debug npm run dev
-```
-
-用 VS Code 打开练习目录并 attach。业务端口为 3008，Inspector 仍为 9229，不能与另一份 dev 同时启动。保存后自动编译重启，内存清空；比较失败前后的记录数量时，先建立当前进程的基线。
-
-从第十五章资料目录导入 [requests/review.postman_collection.json](requests/review.postman_collection.json)，集合默认 baseUrl 为 `http://127.0.0.1:3008`。逐条 Send：普通输入、1200 单元、600 个表情成功；1201 单元、601 个表情及纯空白返回400且不写入。普通输入的首尾空格保留。成功响应 id 手动填入集合 captureId，核对详情、Location 与 X-Request-Id。集合不自动发请求；第十四章基线本身仍允许 1201 单元。
-
-需运行参考时，保留自己的实现，在另一个 worktree 使用 [examples/chapter-14-review.patch](examples/chapter-14-review.patch)：
-
-```bash
-cd "$review_root"
-git worktree add -b practice/chapter-14-reference ../epp-chapter-14-reference origin/part-02/chapter-14
-```
-
-创建成功后进入目录，只有补丁检查成功才应用；失败先检查基线和已有修改。
-
-```bash
-cd ../epp-chapter-14-reference
-git apply --check "$review_root/examples/chapter-14-review.patch" &&
-git apply "$review_root/examples/chapter-14-review.patch"
+git clone --single-branch --branch codex/reference/chapter-15-array-store https://github.com/SamChowRock/epp-public.git ../epp15-array-reference
+cd ../epp15-array-reference
 nvm use
 npm ci
 npm run check
@@ -835,10 +797,7 @@ node examples/review-contract.mjs
 PORT=3008 LOG_LEVEL=debug npm run dev
 ```
 
-启动前停止另一份 dev。独立示例直接放入 1500 单元旧记录，验证仍能投影为公开响应；两种存储都应保留副本，拒绝新建 1201 单元，筛选后再取 limit。这个进程的数据不进入 dev 服务；直接插入只用于受控旧数据条件，不是迁移或跳过校验的业务接口。
+目录已存在时保留原进度，另选新目录；先停另一份dev，Inspector仍为9229。请求使用本章 `requests/review.postman_collection.json`（在 `part-02/chapter-15`），baseUrl设为3008。1200单元通过、1201拒绝；失败前后核对数量，重启清空内存。review-contract验证两种存储的1500单元旧记录读取、副本隔离、Service直接拒绝及先筛选后limit。独立示例不与HTTP共享数据。
 
-正文继续用两次可恢复故障区分写入前失败与输出失约；恢复源码后再构建交付。关闭对照复用 `npm run dev:lifecycle` 和生命周期集合，勿与业务 dev 同时运行。生产产物按前文所述文件布局在独立目录运行时，将端口改为 3009，复制练习集合并设置该目标，重新创建数据；`npm start` 使用 production、不加载开发 .env、不启用 Inspector，文档默认关闭。数组仍不持久化，停止后重新启动应为空。
+按正文继续故障与生产产物核查；生产目标3009，npm start不加载开发.env。完成后停止参考进程，回到个人原目录。第三篇仍沿正式 `part-02/chapter-15` 接续，不把数组与1200输入练习传播到后续。
 
-本章的独立产物步骤与前面的生产运行说明使用相同文件布局；以第十五章正文的 3009 命令为准。退出并保存成果后再管理 worktree，不强制清除未提交实现。
-
-渠道边界：小程序继续使用通用素材和通知HTTP；通知SSE、资料与头像接口随对应章节提供Web会话能力，Bearer访问返回403 SESSION_CHANNEL_DENIED。
