@@ -1,4 +1,4 @@
-import './database-env.mjs';
+import './auth-rate-test-state.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import http from 'node:http';

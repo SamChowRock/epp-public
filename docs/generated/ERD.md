@@ -169,6 +169,13 @@ erDiagram
     Json response
     DateTime recorded_at
   }
+  auth_rate_buckets {
+    String rule_key PK
+    String source_key PK
+    DateTime opened_at
+    DateTime expires_at
+    Int used
+  }
   users |o..o| avatar_writes : "avatar_id, id to id, user_id"
   sessions }o..|| users : "user_id to id"
   password_credentials |o--|| users : "user_id to id"
