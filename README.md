@@ -8,38 +8,38 @@
 
 已继承[第30章的创建与修订重试](examples/write-retry/README.md)：两个POST可带Idempotency-Key，省略时保留原行为。
 
-第 77 章「让 API 和后台进程更换凭据与签名密钥」使用 `git switch part-10/chapter-77`。继承第 76 章受限原生与容器身份、计时器、已验镜像和非空副本，通过原 HTTPS 入口及会话验收。
+第 76 章「让 API 和后台进程更换凭据与签名密钥」使用 `git switch part-10/chapter-77`。继承第 75 章受限原生与容器身份、计时器、已验镜像和非空副本，通过原 HTTPS 入口及会话验收。
 
-## 第七十七章　让 API 和后台进程更换凭据与签名密钥
+## 第七十六章　让 API 和后台进程更换凭据与签名密钥
 
 按[凭据轮换练习](examples/credential-rotation/README.md)准备新登录，分别验证签名密钥和数据库连接，并更新下一轮会读取的清理配置。
 
-## 第七十六章　定时维护漏跑或同时启动两次以后怎么办
+## 第七十五章　定时维护漏跑或同时启动两次以后怎么办
 
 按[维护任务运行说明](examples/maintenance/README.md)核对单笔资格与漏跑、重复领取；容器部署继续按[一次性维护容器](examples/container-deployment/cleanup.md)安装独立配置和宿主计时器。
 
-## 第七十四章　用 Compose 接手应用部署
+## 第七十三章　用 Compose 接手应用部署
 
-按[应用编排与已有数据通路](examples/container-deployment/compose.md)从空部署目录配置专用网络、独立身份、公开 CA、日志与停止预算，再用旧账号、收据和头像验收。第 75 章观测沿用本阶段。
+按[应用编排与已有数据通路](examples/container-deployment/compose.md)从空部署目录配置专用网络、独立身份、公开 CA、日志与停止预算，再用旧账号、收据和头像验收。第 74 章观测沿用本阶段。
 
-## 第七十三章　把应用交付为可验证的容器镜像
+## 第七十二章　把应用交付为可验证的容器镜像
 
-按[镜像构建与交接说明](examples/container-deployment/README.md)构建同平台镜像，验证 Node、Prisma 客户端、argon2、sharp 和私有工作目录。第 74 章再接应用编排和既有数据通路。
+按[镜像构建与交接说明](examples/container-deployment/README.md)构建同平台镜像，验证 Node、Prisma 客户端、argon2、sharp 和私有工作目录。第 73 章再接应用编排和既有数据通路。
 
-## 第七十二章　让客户端通过可信入口访问服务
+## 第七十一章　让客户端通过可信入口访问服务
 
 按[同源练习页交付说明](examples/handoff-client/README.md)把两个公开文件放入已验的 HTTPS 入口，从使用端登录、写读素材、打开头像并核对通知。
 
 
 按[练习 CA 和 HTTPS 入口说明](examples/tls-trust/README.md)准备证书，在部署端将签名头像和 API 接到私网可达的带名入口。换证和回退在支线中演练。
 
-## 第七十一章　让 API 和后台进程以各自身份持续运行
+## 第七十章　让 API 和后台进程以各自身份持续运行
 
 按[服务身份与授权](examples/service-roles/README.md)升级非空副本，用三个系统用户和数据库角色完成注册、寄信和通知。按[分角色交接说明](examples/portable-release/README.md)核对目标平台归档、收据 CLI、头像签名地址和 API 可写目录。
 
-## 第七十章　把应用和数据交给目标环境
+## 第六十九章　把应用和数据交给目标环境
 
-按[目标环境与 Mac 托管说明](examples/deployment/README.md)取得授权和可选宿主脚本。第 70 章直接接手第 69 章验过的产物；第 71 章在 Debian 建立最终服务身份与托管。
+按[目标环境与 Mac 托管说明](examples/deployment/README.md)取得授权和可选宿主脚本。第 69 章直接接手第 68 章验过的产物；第 70 章在 Debian 建立最终服务身份与托管。
 
 ## 第六十五章　调试性能与资源问题
 

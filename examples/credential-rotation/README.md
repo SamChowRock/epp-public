@@ -1,6 +1,6 @@
 # 两个 API 实例的凭据轮换练习
 
-沿用第 76 章的平台制品、受限角色和配置。核对制品摘要后直接运行。客户端使用第 72 章交接的 HTTPS 名称、端口、可信根和原会话，保留一条旧素材 ID。已有会话过期时，在这个 HTTPS 来源重新登录一次。将练习入口的上游接到本次隔离副本；数据库使用第 76 章停机集群的独立副本，配对恢复对象桶。角色属于整个 PostgreSQL 实例。没有新迁移。
+沿用第 75 章的平台制品、受限角色和配置。核对制品摘要后直接运行。客户端使用第 71 章交接的 HTTPS 名称、端口、可信根和原会话，保留一条旧素材 ID。已有会话过期时，在这个 HTTPS 来源重新登录一次。将练习入口的上游接到本次隔离副本；数据库使用第 75 章停机集群的独立副本，配对恢复对象桶。角色属于整个 PostgreSQL 实例。没有新迁移。
 
 ### 先记下原身份和业务基线
 
@@ -16,13 +16,13 @@
 \password epp_cleanup_v2
 ```
 
-每次交互输入该角色新生成的独立口令。确认实例的回环 TCP 连接由 `scram-sha-256` 认证。每份新配置从**对应角色**的旧文件复制，修改 `DATABASE_URL` 的登录名与口令并编码 URL 保留字符，保留库名、连通路径和该进程的其他配置。API 数据库试切期间两端仍用原 `CURSOR_HMAC_KEY`。签名试切时，单独生成一次 32 字节随机值（64 位十六进制）保存在私有文件中，A 和 B 使用同一份新值。秘密不进命令行、Git 或共享请求集合。每个配置按第 71 章设置 root 为属主、对应服务组可读、模式 0640，保留登录管理员的独立观察通路。[各角色及其启动路径](../portable-release/README.md)
+每次交互输入该角色新生成的独立口令。确认实例的回环 TCP 连接由 `scram-sha-256` 认证。每份新配置从**对应角色**的旧文件复制，修改 `DATABASE_URL` 的登录名与口令并编码 URL 保留字符，保留库名、连通路径和该进程的其他配置。API 数据库试切期间两端仍用原 `CURSOR_HMAC_KEY`。签名试切时，单独生成一次 32 字节随机值（64 位十六进制）保存在私有文件中，A 和 B 使用同一份新值。秘密不进命令行、Git 或共享请求集合。每个配置按第 70 章设置 root 为属主、对应服务组可读、模式 0640，保留登录管理员的独立观察通路。[各角色及其启动路径](../portable-release/README.md)
 
 ### 经同一 HTTPS 入口切换上游
 
-两份 API 配置使用第 72 章的 HTTPS APP_ORIGIN，保留同一库与原签名密钥；候选 A 使用新数据库登录和独立回环端口、可写目录，原上游 B 继续工作。留存 nginx 当前配置。沿用第 72 章的入口，在部署端只改 `proxy_pass` 的上游地址，预检并平滑重载；用每次请求的 requestId 在实际 A 或 B 的日志中确认去向。两边都应经同一个 HTTPS 名称和端口访问。
+两份 API 配置使用第 71 章的 HTTPS APP_ORIGIN，保留同一库与原签名密钥；候选 A 使用新数据库登录和独立回环端口、可写目录，原上游 B 继续工作。留存 nginx 当前配置。沿用第 71 章的入口，在部署端只改 `proxy_pass` 的上游地址，预检并平滑重载；用每次请求的 requestId 在实际 A 或 B 的日志中确认去向。两边都应经同一个 HTTPS 名称和端口访问。
 
-在操作端恢复第 72 章的私有 Bash 会话变量，`lab` 指向保留可信根、原 cookies 的目录，`id` 是原素材 ID。使用第 72 章的 [curl 客户端](../tls-trust/README.md)验证证书链和名称。每次切换后，经入口发新请求并记录响应头中的请求 ID。
+在操作端恢复第 71 章的私有 Bash 会话变量，`lab` 指向保留可信根、原 cookies 的目录，`id` 是原素材 ID。使用第 71 章的 [curl 客户端](../tls-trust/README.md)验证证书链和名称。每次切换后，经入口发新请求并记录响应头中的请求 ID。
 
 ```bash
 site=https://api.epp.test:8443
@@ -46,9 +46,9 @@ WHERE u.id = :'sample_user'::uuid AND u.status = 'active'
 RETURNING id;
 ```
 
-这是合成的分页样本。按第 71 章以旧通知身份短暂启动通知 Worker，确认两个 ID 均已进箱，再停妥它。先检查队列只有预期的待办，避免顺便消费故障对照要保留的任务。第 75.3 节用于验证新消费者的那笔任务仍由真实注册确认产生。
+这是合成的分页样本。按第 70 章以旧通知身份短暂启动通知 Worker，确认两个 ID 均已进箱，再停妥它。先检查队列只有预期的待办，避免顺便消费故障对照要保留的任务。第 74.3 节用于验证新消费者的那笔任务仍由真实注册确认产生。
 
-### 支线 77A 的隔离 HTTP 探针
+### 支线 76A 的隔离 HTTP 探针
 
 下面的 SSH 转发、HTTP 登录和 client.sh 专用于故意分裂 A、B 密钥的故障对照。在另一个停机集群副本中演练，另设端口、工作目录和配置文件。保持上节交付的 HTTPS 入口、配置与会话继续可用。
 
@@ -71,7 +71,7 @@ port_b=13387
 . examples/credential-rotation/client.sh
 ```
 
-此处新建的 lab 与上节的 TLS 目录分开，Cookie 来自本轮 HTTP 登录。`__Host-` 前缀的 HTTPS Cookie 留在第 72 章的客户端。
+此处新建的 lab 与上节的 TLS 目录分开，Cookie 来自本轮 HTTP 登录。`__Host-` 前缀的 HTTPS Cookie 留在第 71 章的客户端。
 
 在私有目录中用编辑器创建 `$lab/login.json`，形如 `{"userId":"自己的练习用户 UUID","password":"该用户的练习口令"}`。
 
@@ -101,9 +101,9 @@ next_page A candidate accepted-page.json
 
 - [会话观察 SQL](activity.sql)可在 DBeaver 执行。连接两个 API 的同一数据库观察账号，自动提交下刷新；查询保留了其他库的行，便于发现意外交叉使用。
 - 新通知身份刻意漏掉收件箱 INSERT。正常领取事务应整体回滚：同一 job 仍 pending，收件箱没有该 ID。核对 PG 错误及列授权后，在原管理员 psql 执行 `\i examples/credential-rotation/repair-notify.sql`，再启动同一入口消费原任务。[恢复正式通知授权](repair-notify.sql)
-- [按角色启动、只读收据与退出](../portable-release/README.md)、[邮件占用处置](../../database/chapter-45/README.md)、[清理任务单笔运行](../maintenance/README.md)都沿用原来的入口。正文 75.4 在验证新配置后禁止旧登录并观察仍活着的旧会话。留存原角色作为权限来源，撤销其登录与删除角色产生不同结果。
+- [按角色启动、只读收据与退出](../portable-release/README.md)、[邮件占用处置](../../database/chapter-45/README.md)、[清理任务单笔运行](../maintenance/README.md)都沿用原来的入口。正文 74.4 在验证新配置后禁止旧登录并观察仍活着的旧会话。留存原角色作为权限来源，撤销其登录与删除角色产生不同结果。
 
 
-容器部署沿用[第 76 章系统级目录](../container-deployment/cleanup.md) `/opt/epp-container` 与 `compose.env`。新 API、邮件、通知、清理登录须分别加入实际数据库对 `172.28.74.0/24` 的精确 HBA 许可；先核对新连接，再撤旧入口。容器不会因宿主改 env 文件自动更换已建立连接，配置切换用明确项目目录的 Compose `up -d --force-recreate` 重建对应角色。邮件先停旧消费者、核对 unknown 后再接管，保持 `restart: "no"`。API 的 CURSOR_HMAC_KEY 在并行期间须按正文验证旧 Cookie、CSRF 与游标；同库并不意味着密钥相同。
+容器部署沿用[第 75 章系统级目录](../container-deployment/cleanup.md) `/opt/epp-container` 与 `compose.env`。新 API、邮件、通知、清理登录须分别加入实际数据库对 `172.28.74.0/24` 的精确 HBA 许可；先核对新连接，再撤旧入口。容器不会因宿主改 env 文件自动更换已建立连接，配置切换用明确项目目录的 Compose `up -d --force-recreate` 重建对应角色。邮件先停旧消费者、核对 unknown 后再接管，保持 `restart: "no"`。API 的 CURSOR_HMAC_KEY 在并行期间须按正文验证旧 Cookie、CSRF 与游标；同库并不意味着密钥相同。
 
 清理 timer 的下一次运行读取 `secrets/cleanup.env`，无常驻容器也要更新它。保持 root:10001、0640；原子替换配置文件后重建长期容器，避免已绑定旧 inode 的容器继续读旧文件。只读收据 CLI 仍单独交付与授权，不能拿 API 镜像默认入口当成它。撤销旧登录之前，按本章活动连接查询逐个确认所有使用者，包括计时器、手动 CLI、另一台主机和旧容器。

@@ -1,6 +1,6 @@
-# 第 74 章：Compose 接管三个应用进程
+# 第 73 章：Compose 接管三个应用进程
 
-这一阶段保留第 72 章的宿主 nginx、PostgreSQL、SeaweedFS、Mailpit 和已有业务数据，只将 API、邮件与通知进程改由 Compose 托管。镜像来自第 73 章。它不会替你迁移库、创建桶、重置账号或修复 unknown 邮件。在维护窗口记录并停止旧消费者，接通依赖后启动新角色，最后从原 HTTPS 地址验收。
+这一阶段保留第 71 章的宿主 nginx、PostgreSQL、SeaweedFS、Mailpit 和已有业务数据，只将 API、邮件与通知进程改由 Compose 托管。镜像来自第 72 章。它不会替你迁移库、创建桶、重置账号或修复 unknown 邮件。在维护窗口记录并停止旧消费者，接通依赖后启动新角色，最后从原 HTTPS 地址验收。
 
 ## 1. 在 Linux 部署主机上建空交付目录
 
@@ -22,7 +22,7 @@ sudo install -m 0600 "$EPP_DEPLOY/compose.env.example" "$EPP_DEPLOY/compose.env"
 sudoedit "$EPP_DEPLOY/compose.env"
 ```
 
-把 `EPP_IMAGE` 改为第 73 章实际通过检查的 `docker image inspect --format '{{.Id}}' epp:chapter-73` 结果，`EPP_DATABASE` 改为现有库名。不要把模板占位字当成镜像或数据库。镜像必须已在当前引擎上存在；其他主机上的本地 image ID 并不代表这里已取得镜像。`compose.env` 只供 Compose 替换镜像和命令参数，不会自动变成 Node 的运行环境。
+把 `EPP_IMAGE` 改为第 72 章实际通过检查的 `docker image inspect --format '{{.Id}}' epp:chapter-73` 结果，`EPP_DATABASE` 改为现有库名。不要把模板占位字当成镜像或数据库。镜像必须已在当前引擎上存在；其他主机上的本地 image ID 并不代表这里已取得镜像。`compose.env` 只供 Compose 替换镜像和命令参数，不会自动变成 Node 的运行环境。
 
 后续统一用下列函数，避免 SSH 新开终端后工作目录不同导致误读另一份文件；新终端先重新定义：
 
@@ -65,7 +65,7 @@ is-enabled 显示 disabled 可以正常；三个角色应 inactive、MainPID=0�
 
 - **PostgreSQL**：用现有管理员连接执行 `SHOW config_file; SHOW hba_file; SHOW port; SHOW listen_addresses;`，确认本轮库和真实端口。把 `listen_addresses` 从原回环扩为原回环加 `172.28.74.1`，例如 `127.0.0.1,::1,172.28.74.1`；监听变更要安排数据库重启，须先停止应用消费者并沿用前章停机规程。保留原回环入口。HBA 仅新增本轮数据库与 `epp_api,epp_mail,epp_notify` 三个角色来自 `172.28.74.0/24` 的 SCRAM 条目，置于会匹配它的拒绝规则之前。不要加 `host all all 0.0.0.0/0 trust`。例如库名为 `epp_handoff` 时：`host epp_handoff epp_api,epp_mail,epp_notify 172.28.74.0/24 scram-sha-256`。用真实库名替换示例，再按既有管理员连接执行 `SELECT pg_reload_conf();`；HBA 重载不能替代监听变更所需的重启。
 - **Mailpit**：先核对现有 epp-inbox 的路径和持久文件，然后 `sudo systemctl edit epp-inbox`，在 `[Service]` 中用空 `ExecStart=` 清除旧命令，再设 `ExecStart=/opt/epp-data/bin/mailpit --smtp 172.28.74.1:1025 --listen 127.0.0.1:8025 --database /var/lib/epp-inbox/mail.db`。路径换成前章真实值，保留原邮件数据库和回环网页入口。执行 daemon-reload、restart epp-inbox，再用 `ss -lnt` 确认 SMTP 只在网关、网页仍在回环；本轮不配置上游投递或 relay。原生邮件配置保留用于回退，原消费者继续停用。
-- **对象 HTTPS**：SeaweedFS 后端继续监听原回环并使用原桶。第 72 章对象入口为 `https://api.epp.test:9443`，nginx 的 9443 server 原先只监听部署机 LAN 地址，并以 allow/deny 限定 LAN。容器增加名称映射不能改变监听与访问控制。编辑原 `nginx-private.conf` 的 **9443 对象 server**：保留原 listen，新增 `listen 172.28.74.1:9443 ssl;`，并在 `deny all;` **之前**新增 `allow 172.28.74.0/24;`。8443 页面 server 不需要增加网桥监听。证书名称、完整链、Host、路径和查询参数保持不变；Compose 将 `api.epp.test` 映射到网关。API 和浏览器仍使用同一个 HTTPS endpoint，不能换成内部 HTTP 地址。
+- **对象 HTTPS**：SeaweedFS 后端继续监听原回环并使用原桶。第 71 章对象入口为 `https://api.epp.test:9443`，nginx 的 9443 server 原先只监听部署机 LAN 地址，并以 allow/deny 限定 LAN。容器增加名称映射不能改变监听与访问控制。编辑原 `nginx-private.conf` 的 **9443 对象 server**：保留原 listen，新增 `listen 172.28.74.1:9443 ssl;`，并在 `deny all;` **之前**新增 `allow 172.28.74.0/24;`。8443 页面 server 不需要增加网桥监听。证书名称、完整链、Host、路径和查询参数保持不变；Compose 将 `api.epp.test` 映射到网关。API 和浏览器仍使用同一个 HTTPS endpoint，不能换成内部 HTTP 地址。
 - **宿主防火墙**：仅允许本桥接接口、源网段 `172.28.74.0/24` 到网关上的实际 PostgreSQL、SMTP、对象 HTTPS 端口，保留既有回环和管理规则，拒绝其他来源使用新数据入口。用本机已经管理防火墙的工具修改并复查，不照搬另一台机器的表/链名称，也不要清空现有规则。Docker `ports` 只发布 API 回环端口，不能代替宿主数据服务自己的访问规则。
 
 新增网关监听还依赖开机时先恢复 Docker 外部网络。对本章实际单元 `postgresql@18-epp`、`epp-inbox` 和 `epp74-https`，分别执行 `sudo systemctl edit 单元名`，在保留已有覆盖项的同时追加：
@@ -78,7 +78,7 @@ After=docker.service
 
 随后 `sudo systemctl daemon-reload`。Wants 请求启动引擎，After 安排启动顺序，并不能证明网关已存在或数据库已能服务。重启部署主机后仍要用 `docker network inspect epp74-backend`、`ip address`、`ss -lnt` 核对网关、PG、SMTP 和对象入口，并实际连接；不能只看 unit 为 active。PostgreSQL 可能只成功绑定配置列表中的一部分地址，所以必须确认回环和 `172.28.74.1` 的实际监听都存在。
 
-nginx 不使用系统默认配置，而是第 72 章独立前缀。恢复当时实际前缀，例如原部署账号的 `edge="$HOME/epp75-edge"`，并用 `systemctl show epp74-https -p WorkingDirectory` 核对，再执行：
+nginx 不使用系统默认配置，而是第 71 章独立前缀。恢复当时实际前缀，例如原部署账号的 `edge="$HOME/epp75-edge"`，并用 `systemctl show epp74-https -p WorkingDirectory` 核对，再执行：
 
 ```sh
 /usr/sbin/nginx -t -p "$edge/" -c nginx-private.conf
@@ -92,7 +92,7 @@ ss -lnt 'sport = :9443'
 
 ## 3. 准备三份真正独立的运行配置
 
-从第 72 章原有配置复制到部署目录，再修改每份数据库连接的**主机**为 `epp-data.internal`、**端口**为上节实查端口，保留各自库角色、密码、库名及原签名密钥。下面的源路径须换成前章实际路径；不能从环境模板假造已有账号：
+从第 71 章原有配置复制到部署目录，再修改每份数据库连接的**主机**为 `epp-data.internal`、**端口**为上节实查端口，保留各自库角色、密码、库名及原签名密钥。下面的源路径须换成前章实际路径；不能从环境模板假造已有账号：
 
 ```sh
 sudo install -o root -g 10001 -m 0640 /etc/epp72/api.env "$EPP_DEPLOY/secrets/api.env"
@@ -151,7 +151,7 @@ finally { await c.end(); }'
 
 将服务名和 `--env-file` 路径分别换成 mail、notify 后重复，三者必须进入同一预期库但使用各自角色。再以应用身份验证 API 能读原收据、头像存储写读，以及邮件通道指向本轮 Mailpit；TCP 可连不等于授权正确或投递结果已确定。
 
-接管前先记录 `systemctl is-enabled epp72-api epp72-mail epp72-notify` 的结果，再停妥三个旧消费者。第 72 章 HTTPS unit 的 Wants/After 仍关联原 API：编辑 `/etc/systemd/system/epp74-https.service`，**只从 Wants 和 After 移除 `epp72-api.service`，保留包括 Docker 在内的其他依赖**。否则以后重启 HTTPS 入口会重新拉起旧 API，造成端口争用或双消费者。执行：
+接管前先记录 `systemctl is-enabled epp72-api epp72-mail epp72-notify` 的结果，再停妥三个旧消费者。第 71 章 HTTPS unit 的 Wants/After 仍关联原 API：编辑 `/etc/systemd/system/epp74-https.service`，**只从 Wants 和 After 移除 `epp72-api.service`，保留包括 Docker 在内的其他依赖**。否则以后重启 HTTPS 入口会重新拉起旧 API，造成端口争用或双消费者。执行：
 
 ```sh
 sudo systemctl disable epp72-api epp72-mail epp72-notify
