@@ -50,3 +50,7 @@ VS Code在“运行和调试”选择 `Chapter 37: mini session (local VERIFY)`�
 开发仍用 `npm run dev`，自动编译重启及9229 Attach沿用前章。新增环境配置后重启开发入口；配置仅启动时读取。正式构建 `npm run check`；干净运行目录只复制dist、config、package.json与package-lock.json，执行 `npm ci --omit=dev`，通过进程环境注入DATABASE_URL、APP_ORIGIN、CURSOR_HMAC_KEY及选用的微信配置，`npm start`。不复制test、examples、mini-program或.env；默认docs关闭、无Inspector。前端小程序另由开发者工具预览与发布。
 
 `npm test` 是有限回归入口，要求独立VERIFY。登录接口超时可能已经交换code、保存映射或签发会话；以新code再次登录，核对userId和自己的会话列表，撤销多余会话。不能靠重发旧code取得旧响应；不能把外部调用包进数据库事务等待。
+
+## 共享密码来源额度
+
+mini/link需要证明原密码，因此与Web登录、改密和邮箱恢复入口共享第41章的同来源10次／60秒数据库额度；在正文解析和密码证明前扣次，两实例累计。额度不可用时503/AUTH_RATE_UNAVAILABLE，不执行密码证明或平台交换。mini/login不证明密码，沿用原平台并发预算，不扣密码桶。未耗尽额度且平台未配置时，link先证明密码：错密码401，正确密码再503/MINI_NOT_CONFIGURED。进程内两份密码工作占位仍保留。
