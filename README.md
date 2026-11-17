@@ -8,11 +8,11 @@
 
 已继承[第30章的创建与修订重试](examples/write-retry/README.md)：两个POST可带Idempotency-Key，省略时保留原行为。
 
-第 70 章「把应用和数据交给目标环境」使用 `git switch part-09/chapter-70`。迁移目录和请求集合请按下面的实际文件名打开。
+第 69 章「把应用和数据交给目标环境」使用 `git switch part-09/chapter-70`。迁移目录和请求集合请按下面的实际文件名打开。
 
-## 第七十章　把应用和数据交给目标环境
+## 第六十九章　把应用和数据交给目标环境
 
-按[目标环境与 Mac 托管说明](examples/deployment/README.md)取得授权和可选宿主脚本。第 70 章直接接手第 69 章验过的产物；第 71 章在 Debian 建立最终服务身份与托管。
+按[目标环境与 Mac 托管说明](examples/deployment/README.md)取得授权和可选宿主脚本。第 69 章直接接手第 68 章验过的产物；第 70 章在 Debian 建立最终服务身份与托管。
 
 ## 第六十五章　调试性能与资源问题
 
