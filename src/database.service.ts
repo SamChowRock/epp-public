@@ -37,8 +37,8 @@ export class DatabaseService {
         await this.client.verificationMailControl.findUniqueOrThrow({where:{id:1}});
         await this.client.$queryRaw`SELECT id,outbox_id,intent_id,attempt_no,claim_id,recipient,purpose,provider,provider_scope,address_epoch,started_at,observed_at,send_outcome,provider_message_id,provider_bound_at,binding_source,binding_actor,binding_reason,binding_evidence_ref FROM verification_mail_attempts LIMIT 0`;
         await this.client.$queryRaw`SELECT recipient,epoch,blocked,blocked_event_id FROM verification_mail_addresses LIMIT 0`;
+        await this.client.$queryRaw`SELECT id,provider,provider_scope,endpoint_scope,event_id,body_sha256,event_type,provider_message_id,recipient,provider_occurred_at,received_at,message_id,bounce_type,bounce_subtype,attempt_id,match_state,effect FROM verification_mail_events LIMIT 0`;
         if(this.applicationName==='epp-mail-receipts'){
-          await this.client.$queryRaw`SELECT id,provider,provider_scope,endpoint_scope,event_id,body_sha256,event_type,provider_message_id,recipient,provider_occurred_at,received_at,message_id,bounce_type,bounce_subtype,attempt_id,match_state,effect FROM verification_mail_events LIMIT 0`;
           await this.client.$queryRaw`SELECT id,recipient,old_epoch,new_epoch,previous_blocked_event_id,actor,reason,created_at FROM verification_mail_releases LIMIT 0`;
           this.logger.write('info','database.ready');return;
         }
