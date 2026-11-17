@@ -78,3 +78,16 @@
 | 74、75 | Compose 应用编排、既有数据通路与运行观测 | `git switch part-09/chapter-74` |
 | 76 | 原生与容器定时维护 | `git switch part-10/chapter-76` |
 | 77 | 原生与容器凭据轮换 | `git switch part-10/chapter-77` |
+
+
+## 独立练习源码参考
+
+以下完整项目按所属章节单独运行，保留个人成果，不并入正式后续主线。第14章第三阶段直接使用已有 `part-02/chapter-14`。
+
+| 章节与用途 | 完整源码分支 |
+|---|---|
+| chapter-07-source-label | [codex/reference/chapter-07-source-label](https://github.com/SamChowRock/epp-public/tree/codex/reference/chapter-07-source-label) |
+| chapter-14-configuration | [codex/reference/chapter-14-configuration](https://github.com/SamChowRock/epp-public/tree/codex/reference/chapter-14-configuration) |
+| chapter-14-observation | [codex/reference/chapter-14-observation](https://github.com/SamChowRock/epp-public/tree/codex/reference/chapter-14-observation) |
+| chapter-15-array-store | [codex/reference/chapter-15-array-store](https://github.com/SamChowRock/epp-public/tree/codex/reference/chapter-15-array-store) |
+| chapter-24-reader-b | [codex/reference/chapter-24-reader-b](https://github.com/SamChowRock/epp-public/tree/codex/reference/chapter-24-reader-b) |
