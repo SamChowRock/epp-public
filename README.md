@@ -53,6 +53,7 @@
 - [第 51 章　为什么需要独立 Worker](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-51)
 - [第 52 章　安全领取任务与识别过期执行者](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-52)
 - [第 53 章　失败、重试与未知结果](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-53)
+- [第 54 章　选读：追踪一封事务邮件的实际送达与异步退信](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-54)
 - [第 55 章　先让通知成为可查询的数据](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-55)
 - [第 56 章　用 SSE 传递实时更新](https://github.com/SamChowRock/epp-public/tree/part-06/chapter-56)
 - [第 58 章　用户资料的业务约束与隐私](https://github.com/SamChowRock/epp-public/tree/part-07/chapter-58)
@@ -64,6 +65,8 @@
 - [第 70 章　把应用和数据交给目标环境](https://github.com/SamChowRock/epp-public/tree/part-09/chapter-70)
 
 第 34 章从 `part-04/chapter-33` 接续，完成代码在 `part-04/chapter-34`：保留旧素材全量列表，新增独立签名游标分页，附 105 条隔离合成素材 SQL、手动续页集合与浏览器迁移练习页。后续章节继续保留两种读取入口。
+
+第54章从53建立独立副本，加入逐次发送记录、Resend HTTP发送、签名回执和按地址恢复；本地实验使用Mailpit，真实邮箱另备获准发信身份与受控收件箱。第55章仍从53接续，完成54后回到原主线目录和数据库。
 
 ## 部署、观测与维护
 
