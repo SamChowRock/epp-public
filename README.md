@@ -6,7 +6,11 @@
 
 已继承[第30章的创建与修订重试](examples/write-retry/README.md)：两个POST可带Idempotency-Key，省略时保留原行为。
 
-第 60 章「对象存储与数据库如何协作」使用 `git switch part-07/chapter-60`。迁移目录和请求集合请按下面的实际文件名打开。
+第 61 章「从头像记录与私有桶的差异追查缺件和多件」使用 `git switch part-07/chapter-61`。迁移目录和请求集合请按下面的实际文件名打开。
+
+## 第六十一章　从头像记录与私有桶的差异追查缺件和多件
+
+从第60章同一 VERIFY 与 avatars 桶继续，按[只读清点实验](database/chapter-61-reconcile/README.md)创建独立观察身份，分别清点数据库与对象，再离线比较。保留不完整与并发变化，不把报告作为删除授权。
 
 ## 第六十章　对象存储与数据库如何协作
 
