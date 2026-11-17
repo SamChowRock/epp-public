@@ -1,9 +1,6 @@
 import { CapturePageQuerySchema, CapturePageSchema } from './capture-pages.js';
-<<<<<<< HEAD
 import { NotificationQuery, NotificationPage } from './notification-contract.js';
-=======
 import { MINI_PUBLIC_PATHS, MiniLoginSchema, MiniLinkSchema, MiniLoginResultSchema } from './mini-contract.js';
->>>>>>> part-06/chapter-53
 import { RECOVERY_PATHS, RecoveryRequestSchema, RecoveryConfirmSchema, RecoveryAcceptedSchema, RegistrationSchema } from './recovery-contract.js';
 import { CsrfSchema, LoginSchema, ChangePasswordSchema, SessionIdentitySchema, SessionListSchema } from './auth-contract.js';
 import { LearningQuerySchema, StarMapQuerySchema, LearningListSchema, LearningDetailSchema, StarMapSchema } from './learning-contract.js';
@@ -283,11 +280,8 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
     },
     components: { securitySchemes: { miniBearer: { type: 'http', scheme: 'bearer', description: 'Opaque mini-program session token; never use a Web token here.' }, sessionCookie: { type: 'apiKey', in: 'cookie', name: cookieName,
       description: 'Set by login; never paste a token into Swagger. Same-origin browser requests carry the HttpOnly cookie.' } }, schemas: {
-<<<<<<< HEAD
       NotificationPage: schema(NotificationPage, 'output'),
-=======
       MiniLogin: schema(MiniLoginSchema, 'input'), MiniLink: schema(MiniLinkSchema, 'input'), MiniLoginResult: schema(MiniLoginResultSchema, 'output'),
->>>>>>> part-06/chapter-53
       RecoveryRequest: schema(RecoveryRequestSchema, 'input'), RecoveryConfirm: schema(RecoveryConfirmSchema, 'input'),
       RecoveryAccepted: schema(RecoveryAcceptedSchema, 'output'), Registration: schema(RegistrationSchema, 'output'),
       Csrf: schema(CsrfSchema, 'output'),

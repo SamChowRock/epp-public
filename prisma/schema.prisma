@@ -15,13 +15,10 @@ model User {
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
   status    String    @default("active") @db.Text
   webEnabled Boolean @default(false) @map("web_enabled")
-<<<<<<< HEAD
   notificationJobs NotificationJob[]
   notifications Notification[]
-=======
   miniEnabled Boolean @default(false) @map("mini_enabled")
   wechatIdentities WechatIdentity[]
->>>>>>> part-06/chapter-53
   captureWriteReceipts CaptureWriteReceipt[]
   commandReceipts CommandReceipt[]
   expressions Expression[]
@@ -219,7 +216,6 @@ model VerificationMailControl {
   @@map("verification_mail_control")
 }
 
-<<<<<<< HEAD
 model NotificationJob {
   id String @id @db.Uuid
   action String @default("notification.create")
@@ -244,7 +240,8 @@ model Notification {
   clearedAt DateTime? @map("cleared_at") @db.Timestamptz(3)
   @@index([userId,createdAt(sort: Desc),id(sort: Desc)], map: "notifications_owner_page_idx")
   @@map("notifications")
-=======
+}
+
 /// Platform identity belongs to one local user within a specific mini program.
 model WechatIdentity {
   appId String @map("app_id") @db.Text
@@ -255,7 +252,6 @@ model WechatIdentity {
   @@id([appId, openId], map: "wechat_identities_pkey")
   @@unique([appId, userId], map: "wechat_identities_app_user_key")
   @@map("wechat_identities")
->>>>>>> part-06/chapter-53
 }
 
 /// Independent identities for capture creation and revision append.
