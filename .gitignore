@@ -15,3 +15,5 @@ database/chapter-20/recovery-history/
 .avatar-tmp/
 .chapter51-store/
 .chapter51-tools/
+.mini-local.postman_environment.json
+mini-program/project.private.config.json
