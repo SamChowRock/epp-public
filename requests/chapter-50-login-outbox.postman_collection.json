@@ -1,0 +1,613 @@
+{
+  "info": {
+    "name": "EPP 第50章 登录入口与邮件出站队列",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Only use local unsynchronized environments. All requests disable automatic Cookie jar; Web uses explicit webCookie, mini uses explicit Bearer. Preserve old credentials and captureId for upgrade comparison. Mail request is enqueue-only; use the existing send-one CLI and read token in local mailbox. Never export filled secrets. Mini login/link needs a fresh real platform code, or remains 503 when unconfigured. Local replacement exercise starts at request 12. Requests 09,19,25 revoke sessions: execute deliberately after preservation checks."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000"
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "password",
+      "value": ""
+    },
+    {
+      "key": "newPassword",
+      "value": ""
+    },
+    {
+      "key": "email",
+      "value": ""
+    },
+    {
+      "key": "registrationEmail",
+      "value": ""
+    },
+    {
+      "key": "webCookie",
+      "value": ""
+    },
+    {
+      "key": "csrfToken",
+      "value": ""
+    },
+    {
+      "key": "captureId",
+      "value": ""
+    },
+    {
+      "key": "miniToken",
+      "value": ""
+    },
+    {
+      "key": "otherMiniToken",
+      "value": ""
+    },
+    {
+      "key": "miniSessionId",
+      "value": ""
+    },
+    {
+      "key": "code",
+      "value": ""
+    },
+    {
+      "key": "verificationToken",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Web登录（保留原Cookie时可跳过）",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"password\": \"{{password}}\",\n  \"label\": \"Chapter 50 Web\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if(pm.response.code===200){const c=pm.response.headers.get('Set-Cookie');if(c)pm.environment.set('webCookie',c.split(';')[0]);}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 原Cookie本人",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{webCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/me"
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "03 Web CSRF",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{webCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/csrf"
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if(pm.response.code===200)pm.environment.set('csrfToken',pm.response.json().csrfToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 原素材Web复读",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{webCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/captures/{{captureId}}"
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "05 原素材修订Web复读",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{webCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/captures/{{captureId}}/revisions?limit=1"
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "06 原邮箱恢复入队202（不会直接寄信）",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/reset/request",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "07 注册入队202（单独虚构邮箱）",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/register/request",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{registrationEmail}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "08 注册邮件确认（先运行send-one并从邮箱取令牌）",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/register/confirm",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"token\": \"{{verificationToken}}\",\n  \"newPassword\": \"{{newPassword}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "09 恢复邮件确认204（撤销旧会话）",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/reset/confirm",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"token\": \"{{verificationToken}}\",\n  \"newPassword\": \"{{newPassword}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "10 mini登录（正式新code；无配置预期503）",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/mini/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"code\": \"{{code}}\",\n  \"label\": \"Chapter 50 mini\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "11 mini关联（先provePassword再平台）",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/mini/link",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"code\": \"{{code}}\",\n  \"userId\": \"{{userId}}\",\n  \"password\": \"{{password}}\",\n  \"label\": \"Chapter 50 linked mini\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "12 甲mini身份",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{miniToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/me"
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "13 甲mini读同一素材200",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{miniToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/captures/{{captureId}}"
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "14 乙mini读同一素材404",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{otherMiniToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/captures/{{captureId}}"
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "15 同账号会话列表与渠道",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{webCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/sessions"
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "16 mini访问Web CSRF应403",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{miniToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/csrf"
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "17 mini资格关闭403／恢复200后复读",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{miniToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/captures/{{captureId}}"
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "18 关闭mini后原Web仍200",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{webCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/captures/{{captureId}}"
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "19 Web定向撤销甲mini（变量必须指定甲mini sessionId）",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{webCookie}}"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/sessions/{{miniSessionId}}"
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "20 撤销后甲mini401",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{miniToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/me"
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "21 定向撤销后Web仍200",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{webCookie}}"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/me"
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "22 定向撤销后乙mini仍200",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{otherMiniToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/me"
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "23 Cookie与Bearer混用400",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{webCookie}}"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{miniToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/me"
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "24 mini令牌放Cookie401",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "epp_session={{miniToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/me"
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    },
+    {
+      "name": "25 Web退出（带CSRF）",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{webCookie}}"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/logout",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      }
+    }
+  ]
+}
