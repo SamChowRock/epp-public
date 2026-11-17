@@ -8,15 +8,15 @@
 
 已继承[第30章的创建与修订重试](examples/write-retry/README.md)：两个POST可带Idempotency-Key，省略时保留原行为。
 
-第 71 章「让 API 和后台进程以各自身份持续运行」使用 `git switch part-09/chapter-71`。保留第 70 章前台运行的已验程序供比对，以 part-09/chapter-70 为起点构建本章分权版本。先升级迁移和权限，再用旧账号与原收据核对新部署。
+第 70 章「让 API 和后台进程以各自身份持续运行」使用 `git switch part-09/chapter-71`。保留第 69 章前台运行的已验程序供比对，以 part-09/chapter-70 为起点构建本章分权版本。先升级迁移和权限，再用旧账号与原收据核对新部署。
 
-## 第七十一章　让 API 和后台进程以各自身份持续运行
+## 第七十章　让 API 和后台进程以各自身份持续运行
 
 按[服务身份与授权](examples/service-roles/README.md)升级非空副本，用三个系统用户和数据库角色完成注册、寄信和通知。按[分角色交接说明](examples/portable-release/README.md)核对目标平台归档、收据 CLI、头像签名地址和 API 可写目录。
 
-## 第七十章　把应用和数据交给目标环境
+## 第六十九章　把应用和数据交给目标环境
 
-按[目标环境与 Mac 托管说明](examples/deployment/README.md)取得授权和可选宿主脚本。第 70 章直接接手第 69 章验过的产物；第 71 章在 Debian 建立最终服务身份与托管。
+按[目标环境与 Mac 托管说明](examples/deployment/README.md)取得授权和可选宿主脚本。第 69 章直接接手第 68 章验过的产物；第 70 章在 Debian 建立最终服务身份与托管。
 
 ## 第六十五章　调试性能与资源问题
 
