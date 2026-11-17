@@ -44,7 +44,7 @@ export function browserBoundary(config: AppConfig): RequestHandler {
 
 export function authRateLimit(limiter: SharedAuthRateLimiter): RequestHandler {
   return async (request, response, next) => {
-    if (request.method !== 'POST' || !['/auth/login', '/auth/password', ...RECOVERY_PATHS].includes(request.path)) { next(); return; }
+    if (request.method !== 'POST' || !['/auth/login', '/auth/password', '/auth/mini/link', '/auth/oidc/start', ...RECOVERY_PATHS].includes(request.path)) { next(); return; }
     try {
       const result = await limiter.consume(request.ip ?? request.socket.remoteAddress ?? 'unknown');
       if (!result.allowed) {
