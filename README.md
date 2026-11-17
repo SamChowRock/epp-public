@@ -81,9 +81,12 @@ nvm use
 node --version
 npm ci
 npm run check
-# 先按第 44 章说明完成迁移；.env 中 DATABASE_URL 指向已迁移库。
+# 先按下方第50章统一准备入口升级：已有非空副本用deploy，专用空库用bootstrap。
+# .env 中 DATABASE_URL 指向已完成相应准备的开发库。
 npm run dev
 ```
+
+启动前按[第50章统一数据库准备](database/chapter-50-login-outbox/README.md#从已有非空库升级)选择入口：从44或49继续的非空副本用 `scripts/deploy-verify.mjs deploy`，专用空库用同脚本的 `bootstrap`；命令末尾须填写实际预期库名。先完成独立VERIFY核对，再升级开发库并配置API连接。不要对空库直接运行 `migrate deploy`。
 
 `.nvmrc` 固定 Node.js 为 `24.22.1`，`node --version` 应输出 `v24.22.1`。`nvm install` 按文件安装并切换版本；每次新开终端后，在项目内执行 `nvm use`。单独进入目录不会自动切换版本。
 
