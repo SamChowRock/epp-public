@@ -1,3 +1,4 @@
+import { MINI_PUBLIC_PATHS } from './mini-contract.js';
 import { RECOVERY_PATHS } from './recovery-contract.js';
 import type { Request, Response, NextFunction } from 'express';
 import { HttpError } from './http.js';
@@ -33,7 +34,7 @@ export function httpBoundary(
     if ((publicAvatar?.[1] ?? publicProfile?.[1] ?? notificationRead?.[1] ?? notificationDetail?.[1])?.includes('%')) {
       throw new HttpError(404, 'Route not found', 'ROUTE_NOT_FOUND');
     }
-    const allowed = ['/auth/login', '/auth/logout', '/auth/password', '/profile/avatar/preview', ...RECOVERY_PATHS].includes(url.pathname) ? ['POST']
+    const allowed = ['/auth/login', '/auth/logout', '/auth/password', '/profile/avatar/preview', ...RECOVERY_PATHS, ...MINI_PUBLIC_PATHS].includes(url.pathname) ? ['POST']
       : ['/auth/me', '/auth/sessions', '/auth/csrf'].includes(url.pathname) ? ['GET'] : sessionDetail ? ['DELETE']
       : url.pathname === '/profile/avatar' ? ['GET', 'POST']
       : url.pathname === '/profile/avatar/visibility' ? ['GET', 'PATCH'] : publicAvatar ? ['GET']
