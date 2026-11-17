@@ -1,4 +1,4 @@
-import './database-env.mjs';
+import './auth-rate-test-state.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import express from 'express';
@@ -7,6 +7,8 @@ import { createApp } from '../dist/src/app.js';
 import { DatabaseService } from '../dist/src/database.service.js';
 import { issueToken, tokenDigest } from '../dist/src/token.js';
 import { parseConfig } from '../dist/src/config.js';
+import { SharedAuthRateLimiter } from '../dist/src/shared-auth-rate-limiter.js';
+import { ApplicationState } from '../dist/src/application-state.js';
 import { csrfToken, requireCsrf, authRateLimit } from '../dist/src/browser-security.js';
 
 const config = (env = {}) => parseConfig({ port: 3000 }, { NODE_ENV: 'test', ...env });
@@ -69,8 +71,11 @@ test('HTTP defenses reject before mutation; token endpoint, restricted logout an
 });
 
 test('forged forwarding cannot evade a direct peer bucket; only a trusted proxy enables client buckets', async t => {
+  const owner = await createApp(config()), database = owner.get(DatabaseService);
+  t.after(() => owner.close());
   for (const trust of [false, ['127.0.0.1']]) {
-    const app = express(); app.set('trust proxy', trust); app.use(authRateLimit());
+    await database.client.authRateBucket.deleteMany();
+    const app = express(); app.set('trust proxy', trust); app.use(authRateLimit(new SharedAuthRateLimiter(database, new ApplicationState())));
     app.post('/auth/login', (req, res) => res.json({ ip: req.ip, protocol: req.protocol }));
     app.use((err, req, res, next) => res.status(err.statusCode ?? 500).json({ code: err.code }));
     const server = app.listen(0, '127.0.0.1'); await new Promise(resolve => server.once('listening', resolve));
@@ -101,21 +106,4 @@ test('password work admits two operations, rejects overflow and releases capacit
   const recovered = service.login(input); const result = assert.rejects(recovered, /controlled/);
   assert.equal(pending.length, 3); pending[2].reject(new Error('controlled storage failure')); await result;
   await state.whenIdle();
-});
-
-test('full rate table rejects new sources, preserves old buckets, and expires without eviction', t => {
-  let now = 0;
-  t.mock.method(performance, 'now', () => now);
-  const middleware = authRateLimit();
-  const send = ip => {
-    const headers = {}; let error;
-    middleware({ method: 'POST', path: '/auth/login', ip, socket: {} },
-      { setHeader: (k, v) => { headers[k] = v; } }, value => { error = value; });
-    return { code: error?.code, headers };
-  };
-  for (let i = 0; i < 1000; i++) assert.equal(send('192.0.2.' + i).code, undefined);
-  assert.equal(send('new').code, 'AUTH_RATE_LIMIT'); assert.equal(send('new').headers['Retry-After'], '60');
-  for (let i = 1; i < 10; i++) assert.equal(send('192.0.2.0').code, undefined);
-  assert.equal(send('192.0.2.0').code, 'AUTH_RATE_LIMIT');
-  now = 60000; assert.equal(send('new').code, undefined); assert.equal(send('192.0.2.0').code, undefined);
 });

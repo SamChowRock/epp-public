@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>两个 API 共用登录额度 · EPP 41</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f2f5f8;color:#182d40;font-family:system-ui,sans-serif;font-size:16px}main{max-width:1120px;margin:40px auto;padding:0 28px}.eyebrow{font-size:13px;letter-spacing:.1em;color:#416b85}h1{font-size:34px;margin:12px 0}p{line-height:1.7;color:#526575}.panel{background:white;border:1px solid #d9e2e8;border-radius:14px;padding:22px;margin:22px 0}.controls{display:flex;gap:12px;flex-wrap:wrap}button{font:inherit;border:1px solid #aac0cf;border-radius:8px;padding:12px 18px;color:#173f59;background:#fff;cursor:pointer}button.primary{background:#17627c;color:white;border-color:#17627c}button:disabled{opacity:.5;cursor:wait}#comparison{font-size:20px;color:#175c73;font-weight:600;min-height:30px}.legend{font-size:13px;color:#596e7e;margin:16px 0 8px}.row{font-family:ui-monospace,monospace;font-size:14px;line-height:1.8;padding:10px 0;border-bottom:1px solid #e3eaf0;white-space:pre-wrap;overflow-wrap:anywhere}#results:empty:before{content:'尚未发送请求。先交替访问 A / B，再观察最后一格的并发结果。';color:#7b8c98}footer{font-size:13px;color:#647985;line-height:1.7}
+</style>
+<main>
+<div class="eyebrow">EPP · 第 41 章 · 本机真实 HTTP 观察</div>
+<h1>两个 API，共用一份登录额度</h1>
+<p>每次发送一份固定的合成错误凭据。配额由所连接的 API 决定；观察页只记录响应。<br>同一回环来源：10 次 / 60 秒。按钮不会重试；清屏不会重置 API 中的额度。</p>
+<section class="panel">
+<div class="controls"><button id="send-a">A · 发送一次</button><button id="send-b">B · 发送一次</button><button class="primary" id="send-pair">A + B · 并发两次</button><button id="clear">清屏</button></div>
+<p id="comparison">等待观察结果</p>
+</section>
+<section class="panel">
+<strong>本页请求记录</strong><div class="legend">发送顺序 · API / 端口 · HTTP · code · Retry-After（秒） · request ID</div>
+<div id="results" aria-live="polite"></div>
+</section>
+<footer>401：查看 API 返回的业务码；429：额度拒绝；503：共享额度服务不可用。<br>“未取得 API 响应”表示观察链路失败，不能据此判断额度是否已消耗。刷新页面会清空记录。</footer>
+</main>
+<script>
+const results=document.getElementById('results');
+const comparison=document.getElementById('comparison');
+const controls=document.querySelectorAll('button');
+let sequence=0;
+function busy(value){for(const control of controls)control.disabled=value;}
+async function send(api){
+  const number=++sequence;
+  const row=document.createElement('div');row.className='row';
+  row.textContent=`${number} · ${api.toUpperCase()} · 请求中…`;results.append(row);
+  try {
+    const response=await fetch(`/api/${api}`,{method:'POST',credentials:'omit'});
+    const value=await response.json();
+    if(value.status===null){row.textContent=`${number} · ${value.api} / ${value.port} · 未取得API响应 · ${value.code}`;return '链路失败';}
+    row.textContent=`${number} · ${value.api} / ${value.port} · ${value.status} · ${value.code ?? '无业务码'} · ${value.retryAfter ?? '—'} · ${value.requestId ?? '—'}`;
+    return String(value.status);
+  } catch {row.textContent=`${number} · ${api.toUpperCase()} · 未取得API响应 · 浏览器连接失败`;return '链路失败';}
+}
+async function run(apis){
+  busy(true);
+  try {const statuses=await Promise.all(apis.map(send));comparison.textContent=apis.length===2 ? `本轮并发：A ${statuses[0]} ／ B ${statuses[1]}` : `本次：${apis[0].toUpperCase()} ${statuses[0]}`;}
+  finally {busy(false);}
+}
+document.getElementById('send-a').addEventListener('click',()=>run(['a']));
+document.getElementById('send-b').addEventListener('click',()=>run(['b']));
+document.getElementById('send-pair').addEventListener('click',()=>run(['a','b']));
+document.getElementById('clear').addEventListener('click',()=>{results.replaceChildren();comparison.textContent='显示已清空，API 额度未改变';});
+</script>
+</html>
