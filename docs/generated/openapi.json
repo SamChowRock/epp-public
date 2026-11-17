@@ -160,7 +160,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -257,7 +257,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -365,7 +365,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -474,7 +474,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -632,7 +632,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -770,7 +770,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -960,7 +960,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1290,7 +1290,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1930,7 +1930,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2071,7 +2071,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2420,7 +2420,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2593,7 +2593,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2784,7 +2784,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2936,7 +2936,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3101,7 +3101,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3268,7 +3268,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3425,7 +3425,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3703,7 +3703,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3936,7 +3936,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -4196,7 +4196,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -4429,7 +4429,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -4726,7 +4726,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -5324,7 +5324,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -5553,7 +5553,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -5773,7 +5773,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -6091,7 +6091,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -6342,7 +6342,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -6659,7 +6659,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -6962,7 +6962,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -7193,7 +7193,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -7369,7 +7369,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -7558,7 +7558,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -7747,7 +7747,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -7929,7 +7929,7 @@
             }
           },
           "503": {
-            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining or temporary storage failure; code SERVICE_DRAINING or STORAGE_UNAVAILABLE. Password entry and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
