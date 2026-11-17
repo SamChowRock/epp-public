@@ -4,11 +4,10 @@
 
 已继承[第30章的创建与修订重试](examples/write-retry/README.md)：两个POST可带Idempotency-Key，省略时保留原行为。
 
-第 49 章「Transactional Outbox：业务和消息如何一起提交」使用 `git switch part-06/chapter-49`。迁移目录和请求集合请按下面的实际文件名打开。
+本分支对应第 50 章：登录入口与邮件出站队列的统一交付。
+从第49章接续，合并第44章的小程序身份与渠道边界；两个阶段的历史均保留。
 
-## 第四十九章　Transactional Outbox
-
-分支 `part-06/chapter-49` 从密码路线第 43 章继续。按[本章说明](database/chapter-42/README.md)升级 VERIFY，用原注册／重置请求提交业务意图与寄信任务，关闭 API 后运行一次性程序向 Mailpit 寄信。第 43 章标题下的同步投递说明描述旧分支。
+按[50章实践](database/chapter-50-login-outbox/README.md)迁移并核对两条旧历史；[完整请求集合](requests/chapter-50-login-outbox.postman_collection.json)与[可选本机观察页](examples/login-outbox/README.md)随本分支提供。
 
 ## 第四十三章 恢复已有账号并撤销旧会话
 
@@ -82,7 +81,7 @@ nvm use
 node --version
 npm ci
 npm run check
-# 先按第 42 章说明完成迁移，在 .env 配置 DATABASE_URL、APP_ORIGIN和LOCAL_SMTP_PORT。
+# 先按第 44 章说明完成迁移；.env 中 DATABASE_URL 指向已迁移库。
 npm run dev
 ```
 

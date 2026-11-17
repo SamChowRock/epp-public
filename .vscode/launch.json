@@ -56,6 +56,16 @@
         "<node_internals>/**",
         "${workspaceFolder}/node_modules/**"
       ]
+    },
+    {
+      "name": "Chapter 37: mini session (local VERIFY)",
+      "type": "node",
+      "request": "attach",
+      "address": "127.0.0.1",
+      "port": 9470,
+      "sourceMaps": true,
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"],
+      "skipFiles": ["<node_internals>/**"]
     }
   ]
 }
