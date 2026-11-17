@@ -1,5 +1,7 @@
 # EPP 配套实践代码
 
+已继承[第50章统一登录与邮件队列](database/chapter-50-login-outbox/README.md)：Web Cookie与小程序Bearer按渠道独立验证，保留原注册、恢复和邮件队列入口。
+
 已继承[第34章的既有素材列表分页迁移](examples/paging-upgrade/README.md)：保留旧列表，新增 GET /captures/page；游标绑定当前身份、筛选与页大小。
 
 已继承[第30章的创建与修订重试](examples/write-retry/README.md)：两个POST可带Idempotency-Key，省略时保留原行为。
@@ -865,3 +867,5 @@ PORT=3008 LOG_LEVEL=debug npm run dev
 正文继续用两次可恢复故障区分写入前失败与输出失约；恢复源码后再构建交付。关闭对照复用 `npm run dev:lifecycle` 和生命周期集合，勿与业务 dev 同时运行。生产产物按前文所述文件布局在独立目录运行时，将端口改为 3009，复制练习集合并设置该目标，重新创建数据；`npm start` 使用 production、不加载开发 .env、不启用 Inspector，文档默认关闭。数组仍不持久化，停止后重新启动应为空。
 
 本章的独立产物步骤与前面的生产运行说明使用相同文件布局；以第十五章正文的 3009 命令为准。退出并保存成果后再管理 worktree，不强制清除未提交实现。
+
+渠道边界：小程序继续使用通用素材和通知HTTP；通知SSE、资料与头像接口随对应章节提供Web会话能力，Bearer访问返回403 SESSION_CHANNEL_DENIED。
