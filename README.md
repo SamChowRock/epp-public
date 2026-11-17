@@ -6,6 +6,12 @@
 
 已继承[第30章的创建与修订重试](examples/write-retry/README.md)：两个POST可带Idempotency-Key，省略时保留原行为。
 
+第54章「事务邮件的实际送达与异步退信」使用 `git switch part-06/chapter-54`，从53的隔离副本继续。按[迁移与正式配置](database/chapter-54-mail-delivery/README.md)准备，再用[本地模拟供应商实验](examples/mail-delivery/README.md)逐笔发送、验签、核对早到事件与人工恢复；[手动请求集合](requests/chapter-54-mail-delivery.postman_collection.json)保留现有注册/确认语义。配置与签名材料只放忽略的 `.mail54-private/`，每条变更命令先核对预期库名。本章为独立选读，第55章仍从 `part-06/chapter-53` 接续。
+
+## 第五十四章　事务邮件的实际送达与异步退信
+
+发送接受、异步送达/退信与业务确认是独立事实。完整实现保留每次attempt、固定供应商ID、签名事件和地址epoch；unknown仍按53停发。本地模拟供应商使用真实回环HTTP与SMTP，观察页仅展示固定练习ID，不代表外部供应商投递成功。
+
 第 53 章「失败、重试与未知结果」使用 `git switch part-06/chapter-53`。迁移目录和请求集合请按下面的实际文件名打开。
 
 ## 第五十三章　失败、重试与未知结果

@@ -48,3 +48,5 @@ node --env-file=.env.receipts database/chapter-54-mail-delivery/cleanup.mjs epp_
 ```
 
 Resend email_id 是 UUID：HTTP响应、验签后事件及人工绑定进入共享持久化边界前，验证格式并统一为小写，大小写写法不能制造第二条供应商身份。正文摘要仍按收到的原始字节计算；SMTP Message-ID 不使用这个 UUID 规则，保留原拼写。
+
+本地手动演练的完整配置、固定ID观察、签名事件与人工绑定入口见[本地模拟供应商](../../examples/mail-delivery/README.md)。[原ID观察SQL](observe.sql)逐条带库名门槛；若需要沿53解除指定unknown事故的通道，只在停止全部发送者并保存证据后使用[加锁人工核对SQL](review-channel.sql)，不要直接无锁UPDATE。

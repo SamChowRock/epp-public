@@ -21,3 +21,5 @@ mini-program/project.private.config.json
 
 .receipts-dev/
 .env.receipts
+
+.mail54-private/

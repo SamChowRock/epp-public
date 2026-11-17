@@ -1,0 +1,93 @@
+{
+  "info": {
+    "name": "第54章 本地模拟供应商（手动逐项）",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "仅信任的本机 API。不要 Runner。邮件令牌与新密码只放本地不导出的私有变量 privateConfirmBody，格式沿第42章确认请求。202不泄露任务ID；按recipient和issued_at在隔离库识别本次outbox并track。签名回执使用私有文件CLI，不把secret/body复制到集合。重复请求遵守既有邮箱冷却和共享登录额度。"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 本地模拟供应商：请求甲注册邮件",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/register/request",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"a54@example.test\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "02 本地模拟供应商：请求相邻地址邮件",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/register/request",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"b54@example.test\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "03 本地模拟供应商：用私有 Mailpit 令牌确认",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/register/confirm",
+        "body": {
+          "mode": "raw",
+          "raw": "{{privateConfirmBody}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    }
+  ]
+}
