@@ -12,3 +12,5 @@ database/chapter-18/baseline-draft.sql
 database/chapter-20/recovery-history/
 
 .worker-dev/
+.mini-local.postman_environment.json
+mini-program/project.private.config.json
