@@ -24,7 +24,7 @@ NODE_ENV=production APP_ORIGIN=http://127.0.0.1:8341 PORT=3342 node dist/src/ser
 
 表键为固定规则 `password-auth/v1` 加Express按可信代理配置解析的来源（最多128字符）；不绑定进程、端口、用户或签名key。IP不是人，NAT后设备可能共享额度。每规则双int事务建议锁 `(4542544,41)`，READ COMMITTED下独立语句取锁，再取DB毫秒时钟；最多删100行到期桶、最多保留1000行。本规则所有写者都须遵守锁协议。1000行含尚未清到的到期桶，清理有界；满时新来源429/Retry-After60，已有来源继续自己的窗口。可在单独空库按[合成容量SQL](03-synthetic-capacity.sql)观察；事务最后ROLLBACK，不能与浏览器样本混用。
 
-先按正文在隔离库创建新的非所有者LOGIN并用psql的`\password`隐藏提示设置独立密码；在维护连接执行[逐对象运行授权](00-runtime-grants.sql)，替换独立记录的VERIFY库名。当前users FOR UPDATE需要一列UPDATE权限，此中间阶段给id列；第71章再用只读锁定视图收窄。先验证受限身份登录和旧素材读取，再做下面的定向撤权。
+先按正文在隔离库创建新的非所有者LOGIN并用psql的`\password`隐藏提示设置独立密码；在维护连接执行[逐对象运行授权](00-runtime-grants.sql)，替换独立记录的VERIFY库名。当前users FOR UPDATE需要一列UPDATE权限，此中间阶段给id列；第 70 章再用只读锁定视图收窄。先验证受限身份登录和旧素材读取，再做下面的定向撤权。
 
 [撤权与恢复SQL](02-permission-failure.sql)须用owner连接：把epp41_api换成真实受限API角色，仅选中REVOKE运行；HTTP应503/AUTH_RATE_UNAVAILABLE且带请求ID、Connection:close，原会话GET仍200。最后无论实验是否成功都单独运行GRANT恢复。运行角色需要此表SELECT/INSERT/UPDATE/DELETE，不能用owner做撤权对照；API启动还检查表/关键列，故先启动再撤权。锁超时、连接失败、结果未知也拒绝密码工作，不回退Map；提交未知可能已经耗格，不应盲目立即重试。draining仍为SERVICE_DRAINING。日志仅固定operation和错误码，不记来源/秘密。
 
