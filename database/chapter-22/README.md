@@ -1,6 +1,6 @@
 # 第二十五章：保留输入修订历史
 
-起点 `part-03/chapter-24` 最终状态，完成分支 `part-04/chapter-25`。撤回第二十四章过渡补丁，停止旧 API、独立旧产物和内容维护写入。沿用 Node 24.22.1、PostgreSQL 18、Prisma 7.10.1、DEV／VERIFY／SHADOW 配置，不重建已有库。
+起点 `part-03/chapter-24` 最终状态，完成分支 `part-04/chapter-25`。停B并回到第二十四章正式C源码目录，停止旧 API、独立旧产物和内容维护写入。沿用 Node 24.22.1、PostgreSQL 18、Prisma 7.10.1、DEV／VERIFY／SHADOW 配置，不重建已有库。
 
 ## 迁移与切换
 
