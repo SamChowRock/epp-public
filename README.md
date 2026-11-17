@@ -294,7 +294,7 @@ cp -R dist "$release_dir/dist" &&
 
 ## 第七章独立实践参考
 
-`part-01/chapter-07` 的主服务保持第六章状态。`examples/chapter-06-source.patch` 保存可选来源标签的独立实现，供完成自主实践后对照；该字段不进入第八章及后续主线。
+来源标签完整参考为 `codex/reference/chapter-07-source-label`。保留个人实现后，独立执行 `git clone --single-branch --branch codex/reference/chapter-07-source-label https://github.com/SamChowRock/epp-public.git ../epp07-source-reference`，成功后进入该新目录，执行 `nvm use`、`npm ci`、`npm run check`、`npm run build`、`npm start`。目录已存在时另取名字，勿覆盖个人成果；先停原服务避免端口冲突。结束后返回原项目，下一章仍从 `part-01/chapter-06` 接续；来源标签不进入后续主线。
 
 自己从空目录跟写、普通克隆和单分支克隆都可使用同一路径：保留当前项目，另建资料目录。以下每条命令成功后才执行下一条；已有目录用 `git worktree list` 找回练习，不覆盖它。
 
@@ -621,7 +621,7 @@ npm test
 
 ## 第十四章配置、日志与关闭
 
-从第十三章跟做时，按[三个可运行阶段](examples/chapter-13-stages/README.md)推进：配置解析 → 请求日志 → 关闭协调。每段均先 check 再观察行为，可以暂停恢复；补丁用于独立第十三章目录，不覆盖自己的实现。
+从第十三章跟做时，按[三个可运行阶段](examples/chapter-13-stages/README.md)推进：配置解析 → 请求日志 → 关闭协调。每段均先 check 再观察行为，可以暂停恢复；参考阶段分别位于独立源码分支，保留自己的实现。
 
 本机 .env 可新增 LOG_LEVEL=debug、SHUTDOWN_TIMEOUT_MS=5000；已有 .env 不要直接覆盖。NODE_ENV 与文档开关由 src/config.ts 集中解析，src/http-options.ts 不再使用。PORT 和关闭期限先校验十进制表示；关闭期限为1～30000毫秒。配置无效时在创建应用前记录 CONFIG_INVALID 和字段名，返回非零退出码，不打印原值。APP_CONFIG 注入不可变配置快照；启动后改环境需重启。
 
@@ -657,51 +657,13 @@ node examples/request-context.mjs
 
 ## 第十五章综合实践
 
-先独立完成需求，再对照参考：新建 originalText 上限收紧为 1200 个 UTF-16 代码单元，旧记录仍可按原有 2000 单元范围读取；用数组替换 Map，同时保留 CAPTURE_STORE、观测包装、顺序、副本与失败约定。练习不改变本分支主服务，第三篇继续从主线接入数据库。
+先从 `part-02/chapter-14` 独立完成练习：新输入 originalText 上限1200个UTF-16单元，保留旧2000单元读取；数组实现保留CAPTURE_STORE、观测包装、顺序、副本和失败约定。练习功能不进入正式主线。
 
-停止已有 dev，保留原项目；无论自己跟写还是使用配套代码，都另建本章资料目录：
-
-```bash
-git clone --single-branch --branch part-02/chapter-15 \
-  https://github.com/SamChowRock/epp-public.git ../epp-chapter-14-materials
-```
-
-克隆成功后继续；失败或目录已存在时先处理原因，不继续下一条。已有练习按下文恢复，不重新应用补丁。
+需要对照时，保留个人成果，另取完整参考源码：
 
 ```bash
-cd ../epp-chapter-14-materials
-review_root=$(pwd)
-git fetch origin refs/heads/part-02/chapter-14:refs/remotes/origin/part-02/chapter-14
-git worktree add -b practice/chapter-14 ../epp-chapter-14-practice origin/part-02/chapter-14
-```
-
-确认创建成功后进入目录，按第十五章实现自己的版本；已存在的目录或分支应保留，换新名称。review_root 只保存在当前 shell，后面仍使用这个终端回到原目录。
-
-```bash
-cd ../epp-chapter-14-practice
-nvm use
-npm ci
-npm run check
-PORT=3008 LOG_LEVEL=debug npm run dev
-```
-
-用 VS Code 打开练习目录并 attach。业务端口为 3008，Inspector 仍为 9229，不能与另一份 dev 同时启动。保存后自动编译重启，内存清空；比较失败前后的记录数量时，先建立当前进程的基线。
-
-从第十五章资料目录导入 [requests/review.postman_collection.json](requests/review.postman_collection.json)，集合默认 baseUrl 为 `http://127.0.0.1:3008`。逐条 Send：普通输入、1200 单元、600 个表情成功；1201 单元、601 个表情及纯空白返回400且不写入。普通输入的首尾空格保留。成功响应 id 手动填入集合 captureId，核对详情、Location 与 X-Request-Id。集合不自动发请求；第十四章基线本身仍允许 1201 单元。
-
-需运行参考时，保留自己的实现，在另一个 worktree 使用 [examples/chapter-14-review.patch](examples/chapter-14-review.patch)：
-
-```bash
-cd "$review_root"
-git worktree add -b practice/chapter-14-reference ../epp-chapter-14-reference origin/part-02/chapter-14
-```
-
-创建成功后进入目录，只有补丁检查成功才应用；失败先检查基线和已有修改。
-
-```bash
-cd ../epp-chapter-14-reference
-git apply --check "$review_root/examples/chapter-14-review.patch" &&
-git apply "$review_root/examples/chapter-14-review.patch"
+git clone --single-branch --branch codex/reference/chapter-15-array-store https://github.com/SamChowRock/epp-public.git ../epp15-array-reference
+cd ../epp15-array-reference
 nvm use
 npm ci
 npm run check
@@ -709,8 +671,6 @@ node examples/review-contract.mjs
 PORT=3008 LOG_LEVEL=debug npm run dev
 ```
 
-启动前停止另一份 dev。独立示例直接放入 1500 单元旧记录，验证仍能投影为公开响应；两种存储都应保留副本，拒绝新建 1201 单元，筛选后再取 limit。这个进程的数据不进入 dev 服务；直接插入只用于受控旧数据条件，不是迁移或跳过校验的业务接口。
+目录已存在时保留原进度，另选新目录；先停另一份dev，Inspector仍为9229。请求使用本章 `requests/review.postman_collection.json`（在 `part-02/chapter-15`），baseUrl设为3008。1200单元通过、1201拒绝；失败前后核对数量，重启清空内存。review-contract验证两种存储的1500单元旧记录读取、副本隔离、Service直接拒绝及先筛选后limit。独立示例不与HTTP共享数据。
 
-正文继续用两次可恢复故障区分写入前失败与输出失约；恢复源码后再构建交付。关闭对照复用 `npm run dev:lifecycle` 和生命周期集合，勿与业务 dev 同时运行。生产产物按前文所述文件布局在独立目录运行时，将端口改为 3009，复制练习集合并设置该目标，重新创建数据；`npm start` 使用 production、不加载开发 .env、不启用 Inspector，文档默认关闭。数组仍不持久化，停止后重新启动应为空。
-
-本章的独立产物步骤与前面的生产运行说明使用相同文件布局；以第十五章正文的 3009 命令为准。退出并保存成果后再管理 worktree，不强制清除未提交实现。
+按正文继续故障与生产产物核查；生产目标3009，npm start不加载开发.env。完成后停止参考进程，回到个人原目录。第三篇仍沿正式 `part-02/chapter-15` 接续，不把数组与1200输入练习传播到后续。
