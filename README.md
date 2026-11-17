@@ -8,26 +8,26 @@
 
 已继承[第30章的创建与修订重试](examples/write-retry/README.md)：两个POST可带Idempotency-Key，省略时保留原行为。
 
-第 73 章「把应用交付为可验证的容器镜像」使用 `git switch part-09/chapter-73`。从第 72 章继续，新增 Linux 镜像构建与无数据库检查，应用和迁移保持不变。
+第 72 章「把应用交付为可验证的容器镜像」使用 `git switch part-09/chapter-73`。从第 71 章继续，新增 Linux 镜像构建与无数据库检查，应用和迁移保持不变。
 
-## 第七十三章　把应用交付为可验证的容器镜像
+## 第七十二章　把应用交付为可验证的容器镜像
 
-按[镜像构建与交接说明](examples/container-deployment/README.md)构建同平台镜像，验证 Node、Prisma 客户端、argon2、sharp 和私有工作目录。第 74 章再接应用编排和既有数据通路。
+按[镜像构建与交接说明](examples/container-deployment/README.md)构建同平台镜像，验证 Node、Prisma 客户端、argon2、sharp 和私有工作目录。第 73 章再接应用编排和既有数据通路。
 
-## 第七十二章　让客户端通过可信入口访问服务
+## 第七十一章　让客户端通过可信入口访问服务
 
 按[同源练习页交付说明](examples/handoff-client/README.md)把两个公开文件放入已验的 HTTPS 入口，从使用端登录、写读素材、打开头像并核对通知。
 
 
 按[练习 CA 和 HTTPS 入口说明](examples/tls-trust/README.md)准备证书，在部署端将签名头像和 API 接到私网可达的带名入口。换证和回退在支线中演练。
 
-## 第七十一章　让 API 和后台进程以各自身份持续运行
+## 第七十章　让 API 和后台进程以各自身份持续运行
 
 按[服务身份与授权](examples/service-roles/README.md)升级非空副本，用三个系统用户和数据库角色完成注册、寄信和通知。按[分角色交接说明](examples/portable-release/README.md)核对目标平台归档、收据 CLI、头像签名地址和 API 可写目录。
 
-## 第七十章　把应用和数据交给目标环境
+## 第六十九章　把应用和数据交给目标环境
 
-按[目标环境与 Mac 托管说明](examples/deployment/README.md)取得授权和可选宿主脚本。第 70 章直接接手第 69 章验过的产物；第 71 章在 Debian 建立最终服务身份与托管。
+按[目标环境与 Mac 托管说明](examples/deployment/README.md)取得授权和可选宿主脚本。第 69 章直接接手第 68 章验过的产物；第 70 章在 Debian 建立最终服务身份与托管。
 
 ## 第六十五章　调试性能与资源问题
 
