@@ -1,5 +1,7 @@
 # EPP 配套实践代码
 
+已继承[第61章的只读头像核对](database/chapter-61-reconcile/README.md)：独立分页取得数据库与桶清单，保留完整性、时间与当前引用证据；观察工具不修改或删除业务数据。
+
 已继承[第50章统一登录与邮件队列](database/chapter-50-login-outbox/README.md)：Web Cookie与小程序Bearer按渠道独立验证，保留原注册、恢复和邮件队列入口。
 
 已继承[第34章的既有素材列表分页迁移](examples/paging-upgrade/README.md)：保留旧列表，新增 GET /captures/page；游标绑定当前身份、筛选与页大小。
@@ -22,7 +24,11 @@
 
 ## 第六十三章　为后台操作提供可靠的管理命令
 
-沿用第 60 章数据，按[账号命令与独立升级步骤](database/chapter-53/README.md)预览、暂停和恢复一个账号的 Web 资格，重放旧操作并回查收据。
+沿用第 61 章配对数据，按[账号命令与独立升级步骤](database/chapter-53/README.md)预览、暂停和恢复一个账号的 Web 资格，重放旧操作并回查收据。
+
+## 第六十一章　从头像记录与私有桶的差异追查缺件和多件
+
+从第60章配对副本继续，按[只读身份、分页与复查步骤](database/chapter-61-reconcile/README.md)观察缺件、未跟踪对象及发布穿过扫描边界。第62章沿用此阶段；原应用、迁移与请求集合保持。
 
 ## 第六十章　对象存储与数据库如何协作
 
