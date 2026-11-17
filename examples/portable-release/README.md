@@ -4,7 +4,7 @@
 
 | 交给运行者的项目 | 本章示例与检查方法 |
 | --- | --- |
-| 版本与产物 | 按第 65 章的方法为本章代码、操作系统、架构和 Node 24.22.1 验收的完整归档含 dist（含 dist/config/service.json）、package.json、package-lock.json、项目 .npmrc 和生产 node_modules。同平台从可信交接单取 SHA-256，核对归档再解开，直接运行。跨平台保留同一构建的 dist 和清单，在匹配目标平台的独立打包目录按锁 `npm ci --omit=dev`，连同生产依赖重新归档，记录对应平台和新摘要，另行验收 |
+| 版本与产物 | 按第 69 章的方法为本章代码、操作系统、架构和 Node 24.22.1 验收的完整归档含 dist（含 dist/config/service.json）、package.json、package-lock.json、项目 .npmrc 和生产 node_modules。同平台从可信交接单取 SHA-256，核对归档再解开，直接运行。跨平台保留同一构建的 dist 和清单，在匹配目标平台的独立打包目录按锁 `npm ci --omit=dev`，连同生产依赖重新归档，记录对应平台和新摘要，另行验收 |
 | 安装与身份 | 示例安装根 `/opt/epp72/release`，root 管理，运行账号只读。系统用户 epp-api、epp-mail、epp-notify、epp-receipt 分开；各自读取 `/etc/epp72` 下自己的一份 0640 配置。数据库继续用[第 71 章按角色核过的权限](../service-roles/README.md)，收据 CLI 用 epp-receipt 宿主身份和只读数据库登录 epp_receipt74 |
 | 客户端入口 | 保留原来的来源和 Cookie。示例客户端访问 `http://127.0.0.1:13374`；部署端的 `LISTEN_HOST=::1`、`PORT=3374`。转发到目标的 IPv6 回环，APP_ORIGIN 填客户端所见的来源 |
 | 依赖 | 每份 DATABASE_URL 从该进程可达。API 保留原 CURSOR_HMAC_KEY、配对桶的 AVATAR_S3 配置；签名 URL 的主机与端口还须从浏览器可达。邮件的 LOCAL_SMTP_HOST、LOCAL_SMTP_PORT 指向独立练习收件端，通知无需 SMTP |
