@@ -438,7 +438,7 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
     }
   }
   // Web-only channel operations
-  for (const path of ["/notifications/events", "/profile/me", "/profiles/{userId}", "/profile/avatar/preview"]) {
+  for (const path of ["/notifications/events", "/profile/me", "/profiles/{userId}", "/profile/avatar/preview", "/profile/avatar", "/profiles/{userId}/avatar", "/profile/avatar/visibility"]) {
     for (const operation of Object.values(document.paths[path] ?? {})) {
       operation.security = [{ sessionCookie: [] }];
       operation.responses['403'] = problem('Web session required; code SESSION_CHANNEL_DENIED');
