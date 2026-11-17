@@ -22,6 +22,6 @@ node examples/login-outbox/server.mjs /绝对路径/私有配置.json
 
 用浏览器打开`http://127.0.0.1:8350`；端口须空闲。Web、甲mini、乙mini按钮分别真实请求/auth/me与指定/captures/:id，成功时再取最新修订；显示HTTP状态、userId、channel、固定素材ID、revision以及响应正文SHA256摘要。摘要相同表明这次收到的素材JSON相同。userId与channel只提供集成观察，channel来源为选中的已固定传输方式；正式会话列表和SQL用于核对存储渠道。记录与身份是分别请求的，期间撤销可能使两个状态不同，请再次手动读取。
 
-“未配置登录”按钮每点击一次就向同一个API实际POST /auth/mini/login（无Cookie）；无微信配置时显示503/MINI_NOT_CONFIGURED。没有定时轮询，入站请求仍计入41章密码来源额度；遇429等真实状态按实际窗口等待。Web或mini资格变化、会话撤销后可再次点按钮。HTTP API不可达显示观察连接失败502；未配置凭据显示OBSERVATION_CREDENTIAL_NOT_CONFIGURED且status为空，不编造HTTP结果。
+“未配置登录”按钮每点击一次就向同一个API实际POST /auth/mini/login（无Cookie）；无微信配置时显示503/MINI_NOT_CONFIGURED。没有定时轮询，mini/login不校验密码，不扣第41章共享密码来源额度，仍沿用平台交换并发预算；mini/link先证明密码，因此与Web登录、改密和恢复入口共用同来源10次／60秒额度。遇429等真实状态按相应预算等待。Web或mini资格变化、会话撤销后可再次点按钮。HTTP API不可达显示观察连接失败502；未配置凭据显示OBSERVATION_CREDENTIAL_NOT_CONFIGURED且status为空，不编造HTTP结果。
 
 服务仅支持固定页面和四个固定观察路由，不接受任意URL、ID、路径、请求头或代理参数。拒绝非本机Host／跨源请求，fetch禁止重定向。配置在启动时固定；修改后重启服务。停止用Ctrl+C，确认8350关闭，然后删除本轮配置；退出观察服务不会撤销正式会话。
