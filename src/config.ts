@@ -5,6 +5,7 @@ import { z } from 'zod';
 
 export const APP_CONFIG = Symbol('APP_CONFIG');
 export type AppConfig = Readonly<{
+  wechat?: Readonly<{ appId: string; secret: string }>;
   localSmtpPort: number;
   localSmtpHost: string;
   trustedProxyIps: readonly string[];
@@ -37,6 +38,8 @@ const EnvironmentSchema = z.object({
   LISTEN_HOST: z.string().refine(host => isIP(host) !== 0).default('127.0.0.1'),
   LOCAL_SMTP_HOST: mailHostSchema,
   LOCAL_SMTP_PORT: mailPortSchema,
+  WECHAT_APP_ID: z.string().regex(/^wx[0-9a-f]{16}$/).optional(),
+  WECHAT_APP_SECRET: z.string().regex(/^[0-9a-f]{32}$/).optional(),
   APP_ORIGIN: z.string().optional(),
   TRUST_PROXY_IPS: z.string().optional(),
   CURSOR_HMAC_KEY: z.string().regex(/^[0-9a-f]{64}$/).optional(),
@@ -56,6 +59,7 @@ export function parseConfig(defaults: unknown, env: NodeJS.ProcessEnv): AppConfi
     throw new ConfigError(String(parsed.error.issues[0]?.path[0] ?? 'environment'));
   }
   const value = parsed.data;
+  if (Boolean(value.WECHAT_APP_ID) !== Boolean(value.WECHAT_APP_SECRET)) throw new ConfigError('WECHAT_APP_ID/WECHAT_APP_SECRET');
   if (value.NODE_ENV === 'production' && !value.CURSOR_HMAC_KEY) throw new ConfigError('CURSOR_HMAC_KEY');
   if (value.NODE_ENV === 'production' && !value.APP_ORIGIN) throw new ConfigError('APP_ORIGIN');
   const appOrigin = value.APP_ORIGIN ?? `http://127.0.0.1:${value.PORT ?? file.data.port}`;
@@ -70,6 +74,7 @@ export function parseConfig(defaults: unknown, env: NodeJS.ProcessEnv): AppConfi
   const trustedProxyIps = value.TRUST_PROXY_IPS === undefined ? [] : value.TRUST_PROXY_IPS.split(',');
   if (trustedProxyIps.length > 10 || trustedProxyIps.some(ip => !isIP(ip))) throw new ConfigError('TRUST_PROXY_IPS');
   return Object.freeze({
+    ...(value.WECHAT_APP_ID && value.WECHAT_APP_SECRET ? { wechat: Object.freeze({ appId: value.WECHAT_APP_ID, secret: value.WECHAT_APP_SECRET }) } : {}),
     localSmtpPort: value.LOCAL_SMTP_PORT,
     localSmtpHost: value.LOCAL_SMTP_HOST,
     trustedProxyIps: Object.freeze(trustedProxyIps),
