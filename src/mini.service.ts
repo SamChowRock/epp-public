@@ -29,7 +29,7 @@ export class MiniService {
       let userId = mapping?.userId ?? proof?.userId;
       if (!userId) {
         userId = randomUUID();
-        await tx.user.create({ data: { id: userId } });
+        await tx.$executeRaw`INSERT INTO public.users(id) VALUES (${userId}::uuid)`;
       }
       const [account] = await tx.$queryRaw<{ status: string; miniEnabled: boolean }[]>`
         SELECT status, mini_enabled AS "miniEnabled" FROM public.users WHERE id = ${userId}::uuid FOR UPDATE
