@@ -1,3 +1,7 @@
+import { APP_CONFIG, type AppConfig } from './config.js';
+import { MiniController } from './mini.controller.js';
+import { MiniService } from './mini.service.js';
+import { WechatLogin } from './wechat-login.js';
 import { RecoveryController } from './recovery.controller.js';
 import { RecoveryService } from './recovery.service.js';
 import { Module, Scope } from '@nestjs/common';
@@ -11,8 +15,11 @@ import { CURRENT_USER_ID, requireSession } from './auth-context.js';
 import type { AuthenticatedRequest } from './auth-context.js';
 
 @Module({
-  imports: [DatabaseModule], controllers: [AuthController, RecoveryController],
+  imports: [DatabaseModule], controllers: [AuthController, RecoveryController, MiniController],
   providers: [
+    { provide: MiniService, useFactory: (db: DatabaseService, sessions: SessionService,
+      state: ApplicationState, config: AppConfig) => new MiniService(db, sessions, state, new WechatLogin(config.wechat)),
+      inject: [DatabaseService, SessionService, ApplicationState, APP_CONFIG] },
     { provide: RecoveryService, useFactory: (db: DatabaseService, sessions: SessionService,
       state: ApplicationState) =>
       new RecoveryService(db, sessions, state),
