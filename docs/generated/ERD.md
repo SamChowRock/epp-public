@@ -11,12 +11,14 @@ erDiagram
     Boolean nickname_visible
     String avatar_id FK "nullable"
     Boolean avatar_visible
+    Boolean mini_enabled
   }
   sessions {
     String id PK
     String user_id FK
     String token_digest UK
     String label
+    String channel
     DateTime created_at
     DateTime expires_at
   }
@@ -158,6 +160,12 @@ erDiagram
     String db_actor
     DateTime recorded_at
   }
+  wechat_identities {
+    String app_id PK
+    String open_id PK
+    String user_id FK
+    DateTime created_at
+  }
   capture_write_receipts {
     String user_id PK,FK
     String action PK
@@ -196,6 +204,7 @@ erDiagram
   nickname_changes }o..|| users : "user_id to id"
   avatar_writes }o..|| users : "user_id to id"
   web_access_receipts }o--|| users : "user_id to id"
+  wechat_identities }o..|| users : "user_id to id"
   capture_write_receipts }o--|| users : "user_id to id"
   capture_write_receipts }o..|| captures : "capture_id to id"
 ```
