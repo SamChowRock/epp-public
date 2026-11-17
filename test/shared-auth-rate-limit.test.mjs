@@ -95,7 +95,7 @@ test('quota storage failure returns 503 before body, ordinary session read stays
     assert.equal(response.headers.get('connection'), 'close'); assert(response.headers.get('x-request-id'));
     assert.equal((await fetch(base + '/auth/me', { headers: { Cookie: 'epp_session=' + token } })).status, 200);
   } finally { await pool.query('ALTER TABLE auth_rate_buckets_unavailable RENAME TO auth_rate_buckets'); }
-  app.get(ApplicationState).draining = true;
+  app.get(ApplicationState).beginDrain();
   const draining = await fetch(base + '/auth/login', { method: 'POST', headers: { 'X-EPP-Request': '1' } });
   assert.equal((await draining.json()).code, 'SERVICE_DRAINING');
 });
