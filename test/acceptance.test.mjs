@@ -1,6 +1,6 @@
 import { sessionFetch } from './session-fixture.mjs';
 import { removeTestCaptures } from './cleanup.mjs';
-import './database-env.mjs';
+import './auth-rate-test-state.mjs';
 import test from 'node:test';
 import { randomUUID } from 'node:crypto';
 import assert from 'node:assert/strict';
