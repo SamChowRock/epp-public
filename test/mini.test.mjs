@@ -221,9 +221,15 @@ test('public HTTP login validates code once, preserves a committed pending mappi
 test('downstream Web operations reject mini while notification HTTP stays usable', async t => {
   const f = await fixture(t);
   const mini = await f.mini.link({ code: f.fresh(), userId: f.users[0], password, label: 'Boundary' });
+  const document = createOpenApiDocument();
+  for (const operation of Object.values(document.paths['/notifications/events'])) assert.deepEqual(operation.security, [{ sessionCookie: [] }]);
+  for (const operation of Object.values(document.paths['/profile/me'])) assert.deepEqual(operation.security, [{ sessionCookie: [] }]);
+  for (const operation of Object.values(document.paths['/profiles/{userId}'])) assert.deepEqual(operation.security, [{ sessionCookie: [] }]);
+  for (const operation of Object.values(document.paths['/profile/avatar/preview'])) assert.deepEqual(operation.security, [{ sessionCookie: [] }]);
   assert.equal((await f.request('/notifications/events', mini.token, { method: 'GET' })).body.code, 'SESSION_CHANNEL_DENIED');
   assert.equal((await f.request('/profile/me', mini.token, { method: 'GET' })).body.code, 'SESSION_CHANNEL_DENIED');
   assert.equal((await f.request('/profiles/' + f.users[1] + '', mini.token, { method: 'GET' })).body.code, 'SESSION_CHANNEL_DENIED');
+  assert.equal((await f.request('/profile/avatar/preview', mini.token, { method: 'POST' , body: '{}' })).body.code, 'SESSION_CHANNEL_DENIED');
   assert.equal((await f.request('/profile/me', mini.token, { method: 'PATCH' , body: '{}' })).body.code, 'SESSION_CHANNEL_DENIED');
   assert.equal((await f.request('/notifications', mini.token)).status, 200);
   assert.equal((await f.request('/captures', mini.token)).status, 200);
