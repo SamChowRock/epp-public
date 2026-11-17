@@ -217,3 +217,11 @@ test('public HTTP login validates code once, preserves a committed pending mappi
   const result = await login.json(); assert.equal(result.userId, mapping.userId); assert.equal(result.expiresIn, 28800);
   assert.deepEqual(Object.keys(result).sort(), ['expiresIn', 'sessionId', 'token', 'userId']);
 });
+
+test('downstream Web operations reject mini while notification HTTP stays usable', async t => {
+  const f = await fixture(t);
+  const mini = await f.mini.link({ code: f.fresh(), userId: f.users[0], password, label: 'Boundary' });
+  assert.equal((await f.request('/notifications/events', mini.token, { method: 'GET' })).body.code, 'SESSION_CHANNEL_DENIED');
+  assert.equal((await f.request('/notifications', mini.token)).status, 200);
+  assert.equal((await f.request('/captures', mini.token)).status, 200);
+});

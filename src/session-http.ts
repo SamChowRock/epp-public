@@ -54,7 +54,7 @@ export function sessionBoundary(service: SessionService, config: AppConfig): Req
         throw new HttpError(401, 'Session changed; confirm the current identity before retrying', 'SESSION_CHANGED');
       }
       if (identity) {
-        if (mini && ['/auth/csrf', '/auth/password'].includes(path ?? '')) throw new HttpError(403, 'This operation requires a Web session', 'SESSION_CHANNEL_DENIED');
+        if (mini && (['/auth/csrf', '/auth/password', '/notifications/events'].includes(path ?? ''))) throw new HttpError(403, 'This operation requires a Web session', 'SESSION_CHANNEL_DENIED');
         if (mini) {
           if (path !== '/auth/logout' && (identity.status !== 'active' || !identity.miniEnabled)) {
             throw new HttpError(403, 'Account is not permitted to use this service', identity.status !== 'active' ? 'ACCOUNT_DISABLED' : 'MINI_ACCESS_DENIED');
