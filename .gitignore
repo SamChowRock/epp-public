@@ -13,3 +13,5 @@ database/chapter-20/recovery-history/
 
 .worker-dev/
 .avatar-tmp/
+.mini-local.postman_environment.json
+mini-program/project.private.config.json
