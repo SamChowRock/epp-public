@@ -1,5 +1,5 @@
 import { sessionFetch } from './session-fixture.mjs';
-import './database-env.mjs';
+import './auth-rate-test-state.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../dist/src/app.js';

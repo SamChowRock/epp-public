@@ -1,0 +1,92 @@
+{
+  "info": {
+    "name": "Chapter 41 shared password quota",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "apiA",
+      "value": "http://127.0.0.1:3341"
+    },
+    {
+      "key": "apiB",
+      "value": "http://127.0.0.1:3342"
+    }
+  ],
+  "item": [
+    {
+      "name": "Synthetic wrong credential A",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "Origin",
+            "value": "http://127.0.0.1:8341"
+          }
+        ],
+        "url": "{{apiA}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userId\": \"e4141e41-5a7c-49b1-b741-41e4141e4141\", \"password\": \"Fabricated wrong password 41\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('credential rejection or shared quota refusal', () => pm.expect([401,429]).to.include(pm.response.code));",
+              "if (pm.response.code === 429) pm.test('rate response', () => { pm.expect(pm.response.json().code).to.eql('AUTH_RATE_LIMIT'); pm.expect(Number(pm.response.headers.get('Retry-After'))).to.be.above(0); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Synthetic wrong credential B",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "Origin",
+            "value": "http://127.0.0.1:8341"
+          }
+        ],
+        "url": "{{apiB}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"userId\": \"e4141e41-5a7c-49b1-b741-41e4141e4141\", \"password\": \"Fabricated wrong password 41\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('credential rejection or shared quota refusal', () => pm.expect([401,429]).to.include(pm.response.code));",
+              "if (pm.response.code === 429) pm.test('rate response', () => { pm.expect(pm.response.json().code).to.eql('AUTH_RATE_LIMIT'); pm.expect(Number(pm.response.headers.get('Retry-After'))).to.be.above(0); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
