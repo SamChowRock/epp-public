@@ -12,9 +12,9 @@ psql -X -v expected_db=YOUR_VERIFY_DB -f database/chapter-61-reconcile/readonly.
 
 脚本先检查实际库名，创建无初始密码的独立 `epp_avatar_auditor` LOGIN，再仅授予本库 CONNECT、public USAGE、users 的 id/avatar_id 和 avatar_writes 的 id/user_id/state/created_at/check_after 列 SELECT。重跑遇到同名角色会失败并回滚，不覆盖已有身份。随后重新进入**同一核对过的库**的管理员 psql 会话，用 `\password epp_avatar_auditor` 交互设置随机密码。不要把观察角色授予 API、Worker 或维护角色。
 
-使用 DBeaver 时，先执行同一身份查询，确认数据库无误后，在事务内逐条执行 SQL 文件中 BEGIN 至 COMMIT 的原生 SQL（将 `:"expected_db"` 替换为双引号包裹的实际库名）；文件中的 `\set`、`\if`、`\gset`、`\password` 是 psql 命令，不粘贴进 SQL 编辑器。密码通过连接管理界面或 psql 交互设置。该权限方案以第60章隔离库的 PUBLIC 默认权限为前提；还须以观察账号验证 SELECT 指定列成功、读取 email 等未授权列及 INSERT/UPDATE/DELETE 被拒绝，不能仅凭授权语句推断权限结果。
+使用 DBeaver 时，先执行同一身份查询，确认数据库无误后，在事务内逐条执行 SQL 文件中 BEGIN 至 COMMIT 的原生 SQL（将 `:"expected_db"` 替换为双引号包裹的实际库名）；文件中的 `\set`、`\if`、`\gset`、`\password` 是 psql 命令，不粘贴进 SQL 编辑器。密码通过连接管理界面或 psql 交互设置。该权限方案以第60章隔离库的 PUBLIC 默认权限为前提；还须以观察账号验证 SELECT 指定列成功、读取 nickname 等未授权列及 INSERT/UPDATE/DELETE 被拒绝，不能仅凭授权语句推断权限结果。
 
-对象观察账号使用单独的 List:avatars、Read:avatars，应用原账号保持不变。本机 SeaweedFS 实验先在原前台终端 Ctrl-C，等待退出并确认第51章的十个端口无监听。保持停止，且不要同时修改配置。在**持有原 `.chapter51-store` 的工作目录**运行：
+对象观察账号使用单独的 List:avatars、Read:avatars，应用原账号保持不变。本机 SeaweedFS 实验先在原前台终端 Ctrl-C，等待退出并确认第60章的十个端口无监听。保持停止，且不要同时修改配置。在**持有原 `.chapter51-store` 的工作目录**运行：
 
 ```sh
 node database/chapter-61-reconcile/init-observer.mjs http://127.0.0.1:18633 avatars
@@ -42,7 +42,7 @@ node database/chapter-61-reconcile/compare.mjs .chapter61-private/db-01.json .ch
 
 打开本机 `.chapter61-private/report-01.html` 查看静态表，无脚本或远程资源。JSON 保留两侧来源、观察区间、完整性、行与原观察记录。文件可能含用户ID和对象名，应按私有数据保存；勿提交、公开分享或把私有目录加入静态网站。工具拒绝覆盖；HTML已存在时JSON可能已新建，失败后用新文件名重跑。
 
-离线比较只能检查已知格式和范围；**操作者必须先核对报告中的数据库来源与对象端点/桶确属第60章同一实验**。不同系统没有共同快照ID，工具不能证明这对系统业务上属于彼此。格式不符、重复行、非法ID或非 avatars/ 键直接拒绝。
+离线比较只能检查已知格式和范围；**操作者必须先核对报告中的数据库来源与对象端点/桶确属第60章同一实验**。不同系统没有共同快照ID，工具不能证明这对系统业务上属于彼此。格式不符、重复行、非法ID或非 avatars/ 键直接拒绝。比较还核对各来源页序、时间区间、终页标记与 complete/error 的一致性；数据库页数量之和必须等于保留行数，对象页数量之和允许大于按精确键去重后的数量。缺少完整终页证据或页记录自相矛盾时拒绝比较，不推断缺件。
 
 ## 3. 从差异回到同一用户和精确键
 
