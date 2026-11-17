@@ -21,3 +21,5 @@ mini-program/project.private.config.json
 # Deliver complete exercise source rather than patch artifacts.
 *.patch
 *.diff
+
+.chapter61-private/
