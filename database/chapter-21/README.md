@@ -24,31 +24,29 @@ status仅提示本章待执行正常；未知/失败历史先调查。每个库�
 
 A指第二十三章程序（读1000/写1000）；B指兼容读取（读2000/写1000）；C是本章完成代码（读2000/写2000）。**先扩大DB，再让全部读取方到B，最后放开C写入。** B也能在旧DB上运行，但C写长值必须等DB放宽。
 
-在本章完成代码根目录，停dev后应用补丁。只修改输入Schema和Service上限，输出仍2000。检查失败时先比较当前代码，禁止强制覆盖。
+保留本章C目录，另取完整B源码；B只修改输入Schema和Service上限，输出仍2000。目录已存在时另选名称。
 
 ```bash
-git apply --check database/chapter-21/reader-only.patch
-git apply database/chapter-21/reader-only.patch
+git clone --single-branch --branch codex/reference/chapter-24-reader-b https://github.com/SamChowRock/epp-public.git ../epp24-reader-b
+cd ../epp24-reader-b
+nvm use
+npm ci
+npm run prisma:generate
 npm run check
 npm run dev
 ```
+
+启动前按自己本章实验环境准备私有.env，DATABASE_URL必须是C使用的同一开发库；不复制VERIFY或SHADOW地址。先停止C进程，避免端口冲突。B/C沿用同一已扩到2000的schema与迁移，不回滚迁移，不改旧数据。
 
 导入 `requests/chapter-21.postman_collection.json`，逐项手动发送。先新建本章记录，把响应ID复制到集合变量captureId。baseUrl默认3000。GET先核对短值；B接受1000，拒绝1001。各长度请求的Scripts → Pre-request只设置JSON字符串变量，Body使用该变量，不会额外发送请求。不要用整组自动运行代替分阶段观察。
 
-停dev并撤回补丁，恢复C：
-
-```bash
-git apply -R --check database/chapter-21/reader-only.patch
-git apply -R database/chapter-21/reader-only.patch
-npm run check
-npm run dev
-```
+停B进程，回到保留的本章C目录，执行 `npm run check`、`npm run dev`，恢复C。两目录使用同一实验库；实际切换是停止旧进程再启动另一版。
 
 C接受1001/2000，拒绝2001，1000个emoji等于2000单元可接受，1001个emoji拒绝；拒绝后GET与DBeaver值保持上次成功结果。POST与PATCH均核对；缺失PATCH字段仍400，null清空。再查原文、ID、归属、创建时间保持。`02-check-rejection.sql`只对本章实验记录执行，先替换ID；2001个普通汉字直接SQL触发23514，随后在同一编辑器ROLLBACK。
 
 ## 观察兼容读取与危险回退
 
-C写入长值后，停C，再次应用补丁启动B。B的详情和列表都应200；同一长值重新提交给B仍400，这是阶段写入策略。B没有截短旧值。
+C写入长值后，停C，回到原B目录并启动B。B的详情和列表都应200；同一长值重新提交给B仍400，这是阶段写入策略。B没有截短旧值。
 
 要对照A，可提前保存第二十三章运行产物；没有保存时，保留当前项目，在其根目录独立克隆旧章节。这个路径同样适用于从空目录跟写、普通克隆和单分支克隆，不要求原项目拥有Git仓库、章节分支或配套origin。源码目录 `../epp-ch20-reader` 和产物目录 `../epp-ch20-runtime` 必须尚不存在；已占用时换一组新名字并同步后续命令，不覆盖原目录。
 
@@ -79,7 +77,7 @@ NODE_ENV=production PORT=3001 node --env-file=.env.production --enable-source-ma
 
 复制Postman详情请求，URL直接改成 `http://127.0.0.1:3001/captures/{{captureId}}`，列表同理；不要改集合baseUrl。A启动成功仍不理解长数据：详情500，含长记录的列表500。只观察读取，不让A写回。Ctrl+C停止A，回到原第二十四章目录继续用B/C恢复读取，保留长值。
 
-观察完停B，反向撤回补丁，check后运行C；本章最终源代码读写均2000。实验记录可保留，不能为恢复A而清空意图。若只做B/C对照，不需要旧产物；完整兼容实验包含A的失败观察。
+观察完停B，返回保留的C目录，check后运行C；本章最终源代码读写均2000。实验记录可保留，不能为恢复A而清空意图。若只做B/C对照，不需要旧产物；完整兼容实验包含A的失败观察。
 
 ## 恢复与交付
 
