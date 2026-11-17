@@ -1,3 +1,4 @@
+import { SharedAuthRateLimiter } from './shared-auth-rate-limiter.js';
 import { authRateLimit, browserBoundary } from './browser-security.js';
 import { SessionService } from './session.service.js';
 import { privateResponses, sessionBoundary, sessionCookieName } from './session-http.js';
@@ -39,7 +40,7 @@ export async function createApp(
     });
   }
   app.use(httpBoundary);
-  app.use(authRateLimit());
+  app.use(authRateLimit(app.get(SharedAuthRateLimiter)));
   app.use(sessionBoundary(app.get(SessionService), config));
   app.use(captureBody);
   return app;
