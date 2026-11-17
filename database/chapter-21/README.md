@@ -33,10 +33,17 @@ nvm use
 npm ci
 npm run prisma:generate
 npm run check
+```
+
+上述步骤仅取得、安装与检查源码，尚未启动B。在新B目录用编辑器准备私有 `.env`：`DATABASE_URL` 必须是C当前使用的同一开发实验库，另设 `DB_QUERY_DEBUG=false`。按C的实际连接核对主机、端口、库名与角色，不复制VERIFY或SHADOW地址，不把凭据粘到请求或截图。先停止C及其dev监听器，确认业务端口与Inspector9229已释放。核对后再启动B；清除继承的进程变量，让dev加载本目录的私有文件：
+
+```bash
+chmod 600 .env
+unset DATABASE_URL DB_QUERY_DEBUG
 npm run dev
 ```
 
-启动前按自己本章实验环境准备私有.env，DATABASE_URL必须是C使用的同一开发库；不复制VERIFY或SHADOW地址。先停止C进程，避免端口冲突。B/C沿用同一已扩到2000的schema与迁移，不回滚迁移，不改旧数据。
+B/C沿用同一已扩到2000的schema与迁移，不回滚迁移，不改旧数据。
 
 导入 `requests/chapter-21.postman_collection.json`，逐项手动发送。先新建本章记录，把响应ID复制到集合变量captureId。baseUrl默认3000。GET先核对短值；B接受1000，拒绝1001。各长度请求的Scripts → Pre-request只设置JSON字符串变量，Body使用该变量，不会额外发送请求。不要用整组自动运行代替分阶段观察。
 
