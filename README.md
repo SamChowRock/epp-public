@@ -2,7 +2,7 @@
 
 第 7 章「第一篇回顾：把服务搬离开发目录」使用 `git switch part-01/chapter-07`。迁移目录和请求集合请按下面的实际文件名打开。
 
-当前对应第一篇第 7 章，代码分支 `part-01/chapter-07`，从第六章 `part-01/chapter-06` 继续。主服务保留第六章的三个接口、TypeScript 构建与启动配置，独立需求的参考改动位于 `examples/chapter-06-source.patch`；先完成自己的实现，再按下方说明对照或在另一个干净目录应用。来源标签不进入第八章及后续主线。记录保存在单个进程的 `Map` 中，停止进程后丢失；当前仅供本机实践。
+来源标签完整参考为 `codex/reference/chapter-07-source-label`。保留个人实现后，独立执行 `git clone --single-branch --branch codex/reference/chapter-07-source-label https://github.com/SamChowRock/epp-public.git ../epp07-source-reference`，成功后进入该新目录，执行 `nvm use`、`npm ci`、`npm run check`、`npm run build`、`npm start`。目录已存在时另取名字，勿覆盖个人成果；先停原服务避免端口冲突。结束后返回原项目，下一章仍从 `part-01/chapter-06` 接续；来源标签不进入后续主线。
 
 使用 nvm 管理 Node.js；安装方式见 [nvm 官方说明](https://github.com/nvm-sh/nvm#installing-and-updating)。macOS、Linux 使用 Bash 或 Zsh，Windows 使用 WSL。在项目根目录运行：
 
@@ -288,7 +288,7 @@ cp -R dist "$release_dir/dist" &&
 
 ## 第七章独立实践参考
 
-`part-01/chapter-07` 的主服务保持第六章状态。`examples/chapter-06-source.patch` 保存可选来源标签的独立实现，供完成自主实践后对照；该字段不进入第八章及后续主线。
+来源标签完整参考为 `codex/reference/chapter-07-source-label`。保留个人实现后，独立执行 `git clone --single-branch --branch codex/reference/chapter-07-source-label https://github.com/SamChowRock/epp-public.git ../epp07-source-reference`，成功后进入该新目录，执行 `nvm use`、`npm ci`、`npm run check`、`npm run build`、`npm start`。目录已存在时另取名字，勿覆盖个人成果；先停原服务避免端口冲突。结束后返回原项目，下一章仍从 `part-01/chapter-06` 接续；来源标签不进入后续主线。
 
 自己从空目录跟写、普通克隆和单分支克隆都可使用同一路径：保留当前项目，另建资料目录。以下每条命令成功后才执行下一条；已有目录用 `git worktree list` 找回练习，不覆盖它。
 
