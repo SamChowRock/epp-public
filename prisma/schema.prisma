@@ -255,3 +255,83 @@ model AuthRateBucket {
   @@id([ruleKey, sourceKey], map: "auth_rate_buckets_pkey")
   @@map("auth_rate_buckets")
 }
+
+model verification_mail_addresses {
+  recipient                  String                       @id
+  epoch                      BigInt                       @default(0)
+  blocked                    Boolean                      @default(false)
+  blocked_event_id           String?                      @db.Uuid
+  updated_at                 DateTime                     @default(dbgenerated("clock_timestamp()")) @db.Timestamptz(6)
+  verification_mail_events   verification_mail_events?    @relation(fields: [blocked_event_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  verification_mail_releases verification_mail_releases[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model verification_mail_attempts {
+  id                       String                     @id @db.Uuid
+  outbox_id                String                     @db.Uuid
+  intent_id                String                     @db.Uuid
+  attempt_no               Int                        @db.SmallInt
+  claim_id                 String                     @db.Uuid
+  recipient                String
+  purpose                  String
+  provider                 String
+  provider_scope           String                     @db.VarChar(100)
+  address_epoch            BigInt
+  started_at               DateTime                   @default(dbgenerated("clock_timestamp()")) @db.Timestamptz(6)
+  observed_at              DateTime?                  @db.Timestamptz(6)
+  send_outcome             String?
+  provider_message_id      String?                    @db.VarChar(200)
+  provider_bound_at        DateTime?                  @db.Timestamptz(6)
+  binding_source           String?
+  binding_actor            String?                    @db.VarChar(100)
+  binding_reason           String?                    @db.VarChar(500)
+  binding_evidence_ref     String?                    @db.VarChar(200)
+  verification_mail_events verification_mail_events[]
+
+  @@unique([outbox_id, attempt_no])
+  @@unique([provider, provider_scope, provider_message_id])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model verification_mail_events {
+  id                          String                        @id @db.Uuid
+  provider                    String
+  provider_scope              String                        @db.VarChar(100)
+  endpoint_scope              String                        @db.VarChar(100)
+  event_id                    String                        @db.VarChar(200)
+  body_sha256                 String                        @db.Char(64)
+  event_type                  String                        @db.VarChar(100)
+  provider_message_id         String                        @db.VarChar(200)
+  recipient                   String?
+  provider_occurred_at        DateTime                      @db.Timestamptz(6)
+  received_at                 DateTime                      @default(dbgenerated("clock_timestamp()")) @db.Timestamptz(6)
+  message_id                  String?                       @db.VarChar(200)
+  bounce_type                 String?                       @db.VarChar(100)
+  bounce_subtype              String?                       @db.VarChar(100)
+  attempt_id                  String?                       @db.Uuid
+  match_state                 String
+  effect                      String                        @default("none")
+  verification_mail_addresses verification_mail_addresses[]
+  verification_mail_attempts  verification_mail_attempts?   @relation(fields: [attempt_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  verification_mail_releases  verification_mail_releases[]
+
+  @@unique([provider, provider_scope, endpoint_scope, event_id])
+  @@index([provider, provider_scope, provider_message_id], map: "verification_mail_events_message_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model verification_mail_releases {
+  id                          String                      @id @db.Uuid
+  recipient                   String
+  old_epoch                   BigInt
+  new_epoch                   BigInt
+  previous_blocked_event_id   String?                     @db.Uuid
+  actor                       String                      @db.VarChar(100)
+  reason                      String                      @db.VarChar(500)
+  created_at                  DateTime                    @default(dbgenerated("clock_timestamp()")) @db.Timestamptz(6)
+  verification_mail_events    verification_mail_events?   @relation(fields: [previous_blocked_event_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  verification_mail_addresses verification_mail_addresses @relation(fields: [recipient], references: [recipient], onUpdate: NoAction)
+
+  @@unique([recipient, new_epoch])
+}

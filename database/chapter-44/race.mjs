@@ -28,8 +28,9 @@ try {
     console.log('reserved', claim.id);
     if (mode === 'before') await pause('claimed, before preparation');
     const result = await deliverClaim(db, { async send(...args) {
-      await smtp.send(...args);
+      const receipt = await smtp.send(...args);
       if (mode === 'after') await pause('SMTP accepted, before database writeback');
+      return receipt;
     } }, claim);
     console.log(result);
   }

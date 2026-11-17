@@ -6,5 +6,9 @@
   "exclude": [
     "src/mail-worker.ts",
     "src/mail-worker.module.ts"
+  ],
+  "include": [
+    "src/server.ts",
+    "src/labs/**/*.ts"
   ]
 }

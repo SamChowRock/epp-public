@@ -1,0 +1,1 @@
+{"extends":"./tsconfig.json","compilerOptions":{"outDir":"./.receipts-dev"},"include":["src/mail-receipts.ts"]}

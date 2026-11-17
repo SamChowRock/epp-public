@@ -13,7 +13,8 @@ const format = {
 const entry = process.argv[2] ?? '.dev/src/server.js';
 const configFile = process.argv[3] ?? 'tsconfig.dev.json';
 const worker = configFile === 'tsconfig.worker-dev.json';
-const inspector = worker ? 9230 : 9229;
+const receipts = configFile === 'tsconfig.receipts-dev.json';
+const inspector = receipts ? 9231 : worker ? 9230 : 9229;
 
 let child;
 let revision = 0;
@@ -36,7 +37,7 @@ function restart(ready) {
   pending = pending.then(async () => {
     await stopServer();
     if (stopping || requested !== revision || !ready) return;
-    if (!worker) {
+    if (!worker && !receipts) {
       mkdirSync('.dev/config', { recursive: true });
       copyFileSync('config/service.json', '.dev/config/service.json');
     }
@@ -71,7 +72,7 @@ host.afterProgramCreate = program => {
   restart(compiled);
 };
 const watcher = ts.createWatchProgram(host);
-const assets = worker ? undefined : ts.sys.watchFile('config/service.json', () => restart(compiled), 250);
+const assets = worker || receipts ? undefined : ts.sys.watchFile('config/service.json', () => restart(compiled), 250);
 
 async function shutdown() {
   if (stopping) return;

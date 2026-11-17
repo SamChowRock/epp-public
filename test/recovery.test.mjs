@@ -22,7 +22,7 @@ async function fixture(t, delivery) {
   const database = app.get(DatabaseService), db = database.client, sessions = app.get(SessionService);
   const emails = [], messages = [];
   const recovery = new RecoveryService(database, sessions, app.get(ApplicationState));
-  const transport = delivery ?? { async send(email, purpose, token, issuedAt, expiresAt) { messages.push({ email, purpose, token, issuedAt, expiresAt }); } };
+  const transport = delivery ?? { async send(email, purpose, token, issuedAt, expiresAt) { messages.push({ email, purpose, token, issuedAt, expiresAt }); return {providerMessageId:`<${randomUUID()}@test>`}; } };
   async function dispatch(id) { return sendOne(database, transport, id); }
   t.after(async () => {
     try {
@@ -216,7 +216,7 @@ test('a locked candidate is skipped; a replacement claim fences its predecessor 
   assert.equal(await claimOne(database, ids[0]), 'empty');
   await db.$executeRaw`UPDATE verification_outbox SET lease_until=clock_timestamp()-interval '1 second' WHERE id=${a.id}::uuid`;
   const b = await claimOne(database, ids[0]); assert.notEqual(a.claim_id,b.claim_id);
-  let sent = 0; const delivery = { async send() { sent++; } };
+  let sent = 0; const delivery = { async send() { sent++; return {providerMessageId:`<${randomUUID()}@test>`}; } };
   assert.equal(await deliverClaim(database, delivery, a), 'stale');
   assert.equal(await deliverClaim(database, delivery, b), 'accepted');
   assert.equal(sent, 1);
@@ -232,6 +232,7 @@ test('an expired sender cannot record success, release the gate, or trigger a re
     assert.equal(await dispatch(id), 'busy');
     await db.$executeRaw`UPDATE verification_outbox SET lease_until=clock_timestamp()-interval '1 second' WHERE id=${id}::uuid`;
     assert.equal(await dispatch(id), 'paused');
+    return {providerMessageId:`<${randomUUID()}@test>`};
   } }, id);
   assert.equal(result,'lost-after-send');
   assert.equal(await dispatch(id),'paused'); assert.equal(attempts,1);
@@ -253,7 +254,7 @@ test('the preparation check uses the clock after waiting for the intent lock', a
     await lock.query('SELECT id FROM public.verification_intents WHERE id=$1 FOR UPDATE', [job.intentId]);
     await db.$executeRaw`UPDATE public.verification_outbox SET lease_until=clock_timestamp()+interval '1.2 seconds'
       WHERE id=${job.id}::uuid`;
-    result = deliverClaim(database, {async send() { sends++; }}, claim);
+    result = deliverClaim(database, {async send() { sends++; return {providerMessageId:`<${randomUUID()}@test>`}; }}, claim);
     // This session really blocks the preparing transaction, while its lease is still live.
     for (let n=0; ; n++) {
       const {rows} = await lock.query(`SELECT EXISTS (SELECT FROM pg_stat_activity a
@@ -280,13 +281,14 @@ test('parallel reservations release only their own job when the SMTP channel bec
   }
   const [a,b] = claims;
   let wrongSend = 0;
-  const other = {async send() { wrongSend++; }};
+  const other = {async send() { wrongSend++; return {providerMessageId:`<${randomUUID()}@test>`}; }};
   assert.equal(await deliverClaim(database, {async send() {
     assert.equal(await deliverClaim(database, other, {...b, claim_id:randomUUID()}),'busy');
     assert.equal((await db.verificationOutbox.findUniqueOrThrow({where:{id:b.id}})).claimId,b.claim_id);
     assert.equal(await deliverClaim(database, other, b),'busy');
     const row=await db.verificationOutbox.findUniqueOrThrow({where:{id:b.id}});
     assert.equal(row.status,'pending'); assert.equal(row.claimId,null); assert.equal(row.leaseUntil,null);
+    return {providerMessageId:`<${randomUUID()}@test>`};
   }}, a),'accepted');
   assert.equal(wrongSend,0);
   assert.equal(await sendOne(database,other,b.id),'accepted'); assert.equal(wrongSend,1);
@@ -298,7 +300,7 @@ test('a retry rechecks the exact prepared intent, including replacement during b
   const deferred = Object.assign(new Error(), { code: 'EENVELOPE', command: 'RCPT TO', responseCode: 450 });
   const { recovery, db, address, dispatch } = await fixture(t, { async send(email, purpose, token) {
     if (fail) throw deferred;
-    tokens.push(token);
+    tokens.push(token); return {providerMessageId:`<${randomUUID()}@test>`};
   } });
   for (const replace of [false, true]) {
     fail = true;
