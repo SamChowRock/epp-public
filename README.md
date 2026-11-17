@@ -4,7 +4,7 @@
 
 当前对应第三篇第 17 章，代码分支 `part-03/chapter-17`，从 `part-02/chapter-15` 的主线继续。主服务仍是第十四章的接口、2000 单元创建规则与 Map 存储；新增的 PostgreSQL 环境准备、psql 文件与共用诊断 SQL 见 [database/chapter-15](database/chapter-15/README.md)。本章先建立独立数据库环境，第十八章建业务表，第二十二章才替换 Nest 存储。
 
-第十五章的 1200 单元新建限制、旧记录读取兼容与数组存储属于隔离练习，参考补丁和图形请求仍保留在下方“第十五章综合实践”，不作为当前主服务行为。
+第十五章的 1200 单元新建限制、旧记录读取兼容与数组存储属于隔离练习，参考源码和图形请求说明见下方“第十五章综合实践”，不作为当前主服务行为。
 
 主服务集中解析启动配置，提供结构化日志与服务端 X-Request-Id；SIGINT/SIGTERM 先停止接收，再等待已有工作并释放资源。三个业务接口、成功字段与 Problem 契约保持，关闭期间明确拒绝的新请求使用 503／SERVICE_DRAINING。Swagger 开发默认开启，生产默认关闭。数据仍只在内存中，退出会丢失，仅供本机实践。
 
@@ -307,7 +307,7 @@ git worktree add -b practice/chapter-06-source ../epp-chapter-06-source origin/p
 
 进入 `../epp-chapter-06-source`，执行 `nvm use`、`npm ci`，按正文独立实现。远程分支记录 `origin/part-01/chapter-06` 已由显式 fetch 建立，不依赖同名本地分支；原项目无需初始化 Git。
 
-查看参考：`git show origin/part-01/chapter-07:examples/chapter-06-source.patch`。需要运行参考时，在资料目录执行 `git worktree add -b practice/chapter-06-reference ../epp-chapter-06-reference origin/part-01/chapter-06`；成功后进入该目录，执行 `git show origin/part-01/chapter-07:examples/chapter-06-source.patch | git apply -`，然后安装依赖、类型检查、构建与启动。不要在已有个人成果上直接应用补丁。结束后用 `cd "$main_dir"` 回到原项目；重开终端后用自己记录的原路径。详细需求、隔离步骤与响应观察见第七章。
+来源标签完整参考为 `codex/reference/chapter-07-source-label`。保留个人实现后，独立执行 `git clone --single-branch --branch codex/reference/chapter-07-source-label https://github.com/SamChowRock/epp-public.git ../epp07-source-reference`，成功后进入该新目录，执行 `nvm use`、`npm ci`、`npm run check`、`npm run build`、`npm start`。目录已存在时另取名字，勿覆盖个人成果；先停原服务避免端口冲突。结束后返回原项目，下一章仍从 `part-01/chapter-06` 接续；来源标签不进入后续主线。
 
 ## 第八章建立的 Nest 组装与业务边界
 
