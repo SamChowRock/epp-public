@@ -45,6 +45,7 @@ GRANT SELECT ON public.notification_jobs, public.notifications,
   public.notification_recipients TO epp_notify;
 GRANT UPDATE (status) ON public.notification_jobs TO epp_notify;
 GRANT INSERT (id,user_id,kind,created_at) ON public.notifications TO epp_notify;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.auth_rate_buckets TO epp_api;
 COMMIT;
 \else
 DO $$ BEGIN RAISE EXCEPTION 'Wrong deployment database'; END $$;

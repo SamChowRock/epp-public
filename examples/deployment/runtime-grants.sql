@@ -13,6 +13,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE
   public.notifications, public.nickname_changes, public.avatar_writes TO epp57_run;
 GRANT SELECT, INSERT ON public.command_receipts, public.capture_write_receipts, public.web_access_receipts TO epp57_run;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO epp57_run;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.auth_rate_buckets TO epp57_run;
 COMMIT;
 \else
 DO $$ BEGIN RAISE EXCEPTION 'Wrong deployment database'; END $$;

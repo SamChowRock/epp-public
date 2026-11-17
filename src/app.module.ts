@@ -1,3 +1,7 @@
+import { SharedAuthRateLimiter } from './shared-auth-rate-limiter.js';
+import { DatabaseModule } from './database.module.js';
+import { DatabaseService } from './database.service.js';
+import { ApplicationState } from './application-state.js';
 import { Module } from '@nestjs/common';
 import type { DynamicModule } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
@@ -12,8 +16,10 @@ export class AppModule {
   static register(config: AppConfig, logger: AppLogger): DynamicModule {
     return {
       module: AppModule,
-      imports: [RuntimeModule.register(config, logger), CapturesModule],
-      providers: [{ provide: APP_FILTER, useClass: ProblemFilter }],
+      imports: [RuntimeModule.register(config, logger), CapturesModule, DatabaseModule],
+      providers: [{ provide: SharedAuthRateLimiter,
+        useFactory: (database: DatabaseService, state: ApplicationState) => new SharedAuthRateLimiter(database, state),
+        inject: [DatabaseService, ApplicationState] }, { provide: APP_FILTER, useClass: ProblemFilter }],
     };
   }
 }
