@@ -21,3 +21,7 @@ database/chapter-20/recovery-history/
 *.heapsnapshot
 .mini-local.postman_environment.json
 mini-program/project.private.config.json
+
+# Deliver complete exercise source rather than patch artifacts.
+*.patch
+*.diff
