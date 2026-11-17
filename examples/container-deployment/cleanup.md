@@ -1,10 +1,10 @@
-# 第 76 章：让宿主调度一次性维护容器
+# 第 75 章：让宿主调度一次性维护容器
 
-先完成[原生维护练习](../maintenance/README.md)的角色、列授权和单笔资格核对，保留同一非空库、桶、当前头像与到期样本。容器方式复用原清理语义；它不会创建清理身份或授予数据库、S3 权限。本章 Dockerfile 增加 `database/chapter-51/clean.mjs` 与 `scripts/verify-database.mjs`，必须重新构建和验收本章镜像，不能继续把第 73 章镜像 ID 当成已包含清理工具的制品。
+先完成[原生维护练习](../maintenance/README.md)的角色、列授权和单笔资格核对，保留同一非空库、桶、当前头像与到期样本。容器方式复用原清理语义；它不会创建清理身份或授予数据库、S3 权限。本章 Dockerfile 增加 `database/chapter-51/clean.mjs` 与 `scripts/verify-database.mjs`，必须重新构建和验收本章镜像，不能继续把第 72 章镜像 ID 当成已包含清理工具的制品。
 
 ## 交付到系统级目录
 
-第 74 章的部署目录是 `/opt/epp74`，系统计时器从本章统一使用 root 管理的 `/opt/epp-container`。在 Linux 部署主机创建这个全新目录并复制现有真实配置；下面的源码路径换成本章实际检出：
+第 73 章的部署目录是 `/opt/epp74`，系统计时器从本章统一使用 root 管理的 `/opt/epp-container`。在 Linux 部署主机创建这个全新目录并复制现有真实配置；下面的源码路径换成本章实际检出：
 
 ```sh
 EPP_SOURCE=/absolute/path/to/epp-book-code
@@ -25,7 +25,7 @@ sudoedit "$EPP_DEPLOY/compose.env" "$EPP_DEPLOY/secrets/cleanup.env"
 
 最后一份源配置来自本章原生练习；如果原生路径不同，换成实际文件。保留专用 `epp_cleanup` 数据库身份和专用 S3 删除身份，将数据库主机改为 `epp-data.internal`、端口保持真实端口。将 S3 endpoint 改为容器与使用端都能访问的原 HTTPS 地址；公开 CA 仍挂到 `/run/epp/root.crt`。不要把 API 密钥复制给清理角色。
 
-按第 74 章已限定的数据库/HBA与防火墙规则，追加本库的 `epp_cleanup` 登录来自 `172.28.74.0/24` 的 SCRAM 许可，再重载 HBA并实查连接角色。原 HBA 如果只列 API、邮件、通知三个身份，清理程序仍会被拒绝；创建角色本身不会打开这个通路。
+按第 73 章已限定的数据库/HBA与防火墙规则，追加本库的 `epp_cleanup` 登录来自 `172.28.74.0/24` 的 SCRAM 许可，再重载 HBA并实查连接角色。原 HBA 如果只列 API、邮件、通知三个身份，清理程序仍会被拒绝；创建角色本身不会打开这个通路。
 
 在 `compose.env` 更新 `EPP_IMAGE` 为本章镜像的实际不可变 ID，并**从交接单独立抄写** `EPP_S3_ENDPOINT` 与 `EPP_S3_BUCKET`，保留 `EPP_DATABASE`。这三个参数是命令的预期目标，与 `cleanup.env` 的有效配置比较，不能直接从后者读取再声称完成独立核对。`compose.yaml` 即使只启动 API，也会先检查这些 `${变量:?}`；升级本章定义时必须一起补齐。
 

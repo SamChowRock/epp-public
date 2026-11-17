@@ -1,6 +1,6 @@
 # 用练习 CA 接手 HTTPS 入口
 
-沿用[第 71 章的部署](../portable-release/README.md)。沿用与目标平台匹配、摘要已验的完整运行归档和原有生产依赖。原 API 以 epp-api 运行在 /var/lib/epp72-api，在 Debian 的 [::1]:3374 接收 HTTP。为了在 API 运行时单独更换入口证书，本例用 nginx 在 8443 接收 HTTPS，再把请求转给 API。部署端保管服务私钥，操作端负责签发并用 curl 验收。使用已核对指纹的 SSH 主机别名 `epp-lab`、OpenSSL 3、带 SSL 模块的 nginx、一个可登录的练习账号。选做浏览器对照时，用 Firefox 的一次性配置单独导入、撤销练习根。以下两端各保留一个 Bash 会话。先核对两端 UTC 时间，预留部署端与操作端各自的回环 8443。
+沿用[第 70 章的部署](../portable-release/README.md)。沿用与目标平台匹配、摘要已验的完整运行归档和原有生产依赖。原 API 以 epp-api 运行在 /var/lib/epp72-api，在 Debian 的 [::1]:3374 接收 HTTP。为了在 API 运行时单独更换入口证书，本例用 nginx 在 8443 接收 HTTPS，再把请求转给 API。部署端保管服务私钥，操作端负责签发并用 curl 验收。使用已核对指纹的 SSH 主机别名 `epp-lab`、OpenSSL 3、带 SSL 模块的 nginx、一个可登录的练习账号。选做浏览器对照时，用 Firefox 的一次性配置单独导入、撤销练习根。以下两端各保留一个 Bash 会话。先核对两端 UTC 时间，预留部署端与操作端各自的回环 8443。
 
 ## 建一个独立入口
 
@@ -63,7 +63,7 @@ client=(curl -q --noproxy '*' --max-time 12 -sS --resolve api.epp.test:8443:127.
 "${client[@]}" -w '\nHTTP %{http_code}\n' "$site/profile/me"
 ```
 
-匿名读本人资料应得 401。正文 72.3 给出 Firefox 配置内的独立验证，以及保存 HTTPS Cookie、写入并读回一条素材的步骤。保持 API 和数据库运行。
+匿名读本人资料应得 401。正文 71.3 给出 Firefox 配置内的独立验证，以及保存 HTTPS Cookie、写入并读回一条素材的步骤。保持 API 和数据库运行。
 
 ## 预检、切换、回退
 
