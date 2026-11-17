@@ -1,12 +1,12 @@
-# chapter-14-configuration 完整源码参考
+# chapter-14-observation 完整源码参考
 
-第14章阶段一，从第13章开始，增加集中配置parseConfig。按正文14.1断言校验配置；原GET /captures仍200。此阶段旧http-options与入口保持，尚不具备请求日志或关闭协调。
+第14章阶段二，以上一配置参考为父，接入结构化请求日志、存储观察与Provider。npm test后，用LOG_LEVEL=debug启动，POST合法原文201、非法类型400，X-Request-Id关联http.started、store.completed或错误与http.completed。此阶段尚无排空协调。阶段三直接使用part-02/chapter-14，具备完整关闭能力。
 
-本分支 `codex/reference/chapter-14-configuration`，前置为 `part-02/chapter-13`。练习仅供所属章节对照，不传播到正式后续主线。保留个人成果，在独立的新目录取得本分支：
+本分支 `codex/reference/chapter-14-observation`，前置为 `codex/reference/chapter-14-configuration`。练习仅供所属章节对照，不传播到正式后续主线。保留个人成果，在独立的新目录取得本分支：
 
 ```bash
-git clone --single-branch --branch codex/reference/chapter-14-configuration https://github.com/SamChowRock/epp-public.git ../epp-chapter-14-configuration
-cd ../epp-chapter-14-configuration
+git clone --single-branch --branch codex/reference/chapter-14-observation https://github.com/SamChowRock/epp-public.git ../epp-chapter-14-observation
+cd ../epp-chapter-14-observation
 nvm use
 npm ci
 npm run check

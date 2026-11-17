@@ -8,6 +8,7 @@ import { catchError, finalize, map, of, tap, throwError } from 'rxjs';
 import { z } from 'zod';
 import { HttpError } from '../http.js';
 import { ProblemFilter } from '../problem.filter.js';
+import { AppLogger } from '../app-logger.js';
 
 const ValueSchema = z.object({ value: z.string().min(1) });
 type Value = z.infer<typeof ValueSchema>;
@@ -63,7 +64,7 @@ export async function createPipelineApp(record: RecordStep = console.log) {
 
   @Catch()
   class TraceFilter extends ProblemFilter {
-    constructor(private readonly name: string) { super(); }
+    constructor(private readonly name: string) { super(new AppLogger('info')); }
 
     override catch(error: unknown, host: ArgumentsHost): void {
       record(`filter:${this.name}`);

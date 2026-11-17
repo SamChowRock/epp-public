@@ -6,16 +6,26 @@ import { captureBody } from './capture-body.js';
 import { httpBoundary } from './http-boundary.js';
 import { SwaggerModule } from '@nestjs/swagger';
 import { createOpenApiDocument } from './openapi.js';
-import { readHttpOptions } from './http-options.js';
+import { loadConfig } from './config.js';
+import type { AppConfig } from './config.js';
+import { AppLogger } from './app-logger.js';
+import { ApplicationState } from './application-state.js';
+import { requestObservation } from './request-observation.js';
 
-export async function createApp(): Promise<NestExpressApplication> {
-  const { docsEnabled } = readHttpOptions();
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+export async function createApp(
+  config?: AppConfig,
+  logger?: AppLogger,
+): Promise<NestExpressApplication> {
+  config ??= await loadConfig();
+  logger ??= new AppLogger(config.logLevel);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule.register(config, logger), {
+    logger: false,
     bodyParser: false,
     abortOnError: false,
   });
   app.set('query parser', 'simple');
-  if (docsEnabled) {
+  app.use(requestObservation(logger, app.get(ApplicationState)));
+  if (config.docsEnabled) {
     SwaggerModule.setup('docs', app, createOpenApiDocument(), {
       jsonDocumentUrl: 'openapi.json', raw: ['json'],
       swaggerOptions: { validatorUrl: null },

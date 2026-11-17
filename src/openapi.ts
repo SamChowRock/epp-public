@@ -32,7 +32,7 @@ const notModified: ResponseObject = {
 };
 
 export function createOpenApiDocument(): OpenAPIObject {
-  return {
+  const document: OpenAPIObject = {
     openapi: '3.0.3',
     info: {
       title: 'EPP Capture API', version: '0.2.0',
@@ -94,4 +94,18 @@ export function createOpenApiDocument(): OpenAPIObject {
       Problem: schema(ProblemSchema, 'output'),
     } },
   };
+  for (const path of Object.values(document.paths)) {
+    for (const operation of [path.get, path.post]) {
+      if (!operation?.responses) continue;
+      operation.responses['503'] = problem('Shutdown in progress; code SERVICE_DRAINING');
+      for (const response of Object.values(operation.responses)) {
+        if (!response || '$ref' in response) continue;
+        response.headers = { ...response.headers, 'X-Request-Id': {
+          description: 'Server-generated correlation ID; not an idempotency key.',
+          schema: { type: 'string', format: 'uuid' },
+        } };
+      }
+    }
+  }
+  return document;
 }
