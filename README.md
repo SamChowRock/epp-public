@@ -41,6 +41,7 @@
 - [第 38 章　Session 与 Cookie 登录状态从哪里来](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-38)
 - [第 39 章　鉴权与授权 登录了也不代表能操作](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-39)
 - [第 40 章　保护基于浏览器的服务入口](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-40)
+- [第 41 章　两个API实例共用登录额度](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-41)
 - [第 42 章　从一封验证邮件建立账号](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-42)
 - [第 43 章　恢复已有账号并撤销旧会话](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-43)
 - [第 44 章　小程序登录与独立会话](https://github.com/SamChowRock/epp-public/tree/part-05/chapter-44)
