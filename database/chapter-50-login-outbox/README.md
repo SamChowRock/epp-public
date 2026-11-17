@@ -22,7 +22,7 @@ npm run check
 
 ## 跟做与验收
 
-先用本章[Postman集合](../../requests/chapter-50-login-outbox.postman_collection.json)在未同步的本地工作区填变量；每条请求禁用自动Cookie jar，Web使用显式webCookie，mini使用显式Bearer。不要导出含真实值的环境。正式API未配置微信时，mini/login为503/MINI_NOT_CONFIGURED；mini/link先验证原密码：错密码401，正确密码再到未配置平台503。该失败不创建映射或会话；所有密码入口仍共用41的来源额度。不要把测试code填进真实微信适配器期待登录成功。
+先用本章[Postman集合](../../requests/chapter-50-login-outbox.postman_collection.json)在未同步的本地工作区填变量；每条请求禁用自动Cookie jar，Web使用显式webCookie，mini使用显式Bearer。不要导出含真实值的环境。正式API未配置微信时，mini/login为503/MINI_NOT_CONFIGURED；mini/link先验证原密码：错密码401，正确密码再到未配置平台503。该失败不创建映射或会话；mini/link与Web密码及恢复入口仍共用41的同来源10次／60秒额度；mini/login不证明密码，不扣该桶，沿用原平台并发预算。不要把测试code填进真实微信适配器期待登录成功。
 
 需要合成mini会话时，另按[44章本地练习](../chapter-37/README.md)运行独立MiniService平台替身。它不改变正式平台适配器；新练习的用户／素材与旧非空历史是两种对照，不混称同一记录。观察原历史时只使用确实已经属于该用户的合成mini会话。页面本身不创建身份。
 
