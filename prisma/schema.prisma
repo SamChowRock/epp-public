@@ -228,3 +228,15 @@ model CaptureWriteReceipt {
   @@index([captureId], map: "capture_write_receipts_capture_id_idx")
   @@map("capture_write_receipts")
 }
+
+/// Shared password-entry quota; bounded cleanup and capacity are serialized by the rule lock.
+model AuthRateBucket {
+  ruleKey String @map("rule_key") @db.VarChar(64)
+  sourceKey String @map("source_key") @db.VarChar(128)
+  openedAt DateTime @map("opened_at") @db.Timestamptz(3)
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+  used Int
+
+  @@id([ruleKey, sourceKey], map: "auth_rate_buckets_pkey")
+  @@map("auth_rate_buckets")
+}
