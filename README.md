@@ -305,7 +305,7 @@ git worktree add -b practice/chapter-06-source ../epp-chapter-06-source origin/p
 
 进入 `../epp-chapter-06-source`，执行 `nvm use`、`npm ci`，按正文独立实现。远程分支记录 `origin/part-01/chapter-06` 已由显式 fetch 建立，不依赖同名本地分支；原项目无需初始化 Git。
 
-查看参考：`git show origin/part-01/chapter-07:examples/chapter-06-source.patch`。需要运行参考时，在资料目录执行 `git worktree add -b practice/chapter-06-reference ../epp-chapter-06-reference origin/part-01/chapter-06`；成功后进入该目录，执行 `git show origin/part-01/chapter-07:examples/chapter-06-source.patch | git apply -`，然后安装依赖、类型检查、构建与启动。不要在已有个人成果上直接应用补丁。结束后用 `cd "$main_dir"` 回到原项目；重开终端后用自己记录的原路径。详细需求、隔离步骤与响应观察见第七章。
+来源标签完整参考为 `codex/reference/chapter-07-source-label`。保留个人实现后，独立执行 `git clone --single-branch --branch codex/reference/chapter-07-source-label https://github.com/SamChowRock/epp-public.git ../epp07-source-reference`，成功后进入该新目录，执行 `nvm use`、`npm ci`、`npm run check`、`npm run build`、`npm start`。目录已存在时另取名字，勿覆盖个人成果；先停原服务避免端口冲突。结束后返回原项目，下一章仍从 `part-01/chapter-06` 接续；来源标签不进入后续主线。
 
 ## 第八章建立的 Nest 组装与业务边界
 
