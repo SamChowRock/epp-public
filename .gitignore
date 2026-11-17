@@ -19,3 +19,7 @@ database/chapter-20/recovery-history/
 # Local diagnostic recordings can include paths and private runtime data.
 *.cpuprofile
 *.heapsnapshot
+
+# Deliver complete exercise source rather than patch artifacts.
+*.patch
+*.diff
