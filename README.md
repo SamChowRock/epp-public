@@ -289,7 +289,7 @@ cp -R dist "$release_dir/dist" &&
 
 ## 第七章独立实践参考
 
-`part-01/chapter-07` 的主服务保持第六章状态。`examples/chapter-06-source.patch` 保存可选来源标签的独立实现，供完成自主实践后对照；该字段不进入第八章及后续主线。
+来源标签完整参考为 `codex/reference/chapter-07-source-label`。保留个人实现后，独立执行 `git clone --single-branch --branch codex/reference/chapter-07-source-label https://github.com/SamChowRock/epp-public.git ../epp07-source-reference`，成功后进入该新目录，执行 `nvm use`、`npm ci`、`npm run check`、`npm run build`、`npm start`。目录已存在时另取名字，勿覆盖个人成果；先停原服务避免端口冲突。结束后返回原项目，下一章仍从 `part-01/chapter-06` 接续；来源标签不进入后续主线。
 
 自己从空目录跟写、普通克隆和单分支克隆都可使用同一路径：保留当前项目，另建资料目录。以下每条命令成功后才执行下一条；已有目录用 `git worktree list` 找回练习，不覆盖它。
 
