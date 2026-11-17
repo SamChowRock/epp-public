@@ -1,3 +1,4 @@
+import { MINI_PUBLIC_PATHS } from './mini-contract.js';
 import { RECOVERY_PATHS } from './recovery-contract.js';
 import type { Request, Response, NextFunction } from 'express';
 import { HttpError } from './http.js';
@@ -26,12 +27,16 @@ export function httpBoundary(
     const discard = /^\/candidates\/([^/]+)\/(?:discard|accept)$/.exec(url.pathname);
     const learningDetail = /^\/learning-records\/([^/]+)$/.exec(url.pathname);
     const sessionDetail = /^\/auth\/sessions\/([^/]+)$/.exec(url.pathname);
+<<<<<<< HEAD
     const notificationRead = /^\/notifications\/([^/]+)\/read$/.exec(url.pathname);
     const notificationDetail = /^\/notifications\/([^/]+)$/.exec(url.pathname);
     if ((notificationRead?.[1] ?? notificationDetail?.[1])?.includes('%')) {
       throw new HttpError(404, 'Route not found', 'ROUTE_NOT_FOUND');
     }
     const allowed = ['/auth/login', '/auth/logout', '/auth/password', ...RECOVERY_PATHS].includes(url.pathname) ? ['POST']
+=======
+    const allowed = ['/auth/login', '/auth/logout', '/auth/password', ...RECOVERY_PATHS, ...MINI_PUBLIC_PATHS].includes(url.pathname) ? ['POST']
+>>>>>>> part-06/chapter-53
       : ['/auth/me', '/auth/sessions', '/auth/csrf'].includes(url.pathname) ? ['GET'] : sessionDetail ? ['DELETE']
       : url.pathname === '/notifications' ? ['GET'] : notificationRead ? ['POST'] : notificationDetail ? ['DELETE']
       : url.pathname === '/captures' ? ['GET', 'POST']
