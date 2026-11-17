@@ -59,6 +59,7 @@
 - [第 58 章　用户资料的业务约束与隐私](https://github.com/SamChowRock/epp-public/tree/part-07/chapter-58)
 - [第 59 章　安全地接收和处理头像](https://github.com/SamChowRock/epp-public/tree/part-07/chapter-59)
 - [第 60 章　对象存储与数据库如何协作](https://github.com/SamChowRock/epp-public/tree/part-07/chapter-60)
+- [第 61 章　从头像记录与私有桶的差异追查缺件和多件](https://github.com/SamChowRock/epp-public/tree/part-07/chapter-61)
 - [第 63 章　为后台操作提供可靠的管理命令](https://github.com/SamChowRock/epp-public/tree/part-08/chapter-63)
 - [第 64 章　构建与持续集成](https://github.com/SamChowRock/epp-public/tree/part-08/chapter-64)
 - [第 66 章　调试性能与资源问题](https://github.com/SamChowRock/epp-public/tree/part-08/chapter-66)
