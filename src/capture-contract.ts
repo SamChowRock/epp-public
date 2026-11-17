@@ -18,7 +18,7 @@ function createChineseIntentSchema(maxLength: number) {
 }
 
 // Separate the write policy from values that readers must understand.
-export const ChineseIntentSchema = createChineseIntentSchema(2000);
+export const ChineseIntentSchema = createChineseIntentSchema(1000);
 export const StoredChineseIntentSchema = createChineseIntentSchema(2000);
 
 export const CreateCaptureSchema = z.object({
