@@ -71,7 +71,7 @@ node --env-file=.mail54-private/database.env examples/mail-delivery/lab.mjs repl
 node --env-file=.mail54-private/database.env examples/mail-delivery/lab.mjs replay .mail54-private/lab.json epp_ch54_verify .mail54-private/old-sent.json
 ```
 
-事件文件保存原始正文和签名头，0600独占创建，不覆盖。`replay`保留事件ID与正文，按当前秒重新签名，因而跨官方时间窗后仍能演示重复身份；它不篡改事件发生时间，不关闭正式时间窗。需要测试签名过期可用已保存的原始头手动发送。旧sent只增加历史事实，不能清除退信；outbox仍accepted。也可生成email.delivered、email.delivery_delayed或email.complained，不能把delivered称作用户阅读。
+事件文件保存原始正文和签名头，0600独占创建，不覆盖。重放前再次核对单一合成收件人、小写供应商ID及其所属任务：必须是当前配置中的正式attempt绑定，或该固定attempt对应的本地未绑定供应商记录；同地址的其他任务和未知ID均拒绝签名，不联系回执入口。观察事件还固定供应商、scope与endpoint，其他scope的相同UUID不会混入。`replay`保留事件ID与正文，按当前秒重新签名，因而跨官方时间窗后仍能演示重复身份；它不篡改事件发生时间，不关闭正式时间窗。需要测试签名过期可用已保存的原始头手动发送。旧sent只增加历史事实，不能清除退信；outbox仍accepted。也可生成email.delivered、email.delivery_delayed或email.complained，不能把delivered称作用户阅读。
 
 再次经API申请甲地址、track并重启serve，单笔send应返回suppressed：新任务dead/address-suppressed，未增加尝试、未旋转令牌、未联系SMTP。经API申请乙地址并track，accepted仍可发生。
 

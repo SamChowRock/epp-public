@@ -63,14 +63,44 @@ function fixture(messageId,recipient,type) {
   if(!['email.sent','email.delivered','email.delivery_delayed','email.bounced','email.complained'].includes(type)) throw Error('EVENT_TYPE');
   return {eventId:'local_'+randomUUID(), body:JSON.stringify({type,created_at:new Date().toISOString(),data:{email_id:messageId,to:[recipient],...(type==='email.bounced'?{bounce:{type:'Permanent',subType:'General'}}:{})}})};
 }
+async function fixedAttempts(db,c) {
+  return db.client.verification_mail_attempts.findMany({where:{outbox_id:{in:c.outboxIds},provider:'resend',provider_scope:c.providerScope,recipient:{in:c.recipients}},take:90,select:{id:true,outbox_id:true,recipient:true,provider:true,provider_scope:true,provider_message_id:true,address_epoch:true,send_outcome:true,binding_source:true}});
+}
+async function fixedProviderRecords(attempts,privateDir) {
+  const records=[];
+  for(const a of attempts) {
+    try {
+      const r=await readPrivate(join(privateDir,'provider-'+a.id+'.json'));
+      if(r.attemptId!==a.id||r.outboxId!==a.outbox_id||r.recipient!==a.recipient) throw Error('FIXED_ATTEMPT_REQUIRED');
+      const messageId=uuid.parse(r.providerMessageId);
+      if(a.provider_message_id && messageId!==a.provider_message_id) throw Error('FIXED_ATTEMPT_REQUIRED');
+      records.push({attemptId:a.id,providerMessageId:messageId,recipient:a.recipient});
+    } catch(e) {if(e.code!=='ENOENT')throw e;}
+  }
+  return records;
+}
+async function requireReplayOwnership(db,c,privateDir,payload) {
+  const id=uuid.parse(payload?.data?.email_id),to=payload?.data?.to;
+  if(!Array.isArray(to)||to.length!==1||!c.recipients.includes(to[0])) throw Error('SYNTHETIC_RECIPIENT_REQUIRED');
+  // An already-bound identity is authoritative, including outside our tracked list.
+  const bound=await db.client.verification_mail_attempts.findFirst({where:{provider:'resend',provider_scope:c.providerScope,provider_message_id:id},select:{outbox_id:true,recipient:true}});
+  if(bound) {
+    if(!c.outboxIds.includes(bound.outbox_id)||bound.recipient!==to[0]) throw Error('FIXED_ATTEMPT_REQUIRED');
+    return;
+  }
+  // Early lost responses have no binding yet: only this exact fixed attempt's
+  // private provider record can establish the locally generated identity.
+  const attempts=await fixedAttempts(db,c);
+  const records=await fixedProviderRecords(attempts.filter(a=>!a.provider_message_id),privateDir);
+  if(!records.some(r=>r.providerMessageId===id&&r.recipient===to[0])) throw Error('FIXED_ATTEMPT_REQUIRED');
+}
 async function snapshot(db,c,privateDir) {
   const ids=c.outboxIds;
   // Explicit projections only: no intent/token/digest/body/password/config values.
   const outbox=await db.client.verificationOutbox.findMany({where:{id:{in:ids}},select:{id:true,recipient:true,status:true,attempts:true,lastFailure:true}});
-  const attempts=await db.client.verification_mail_attempts.findMany({where:{outbox_id:{in:ids}},select:{id:true,outbox_id:true,provider:true,provider_scope:true,provider_message_id:true,address_epoch:true,send_outcome:true,binding_source:true}});
-  const providerRecords=[];
-  for(const a of attempts) { try { const r=await readPrivate(join(privateDir,'provider-'+a.id+'.json')); providerRecords.push({attemptId:a.id,providerMessageId:uuid.parse(r.providerMessageId)}); } catch(e) {if(e.code!=='ENOENT')throw e;} }
-  const events=await db.client.verification_mail_events.findMany({where:{OR:[{attempt_id:{in:attempts.map(a=>a.id)}},{provider_message_id:{in:[...attempts.flatMap(a=>a.provider_message_id?[a.provider_message_id]:[]),...providerRecords.map(r=>r.providerMessageId)]}}]},select:{id:true,event_id:true,event_type:true,provider_message_id:true,attempt_id:true,match_state:true,effect:true,received_at:true}});
+  const attempts=await fixedAttempts(db,c);
+  const providerRecords=await fixedProviderRecords(attempts,privateDir);
+  const events=await db.client.verification_mail_events.findMany({where:{provider:'resend',provider_scope:c.providerScope,endpoint_scope:c.endpointScope,OR:[{attempt_id:{in:attempts.map(a=>a.id)}},{provider_message_id:{in:[...attempts.flatMap(a=>a.provider_message_id?[a.provider_message_id]:[]),...providerRecords.map(r=>r.providerMessageId)]}}]},select:{id:true,provider:true,provider_scope:true,endpoint_scope:true,event_id:true,event_type:true,provider_message_id:true,attempt_id:true,match_state:true,effect:true,received_at:true}});
   const addresses=await db.client.verification_mail_addresses.findMany({where:{recipient:{in:c.recipients}},select:{recipient:true,epoch:true,blocked:true,blocked_event_id:true}});
   const releases=await db.client.verification_mail_releases.findMany({where:{recipient:{in:c.recipients}},select:{id:true,recipient:true,old_epoch:true,new_epoch:true,previous_blocked_event_id:true}});
   const control=await db.client.verificationMailControl.findUnique({where:{id:1}});
@@ -107,7 +137,7 @@ async function main() {
     }
     if(action==='admin-bind') {
       const [id,destination]=args;uuid.parse(id);if(!c.outboxIds.includes(id)||!destination)throw Error('USAGE');
-      const a=await db.client.verification_mail_attempts.findFirstOrThrow({where:{outbox_id:id},orderBy:{attempt_no:'desc'}});
+      const a=await db.client.verification_mail_attempts.findFirstOrThrow({where:{outbox_id:id,provider:'resend',provider_scope:c.providerScope,recipient:{in:c.recipients}},orderBy:{attempt_no:'desc'}});
       const r=await readPrivate(join(dirname(path),'provider-'+a.id+'.json'));
       if(r.attemptId!==a.id||r.outboxId!==id||r.recipient!==a.recipient)throw Error('FIXED_ATTEMPT_REQUIRED');
       await writePrivate(destination,{attemptId:a.id,providerMessageId:uuid.parse(r.providerMessageId),providerScope:c.providerScope,actor:'local-operator',reason:label+' SMTP accepted and HTTP response lost',evidenceRef:'local-provider-'+a.id});
@@ -134,7 +164,7 @@ async function main() {
     if(action==='event') {
       const [id,type,destination]=args; uuid.parse(id);
       if(!destination || !c.outboxIds.includes(id)) throw Error('FIXTURE_DESTINATION_REQUIRED');
-      const a=await db.client.verification_mail_attempts.findFirstOrThrow({where:{outbox_id:id},orderBy:{attempt_no:'desc'}});
+      const a=await db.client.verification_mail_attempts.findFirstOrThrow({where:{outbox_id:id,provider:'resend',provider_scope:c.providerScope,recipient:{in:c.recipients}},orderBy:{attempt_no:'desc'}});
       if(!a.provider_message_id) throw Error('UNBOUND_USE_PROVIDER_RECORD');
       const f=fixture(a.provider_message_id,a.recipient,type);
       await writePrivate(destination,{...f,headers:signed(c,f.body,f.eventId)});
@@ -144,7 +174,7 @@ async function main() {
       const [source,mode]=args;
       const f=z.object({eventId:z.string().min(1).max(200),body:z.string().max(65536),headers:z.record(z.string(),z.string())}).strict().parse(await readPrivate(source));
       const payload=JSON.parse(f.body);
-      if(!c.recipients.includes(payload?.data?.to?.[0])) throw Error('SYNTHETIC_RECIPIENT_REQUIRED');
+      await requireReplayOwnership(db,c,dirname(path),payload);
       const status=await emit(c,f,mode==='wrong');
       const responseFile=join(dirname(path),'last-response.json');
       await saveResponse(responseFile,f.eventId,status);
@@ -164,7 +194,7 @@ async function main() {
           if(m.from!=='EPP local <sender@example.test>' || !Array.isArray(m.to) || m.to.length!==1 || !c.recipients.includes(m.to[0]) || typeof m.text!=='string' || typeof m.subject!=='string') throw Error('SYNTHETIC_MAIL_REQUIRED');
           const attemptId=uuid.parse(m.headers?.['X-EPP-Attempt-ID']);
           const a=await db.client.verification_mail_attempts.findUniqueOrThrow({where:{id:attemptId}});
-          if(!c.outboxIds.includes(a.outbox_id)||a.recipient!==m.to[0]||a.provider_scope!==c.providerScope) throw Error('FIXED_ATTEMPT_REQUIRED');
+          if(!c.outboxIds.includes(a.outbox_id)||a.recipient!==m.to[0]||a.provider!=='resend'||a.provider_scope!==c.providerScope) throw Error('FIXED_ATTEMPT_REQUIRED');
           const messageId=randomUUID();
           // The same identity survives SMTP acceptance and deliberately lost HTTP response.
           await transport.sendMail({from:m.from,to:m.to,subject:'['+label+'] '+m.subject,text:m.text,headers:{'X-EPP-Attempt-ID':attemptId,'X-EPP-Local-Provider-ID':messageId}});
