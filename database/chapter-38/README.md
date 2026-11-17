@@ -13,7 +13,7 @@ verify_db='epp_ch38_verify'  # 换成建库或恢复时取的库名
 node --env-file=.env.test --inspect=127.0.0.1:9480 examples/oidc-lab.mjs "$verify_db"
 ```
 
-在浏览器打开 http://127.0.0.1:3380/auth/oidc，第一次展开“关联已有账号”，使用终端的本轮虚构 userId 与密码。确认页面来自 localhost 的独立实验提供方；选择实验身份 A，回到原地址，结果框应显示原用户 ID。用同一浏览器 GET /captures/本轮captureId 核对旧素材。随后可以用普通登录复用映射，或在提供方取消。首次就选择普通登录会得到新建、未开通的账号，之后不能强行绑定回另一个账号；在独立浏览器窗口用实验身份 B 普通登录，重复一次应得到同一待开通 ID。真实提供方也需两个独立且可重复选择的测试主体。不要用真实密码。实验组使用临时签名密钥、真实授权码交换、RS256、state／nonce／S256；不运行外部厂商的服务，也不授予生产资格。
+在浏览器打开 `http://127.0.0.1:3380/auth/oidc`，第一次展开“关联已有账号”，使用终端的本轮虚构 userId 与密码。确认页面来自 localhost 的独立实验提供方；选择实验身份 A，回到原地址，结果框应显示原用户 ID。用同一浏览器 GET /captures/本轮captureId 核对旧素材。随后可以用普通登录复用映射，或在提供方取消。首次就选择普通登录会得到新建、未开通的账号，之后不能强行绑定回另一个账号；在独立浏览器窗口用实验身份 B 普通登录，重复一次应得到同一待开通 ID。真实提供方也需两个独立且可重复选择的测试主体。不要用真实密码。实验组使用临时签名密钥、真实授权码交换、RS256、state／nonce／S256；不运行外部厂商的服务，也不授予生产资格。
 
 [两条只读 SQL](01-observe.sql)分别核对库及本地用户的映射、素材和存活 Web 会话。VS Code 选择 Chapter 38: OIDC callback (local VERIFY)，断在 oidc.controller.ts 内 resolveOidcAccount 调用前，读 Boolean(subject) 与 Boolean(proof)，不要展开密码证明和令牌。继续后移除断点再观察正常请求。可导入[本章 Postman 集合](../../requests/chapter-38.postman_collection.json)；浏览器 Cookie 与 Postman Cookie 独立，两者的事务不能混用。终端按 Return 清理本轮实验数据、停止两个服务；DBeaver 断开，不清空库。测试用 npm test，也必须使用独立 VERIFY。
 
