@@ -198,3 +198,18 @@ test('receiver target guard, missing schema probe and SIGTERM close the real pro
     await database.onModuleDestroy();
   }
 });
+
+test('signed uppercase email_id yields canonical lowercase Resend identity', () => {
+  const messageId = randomUUID(),
+    b = Buffer.from(
+      JSON.stringify({
+        type: 'email.sent',
+        created_at: new Date().toISOString(),
+        data: { email_id: messageId.toUpperCase(), to: ['a@example.test'] },
+      }),
+    );
+  assert.equal(
+    verifyMailEvent(b, signed(b), secret).providerMessageId,
+    messageId,
+  );
+});

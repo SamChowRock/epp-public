@@ -6,6 +6,12 @@ import type {
 import type { RecoveryPurpose } from './recovery-contract.js';
 export const providerUuid =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+/** UUID spelling must not create a second Resend message identity. */
+export function canonicalResendMessageId(value: string): string {
+  if (!providerUuid.test(value)) throw Error('RESEND_MESSAGE_ID_INVALID');
+  return value.toLowerCase();
+}
+
 export class ResendDelivery implements VerificationDelivery {
   readonly provider = 'resend' as const;
   readonly providerScope: string;
@@ -74,7 +80,7 @@ export class ResendDelivery implements VerificationDelivery {
         !providerUuid.test(result.id)
       )
         throw Error();
-      return { providerMessageId: result.id };
+      return { providerMessageId: canonicalResendMessageId(result.id) };
     } catch {
       throw Error('RESEND_UNCONFIRMED');
     }

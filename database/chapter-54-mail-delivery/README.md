@@ -46,3 +46,5 @@ bind 请求为 `{ "attemptId":"UUID", "providerScope":"practice-account", "provi
 ```bash
 node --env-file=.env.receipts database/chapter-54-mail-delivery/cleanup.mjs epp_ch54_verify
 ```
+
+Resend email_id 是 UUID：HTTP响应、验签后事件及人工绑定进入共享持久化边界前，验证格式并统一为小写，大小写写法不能制造第二条供应商身份。正文摘要仍按收到的原始字节计算；SMTP Message-ID 不使用这个 UUID 规则，保留原拼写。

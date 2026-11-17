@@ -58,3 +58,28 @@ test('complete Resend receipt binds UUID and fixed endpoint metadata', async () 
   );
   assert.equal(calls, 1);
 });
+
+test('uppercase Resend response UUID returns canonical lowercase identity', async () => {
+  const messageId = randomUUID(),
+    delivery = new ResendDelivery(
+      {
+        apiKey: 'fictional',
+        from: 'a@example.test',
+        providerScope: 'practice',
+      },
+      async () => new Response(JSON.stringify({ id: messageId.toUpperCase() })),
+    );
+  assert.equal(
+    (
+      await delivery.send(
+        'a@example.test',
+        'register',
+        'secret',
+        new Date(),
+        new Date(),
+        { attemptId: randomUUID() },
+      )
+    ).providerMessageId,
+    messageId,
+  );
+});

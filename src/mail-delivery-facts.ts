@@ -1,3 +1,4 @@
+import { canonicalResendMessageId } from './resend-delivery.js';
 import { randomUUID } from 'node:crypto';
 import type { DatabaseService } from './database.service.js';
 import type { Prisma } from './generated/prisma/client.js';
@@ -90,6 +91,10 @@ export async function recordMailEvent(
   endpoint: string,
   event: MailEvent,
 ) {
+  event = {
+    ...event,
+    providerMessageId: canonicalResendMessageId(event.providerMessageId),
+  };
   return mailTransaction(db, async (tx) => {
     const [old] = await tx.$queryRaw<
       {
@@ -131,6 +136,7 @@ export async function bindAttemptTx(
     Attempt[]
   >`SELECT * FROM verification_mail_attempts WHERE id=${attemptId}::uuid`;
   if (!a) throw new ReceiptError(409, 'ATTEMPT_MISSING');
+  if (a.provider === 'resend') messageId = canonicalResendMessageId(messageId);
   if (a.provider_message_id !== null) {
     if (a.provider_message_id !== messageId)
       throw new ReceiptError(409, 'BINDING_CONFLICT');

@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { Webhook } from 'svix';
 import { z } from 'zod';
 import { EmailSchema } from './recovery-contract.js';
-import { providerUuid } from './resend-delivery.js';
+import { providerUuid, canonicalResendMessageId } from './resend-delivery.js';
 import {
   recordMailEvent,
   ReceiptError,
@@ -60,7 +60,7 @@ export function verifyMailEvent(
       eventId: headers['svix-id']!,
       bodySha256: createHash('sha256').update(body).digest('hex'),
       eventType: data.type,
-      providerMessageId: data.data.email_id,
+      providerMessageId: canonicalResendMessageId(data.data.email_id),
       recipient: recipient?.success ? recipient.data : null,
       occurredAt: new Date(data.created_at),
       messageId: data.data.message_id ?? null,

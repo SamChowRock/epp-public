@@ -874,3 +874,117 @@ test('bounded cleanup checks target, preserves paused/young rows and retains att
     1,
   );
 });
+
+test('canonical Resend UUID reconciles lower early/new receipts with uppercase manual binding', async (t) => {
+  const { database, db, email, job } = await fixture(t),
+    id = await job(),
+    messageId = randomUUID();
+  await recordMailEvent(
+    database,
+    'practice',
+    'endpoint',
+    event(messageId, email),
+  );
+  await sendOne(
+    database,
+    {
+      provider: 'resend',
+      providerScope: 'practice',
+      async send() {
+        throw Error('unknown');
+      },
+    },
+    id,
+  );
+  const [attempt] =
+    await db.$queryRaw`SELECT id FROM verification_mail_attempts WHERE outbox_id=${id}::uuid`;
+  await bindAttempt(database, {
+    attemptId: attempt.id,
+    providerScope: 'practice',
+    providerMessageId: messageId.toUpperCase(),
+    actor: 'author',
+    reason: 'case spelling review',
+    evidenceRef: 'case-uuid',
+  });
+  await recordMailEvent(
+    database,
+    'practice',
+    'endpoint',
+    event(messageId, email, 'email.delivered'),
+  );
+  const facts =
+    await db.$queryRaw`SELECT attempt_id FROM verification_mail_events WHERE provider_message_id=${messageId}`;
+  assert.equal(facts.length, 2);
+  assert.ok(facts.every((f) => f.attempt_id === attempt.id));
+  assert.equal(
+    (
+      await db.$queryRaw`SELECT provider_message_id FROM verification_mail_attempts WHERE id=${attempt.id}::uuid`
+    )[0].provider_message_id,
+    messageId,
+  );
+  assert.equal(
+    (
+      await db.$queryRaw`SELECT blocked FROM verification_mail_addresses WHERE recipient=${email}`
+    )[0].blocked,
+    true,
+  );
+});
+test('canonical Resend persistence rejects alternate-case duplicate binding and matches uppercase direct events', async (t) => {
+  const { database, db, email, job, transport } = await fixture(t),
+    messageId = randomUUID(),
+    id = await job();
+  await sendOne(database, transport(messageId), id);
+  await recordMailEvent(
+    database,
+    'practice',
+    'endpoint',
+    event(messageId.toUpperCase(), email),
+  );
+  const [fact] =
+    await db.$queryRaw`SELECT attempt_id,provider_message_id FROM verification_mail_events WHERE provider_message_id=${messageId}`;
+  assert.ok(fact?.attempt_id);
+  assert.equal(fact.provider_message_id, messageId);
+  const second = await job(randomUUID() + '@example.test');
+  await assert.rejects(
+    sendOne(database, transport(messageId.toUpperCase()), second),
+  );
+  const [attempt] =
+    await db.$queryRaw`SELECT provider_message_id,observed_at FROM verification_mail_attempts WHERE outbox_id=${second}::uuid`;
+  assert.equal(attempt.provider_message_id, null);
+  assert.equal(attempt.observed_at, null);
+});
+
+test('alternate UUID spelling cannot bind the same provider message to a second attempt', async (t) => {
+  const { database, db, job, transport } = await fixture(t),
+    messageId = randomUUID();
+  await sendOne(database, transport(messageId.toUpperCase()), await job());
+  const second = await job(randomUUID() + '@example.test');
+  await assert.rejects(sendOne(database, transport(messageId), second));
+  const [attempt] =
+    await db.$queryRaw`SELECT provider_message_id,observed_at FROM verification_mail_attempts WHERE outbox_id=${second}::uuid`;
+  assert.equal(attempt.provider_message_id, null);
+  assert.equal(attempt.observed_at, null);
+});
+
+test('Resend UUID normalization preserves local SMTP Message-ID spelling', async (t) => {
+  const { database, db, job } = await fixture(t),
+    id = await job(),
+    messageId = `<UpperCase-${randomUUID()}@Local.TEST>`;
+  assert.equal(
+    await sendOne(
+      database,
+      {
+        provider: 'local',
+        providerScope: 'practice',
+        async send() {
+          return { providerMessageId: messageId };
+        },
+      },
+      id,
+    ),
+    'accepted',
+  );
+  const [attempt] =
+    await db.$queryRaw`SELECT provider_message_id FROM verification_mail_attempts WHERE outbox_id=${id}::uuid`;
+  assert.equal(attempt.provider_message_id, messageId);
+});
