@@ -14,3 +14,7 @@ database/chapter-20/recovery-history/
 .worker-dev/
 .mini-local.postman_environment.json
 mini-program/project.private.config.json
+
+# Deliver complete exercise source rather than patch artifacts.
+*.patch
+*.diff
