@@ -1,5 +1,7 @@
 # EPP 配套实践代码
 
+已继承[第50章统一登录与邮件队列](database/chapter-50-login-outbox/README.md)：Web Cookie与小程序Bearer按渠道独立验证，保留原注册、恢复和邮件队列入口。
+
 已继承[第34章的既有素材列表分页迁移](examples/paging-upgrade/README.md)：保留旧列表，新增 GET /captures/page；游标绑定当前身份、筛选与页大小。
 
 已继承[第30章的创建与修订重试](examples/write-retry/README.md)：两个POST可带Idempotency-Key，省略时保留原行为。
