@@ -1,6 +1,6 @@
-# 第 73 章：把原生交付物装进 Linux 镜像
+# 第 72 章：把原生交付物装进 Linux 镜像
 
-从第 72 章已交付的原生 API、邮件、通知、非空 PostgreSQL 库、对象桶和 HTTPS 入口继续。容器解决的是运行时与依赖的交付：原生服务仍可使用，数据库身份、业务记录和客户端地址不会因为构建镜像而自动迁移。本章先得到可检查的镜像；第 74 章再接 Compose、网络、配置与持久数据。
+从第 71 章已交付的原生 API、邮件、通知、非空 PostgreSQL 库、对象桶和 HTTPS 入口继续。容器解决的是运行时与依赖的交付：原生服务仍可使用，数据库身份、业务记录和客户端地址不会因为构建镜像而自动迁移。本章先得到可检查的镜像；第 73 章再接 Compose、网络、配置与持久数据。
 
 本目录增加部署材料，不改应用或迁移。构建与检查命令在已安装 Docker Engine 和 Compose 插件的 Linux 部署主机执行；Mac 操作端通过 SSH 登录该主机。先执行 `hostname`、`uname -s`、`docker context show`、`docker info` 和 `docker compose version`，确认操作的是预期 Linux 引擎。Mac 的项目目录不会自动成为远端构建上下文，须先把本分支源码交付到部署主机。Docker 管理权限可以控制宿主，不能把它当成普通应用账户权限。
 
@@ -74,9 +74,9 @@ console.log("Node, Prisma client, argon2, sharp and private work directory: OK")
 
 ## 3. 从原生服务接入同一份 API
 
-先准备容器确实能到达的数据库及 HTTPS 对象入口。容器里的 `127.0.0.1` 是它自己；原生数据库只监听宿主回环时，改写一个主机名并不能让它可达。第 74 章给出应用服务编排与已有数据通路。不要为了省略网络步骤直接公开数据库端口。
+先准备容器确实能到达的数据库及 HTTPS 对象入口。容器里的 `127.0.0.1` 是它自己；原生数据库只监听宿主回环时，改写一个主机名并不能让它可达。第 73 章给出应用服务编排与已有数据通路。不要为了省略网络步骤直接公开数据库端口。
 
-复制 [api.env.example](api.env.example) 到源码目录以外的私有配置目录，并填入第 72 章原有 API 库身份、库名、签名密钥、桶和应用存储凭据。保留客户端实际使用的 `APP_ORIGIN`。示例文件不是可以直接使用的真实配置。镜像不会自动加载宿主 `.env`；下面用 Node 的 `--env-file` 明确加载只读挂载文件。进程环境中同名变量优先于文件，避免再用 `-e DATABASE_URL=…` 等方式覆盖交接配置。
+复制 [api.env.example](api.env.example) 到源码目录以外的私有配置目录，并填入第 71 章原有 API 库身份、库名、签名密钥、桶和应用存储凭据。保留客户端实际使用的 `APP_ORIGIN`。示例文件不是可以直接使用的真实配置。镜像不会自动加载宿主 `.env`；下面用 Node 的 `--env-file` 明确加载只读挂载文件。进程环境中同名变量优先于文件，避免再用 `-e DATABASE_URL=…` 等方式覆盖交接配置。
 
 在 Linux 部署主机上让文件为 `root:10001`、`0640`，配置目录由管理员持有且为 `0700`。容器只挂载单个文件；先以实际 UID 验证文件可读，而不要把文件内容打印出来。公开根证书可为 `0644`，CA 私钥留在原签发端。Docker Desktop 的挂载权限映射可能不同，同样以容器内可读性为准。
 
@@ -93,9 +93,9 @@ await access("/run/epp/api.env"); await access("/run/epp/root.crt");
 console.log("runtime UID can read both mounted files");'
 ```
 
-运行命令用 `-e NODE_EXTRA_CA_CERTS=/run/epp/root.crt` 在 Node 启动前显式提供公开证书路径，让 Node 信任这份练习根；浏览器和操作端 curl 仍要各自完成第 72 章的信任准备。不得关闭 TLS 验证。S3 使用一个 `AVATAR_S3_ENDPOINT`，既供 API 上传也生成浏览器签名 URL，所以两侧必须能解析并访问同一个 HTTPS 名称和端口。`http://seaweed:8333` 不符合现有应用配置要求。反向代理须保留签名使用的 Host、路径和查询参数。
+运行命令用 `-e NODE_EXTRA_CA_CERTS=/run/epp/root.crt` 在 Node 启动前显式提供公开证书路径，让 Node 信任这份练习根；浏览器和操作端 curl 仍要各自完成第 71 章的信任准备。不得关闭 TLS 验证。S3 使用一个 `AVATAR_S3_ENDPOINT`，既供 API 上传也生成浏览器签名 URL，所以两侧必须能解析并访问同一个 HTTPS 名称和端口。`http://seaweed:8333` 不符合现有应用配置要求。反向代理须保留签名使用的 Host、路径和查询参数。
 
-网络准备好以后可用下列入口启动 API；`epp74-backend` 是第 74 章准备的私有网络，而非 Docker 自带名称：
+网络准备好以后可用下列入口启动 API；`epp74-backend` 是第 73 章准备的私有网络，而非 Docker 自带名称：
 
 ```sh
 docker run -d --name epp73-api --network epp74-backend \
