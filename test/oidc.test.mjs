@@ -1,3 +1,4 @@
+import './auth-rate-test-state.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { startLab } from '../examples/oidc-lab.mjs';

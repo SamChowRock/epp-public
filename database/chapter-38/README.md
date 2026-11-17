@@ -20,3 +20,7 @@ node --env-file=.env.test --inspect=127.0.0.1:9480 examples/oidc-lab.mjs "$verif
 正式客户端使用运营方配置的 OIDC_ISSUER、OIDC_CLIENT_ID、OIDC_CLIENT_SECRET；注册类型为机密 Web 客户端，client_secret_basic、code、S256、query 回调、RS256。回调地址必须精确登记为 APP_ORIGIN/auth/oidc/callback。只支持一个受信 issuer、一个 API 进程；单个浏览器同时只保留最新事务。生产 APP_ORIGIN 和 issuer 均为 HTTPS；若供应商拒绝本机地址，完成 HTTPS 部署后再联调。不启用时删除或注释三项，不写空字符串；新进程须同样未继承这三个变量。未配置时仅外部登录开始返回503。新建账号默认不发 Web 会话，管理员按第39章核对 userId 并决定资格；不拿供应商邮箱创建本地邮箱凭据。已有账号关联需当前密码，受限／停用仍遵守既有规则。
 
 开发用 npm run dev、9229 Attach；热重启后重开未完成的登录。交付用 npm run check，复制 dist、config 和两份 npm 清单，在干净目录 npm ci --omit=dev，通过进程环境提供 DATABASE_URL、CURSOR_HMAC_KEY、APP_ORIGIN 和需要的 OIDC 配置，然后 npm start。实验提供方、测试、.env 和开发调试端口不属于交付。
+
+## 发起请求的共享额度
+
+OIDC start的link模式会证明原密码。为在请求正文解析前保护这一步，整个POST /auth/oidc/start（包括login模式）保守地纳入第41章同来源10次／60秒共享密码额度；mini/link、Web密码和恢复入口共用同一桶。429/AUTH_RATE_LIMIT按Retry-After等待；计数不可用503/AUTH_RATE_UNAVAILABLE，不开始密码证明或平台交互。密码工作仍受原两份并发占位限制。callback沿原一次性事务与平台交换预算，不增加密码证明。

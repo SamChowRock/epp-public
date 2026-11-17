@@ -354,12 +354,13 @@ export function createOpenApiDocument(cookieName = 'epp_session'): OpenAPIObject
   }
   document.paths['/auth/oidc'] = { get: { security: [], summary: 'Open the same-origin login page', responses: { '200': { description: 'HTML' } } } };
   document.paths['/auth/oidc/start'] = { post: { security: [], summary: 'Start a login or prove the local account password for linking',
+    description: 'All start requests share the password source quota (ten per 60 seconds across instances) before body parsing, because link mode proves a password. Login mode conservatively consumes the same budget.',
     parameters: [{ in:'header', name:'X-EPP-Request', required:true, schema:{ type:'string', enum:['1'] } }],
     requestBody: { required:true, content:{ 'application/json':{ schema:schema(OidcStart,'input') } } },
     responses:{ '200': { description:'Temporary HttpOnly Lax cookie and a navigation URL', content:{ 'application/json':{ schema:{
       type:'object', required:['authorizationUrl'], properties:{authorizationUrl:{type:'string',format:'uri'}} } } } },
       '400':problem('Invalid mode or input'), '401':problem('Local password rejected'), '403':problem('Origin or header rejected'),
-      '429':problem('Attempt limit'), '503':problem('Issuer not configured or unavailable') } } };
+      '429':problem('AUTH_RATE_LIMIT or password concurrency limit'), '503':problem('AUTH_RATE_UNAVAILABLE, issuer not configured or unavailable') } } };
   document.paths['/auth/oidc/callback'] = { get: { security: [], summary:'Browser redirect; one-use transaction cookie required',
     parameters:['code','state','iss','error'].map(name=>({name,in:'query',required:name==='state',schema:{type:'string'}})),
     responses:{ '303':{description:'Return to the fixed EPP page; only eligible accounts receive a Web session cookie'},
