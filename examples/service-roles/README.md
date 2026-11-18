@@ -13,3 +13,5 @@
 开发入口仍为 npm run dev、npm run dev:worker，生产分别运行 dist/src/server.js 与 dist/src/mail-worker.js；通知入口另加 notifications 实参。完整回归使用单独的空库按[固定用户与测试入口](../../database/chapter-53/README.md)引导和验证。
 
 使用[分角色交接说明](../portable-release/README.md)记录制品、只读收据身份、依赖地址和工作目录，带原会话复核头像。
+
+第66章新增 `capture_integrity_cases`：API 只读 id/capture_id/state，以识别不完整素材；不授予案件写入、扫描或修复依据读取。升级先由迁移角色部署新迁移，再执行更新后的 grants.sql；旧运行身份不得因探针失败而提升为所有者。

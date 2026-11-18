@@ -1,6 +1,6 @@
 import { RevisionConflictError } from './capture-revision.js';
 import { CandidateConflictError, CandidateNotFoundError, InvalidCandidateError, OperationConflictError } from './candidates.service.js';
-import { StorageUnavailableError } from './database-errors.js';
+import { CaptureDataUnavailableError, StorageUnavailableError } from './database-errors.js';
 import { HttpException } from '@nestjs/common';
 import { STATUS_CODES } from 'node:http';
 import type { IncomingMessage, ServerResponse, OutgoingHttpHeaders } from 'node:http';
@@ -95,12 +95,14 @@ export function httpFailure(error: unknown): {
     : error instanceof InvalidCaptureError ? 400
     : error instanceof RevisionConflictError ? 409
     : error instanceof CaptureNotFoundError ? 404
+    : error instanceof CaptureDataUnavailableError ? 503
     : error instanceof StorageUnavailableError ? 503 : clientStatus ?? 500;
   const code = statusCode === 500 ? 'INTERNAL_ERROR'
     : error instanceof InvalidCandidateError ? 'INVALID_CANDIDATE'
     : error instanceof CandidateNotFoundError ? 'CANDIDATE_NOT_FOUND'
     : error instanceof OperationConflictError ? 'OPERATION_CONFLICT'
     : error instanceof CandidateConflictError ? 'CANDIDATE_CONFLICT'
+    : error instanceof CaptureDataUnavailableError ? 'CAPTURE_DATA_UNAVAILABLE'
     : error instanceof StorageUnavailableError ? 'STORAGE_UNAVAILABLE'
     : error instanceof InvalidCaptureError ? 'INVALID_CAPTURE'
     : error instanceof RevisionConflictError ? 'REVISION_CONFLICT'

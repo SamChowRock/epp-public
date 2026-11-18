@@ -78,6 +78,7 @@ model Capture {
   chineseIntent String? @map("chinese_intent") @db.Text
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   captureWriteReceipts CaptureWriteReceipt[]
+  integrityCases CaptureIntegrityCase[]
   revisions    CaptureRevision[]
   user         User     @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "captures_user_id_fkey")
 
@@ -330,4 +331,40 @@ model AuthRateBucket {
 
   @@id([ruleKey, sourceKey], map: "auth_rate_buckets_pkey")
   @@map("auth_rate_buckets")
+}
+
+/// Partial unique index for open cases and state checks are in migration SQL.
+model CaptureIntegrityCase {
+  id String @id @db.Uuid
+  captureId String @map("capture_id") @db.Uuid
+  rule String @default("missing-revisions/v1") @db.Text
+  state String @default("observed") @db.Text
+  firstSeenAt DateTime @default(now()) @map("first_seen_at") @db.Timestamptz(3)
+  lastSeenAt DateTime @default(now()) @map("last_seen_at") @db.Timestamptz(3)
+  quarantinedAt DateTime? @map("quarantined_at") @db.Timestamptz(3)
+  repairedAt DateTime? @map("repaired_at") @db.Timestamptz(3)
+  capture Capture @relation(fields: [captureId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  repair CaptureIntegrityRepair?
+  @@index([captureId, state], map: "capture_integrity_lookup_idx")
+  @@map("capture_integrity_cases")
+}
+model CaptureIntegrityScan {
+  id String @id @db.Uuid
+  databaseName String @map("database_name") @db.Text
+  upperId String? @map("upper_id") @db.Uuid
+  afterId String? @map("after_id") @db.Uuid
+  startedAt DateTime @default(now()) @map("started_at") @db.Timestamptz(3)
+  finishedAt DateTime? @map("finished_at") @db.Timestamptz(3)
+  scanned BigInt @default(0)
+  @@map("capture_integrity_scans")
+}
+model CaptureIntegrityRepair {
+  caseId String @id @map("case_id") @db.Uuid
+  sourceRef String @map("source_ref") @db.Text
+  evidenceSha256 String @map("evidence_sha256") @db.Text
+  evidence Json @db.JsonB
+  appliedBy String @default(dbgenerated("CURRENT_USER")) @map("applied_by") @db.Text
+  appliedAt DateTime @default(now()) @map("applied_at") @db.Timestamptz(3)
+  case CaptureIntegrityCase @relation(fields: [caseId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  @@map("capture_integrity_repairs")
 }

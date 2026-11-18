@@ -9,7 +9,7 @@ import type { CaptureRevision } from './capture-revision.js';
 import { RevisionConflictError } from './capture-revision.js';
 import { CaptureNotFoundError, InvalidCaptureError } from './captures.service.js';
 import { OperationConflictError } from './candidates.service.js';
-import { StorageFailureError } from './database-errors.js';
+import { CaptureDataUnavailableError, StorageFailureError } from './database-errors.js';
 import { HttpError } from './http.js';
 
 const validId = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(id);
@@ -59,10 +59,13 @@ export class CaptureCommands {
             });
             const captureId = target ?? previous?.captureId ?? randomUUID();
             if (target !== null || previous) {
-              const owned = await tx.$queryRaw<{ id: string }[]>`
-                SELECT id FROM public.captures WHERE id = ${captureId}::uuid
+              const owned = await tx.$queryRaw<{ id: string; usable: boolean }[]>`
+                SELECT id, EXISTS (SELECT FROM public.capture_revisions r WHERE r.capture_id = c.id)
+                  AND NOT EXISTS (SELECT FROM public.capture_integrity_cases q WHERE q.capture_id = c.id AND q.state = 'quarantined') AS usable
+                FROM public.captures c WHERE id = ${captureId}::uuid
                 AND user_id = ${this.userId}::uuid FOR SHARE`;
               if (!owned.length) return 'missing' as const;
+              if (!owned[0]?.usable) throw new CaptureDataUnavailableError();
             }
             if (previous) {
               if (previous.fingerprint !== fingerprint || (target !== null && previous.captureId !== target)) {
@@ -98,7 +101,7 @@ export class CaptureCommands {
                 RETURNING id, capture_id AS "captureId", revision_no AS "revisionNo", created_at AS "createdAt"`;
               if (!rows[0]) {
                 const existing = await tx.captureRevision.count({ where: { captureId } });
-                if (!existing) throw new StorageFailureError();
+                if (!existing) throw new CaptureDataUnavailableError();
                 return 'revision-conflict' as const;
               }
               response = RevisionResponseSchema.parse({ ...content, ...rows[0], createdAt: rows[0].createdAt.toISOString() });
