@@ -184,6 +184,33 @@ erDiagram
     DateTime expires_at
     Int used
   }
+  capture_integrity_cases {
+    String id PK
+    String capture_id FK
+    String rule
+    String state
+    DateTime first_seen_at
+    DateTime last_seen_at
+    DateTime quarantined_at "nullable"
+    DateTime repaired_at "nullable"
+  }
+  capture_integrity_scans {
+    String id PK
+    String database_name
+    String upper_id "nullable"
+    String after_id "nullable"
+    DateTime started_at
+    DateTime finished_at "nullable"
+    BigInt scanned
+  }
+  capture_integrity_repairs {
+    String case_id PK,FK
+    String source_ref
+    String evidence_sha256
+    Json evidence
+    String applied_by
+    DateTime applied_at
+  }
   users |o..o| avatar_writes : "avatar_id, id to id, user_id"
   sessions }o..|| users : "user_id to id"
   password_credentials |o--|| users : "user_id to id"
@@ -207,4 +234,6 @@ erDiagram
   wechat_identities }o..|| users : "user_id to id"
   capture_write_receipts }o--|| users : "user_id to id"
   capture_write_receipts }o..|| captures : "capture_id to id"
+  capture_integrity_cases }o..|| captures : "capture_id to id"
+  capture_integrity_repairs |o--|| capture_integrity_cases : "case_id to id"
 ```

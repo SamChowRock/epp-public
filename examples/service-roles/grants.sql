@@ -47,6 +47,8 @@ GRANT UPDATE (status) ON public.notification_jobs TO epp_notify;
 GRANT INSERT (id,user_id,kind,created_at) ON public.notifications TO epp_notify;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.auth_rate_buckets TO epp_api;
 GRANT SELECT, INSERT ON public.wechat_identities TO epp_api;
+-- Chapter66: API reads only isolation identity and state, never repair evidence.
+GRANT SELECT (id,capture_id,state) ON public.capture_integrity_cases TO epp_api;
 COMMIT;
 \else
 DO $$ BEGIN RAISE EXCEPTION 'Wrong deployment database'; END $$;

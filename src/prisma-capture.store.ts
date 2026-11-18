@@ -1,9 +1,10 @@
+import { captureListComplete } from './capture-integrity.js';
 import { randomUUID } from 'node:crypto';
 import { Prisma } from './generated/prisma/client.js';
 import type { Capture, CaptureListOptions } from './capture.js';
 import type { CaptureRevision, RevisionContent } from './capture-revision.js';
 import { RevisionConflictError } from './capture-revision.js';
-import { StorageFailureError } from './database-errors.js';
+import { CaptureDataUnavailableError } from './database-errors.js';
 import type { CaptureStore } from './capture-store.js';
 import { DatabaseService } from './database.service.js';
 
@@ -32,7 +33,9 @@ export class PrismaCaptureStore implements CaptureStore {
   }
 
   async list({ text, limit }: CaptureListOptions): Promise<Capture[]> {
-    const rows = await this.database.run('list', () => this.database.client.$queryRaw<Row[]>(Prisma.sql`
+    const rows = await this.database.run('list', () => this.database.client.$transaction(async tx => {
+      if (!await captureListComplete(tx, this.userId)) throw new CaptureDataUnavailableError();
+      return tx.$queryRaw<Row[]>(Prisma.sql`
       SELECT c.id, r.original_text AS "originalText", r.chinese_intent AS "chineseIntent", c.created_at AS "createdAt"
       FROM public.captures c
       JOIN LATERAL (SELECT original_text, chinese_intent FROM public.capture_revisions
@@ -41,7 +44,8 @@ export class PrismaCaptureStore implements CaptureStore {
         ${text === undefined ? Prisma.empty : Prisma.sql`AND strpos(r.original_text COLLATE "C", ${text}) > 0`}
       ORDER BY c.created_at ASC, c.id ASC
       ${limit === undefined ? Prisma.empty : Prisma.sql`LIMIT ${limit}`}
-    `));
+    `);
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead, timeout: 5000 }));
     return rows.map(project);
   }
 
@@ -49,13 +53,13 @@ export class PrismaCaptureStore implements CaptureStore {
     if (!validId(id)) return undefined;
     const row = await this.database.run('find', () => this.database.client.capture.findFirst({
       where: { id, userId: this.userId },
-      select: { id: true, createdAt: true, revisions: {
+      select: { id: true, createdAt: true, integrityCases: { where: { state: 'quarantined' }, take: 1, select: { id: true } }, revisions: {
         orderBy: { revisionNo: 'desc' }, take: 1, select: { originalText: true, chineseIntent: true },
       } },
     }));
     if (!row) return undefined;
     const content = row.revisions[0];
-    if (!content) throw new StorageFailureError();
+    if (!content || row.integrityCases.length) throw new CaptureDataUnavailableError();
     return project({ id: row.id, createdAt: row.createdAt, ...content });
   }
 
@@ -67,12 +71,13 @@ export class PrismaCaptureStore implements CaptureStore {
     const source = full ? Prisma.sql`${change.inputSource}::text` : Prisma.sql`input_source`;
     const chunks = full ? Prisma.sql`${change.chunks === null ? null : JSON.stringify(change.chunks)}::jsonb` : Prisma.sql`chunks`;
     const rows = await this.database.run('appendRevision', () => this.database.client.$queryRaw<{
-      parentCreatedAt: Date; previousNo: number | null;
+      parentCreatedAt: Date; previousNo: number | null; blocked: boolean;
       id: string | null; captureId: string; revisionNo: number; originalText: string;
       chineseIntent: string | null; inputSource: 'manual' | 'unknown'; chunks: CaptureRevision['chunks']; createdAt: Date;
     }[]>(Prisma.sql`
       WITH previous AS (
-        SELECT c.id AS capture_id, c.created_at AS parent_created_at, latest.*
+        SELECT c.id AS capture_id, c.created_at AS parent_created_at, latest.*,
+          EXISTS (SELECT FROM public.capture_integrity_cases q WHERE q.capture_id = c.id AND q.state = 'quarantined') AS blocked
         FROM public.captures c
         LEFT JOIN LATERAL (
           SELECT revision_no, original_text, chinese_intent, input_source, chunks
@@ -84,16 +89,16 @@ export class PrismaCaptureStore implements CaptureStore {
           (id, capture_id, revision_no, original_text, chinese_intent, input_source, chunks)
         SELECT ${randomUUID()}::uuid, capture_id, revision_no + 1, ${original},
           ${change.chineseIntent}::text, ${source}, ${chunks}
-        FROM previous WHERE revision_no IS NOT NULL
+        FROM previous WHERE revision_no IS NOT NULL AND NOT blocked
         ON CONFLICT (capture_id, revision_no) DO NOTHING
         RETURNING *
       )
-      SELECT p.parent_created_at AS "parentCreatedAt", p.revision_no AS "previousNo", ${revisionColumns}
+      SELECT p.parent_created_at AS "parentCreatedAt", p.revision_no AS "previousNo", p.blocked, ${revisionColumns}
       FROM previous p LEFT JOIN inserted r ON true
     `));
     const row = rows[0];
     if (!row) return undefined;
-    if (row.previousNo === null) throw new StorageFailureError();
+    if (row.previousNo === null || row.blocked) throw new CaptureDataUnavailableError();
     if (row.id === null) throw new RevisionConflictError();
     const revision = projectRevision({ id: row.id, captureId: row.captureId, revisionNo: row.revisionNo,
       originalText: row.originalText, chineseIntent: row.chineseIntent, inputSource: row.inputSource,
@@ -113,12 +118,15 @@ export class PrismaCaptureStore implements CaptureStore {
     if (!validId(id)) return undefined;
     // Keep the parent even if this page has no revisions: [] and 404 mean different things.
     const row = await this.database.run('revisions', () => this.database.client.capture.findFirst({
-      where: { id, userId: this.userId }, select: { revisions: {
+      where: { id, userId: this.userId }, select: {
+        _count: { select: { revisions: true } },
+        integrityCases: { where: { state: 'quarantined' }, take: 1, select: { id: true } }, revisions: {
         where: before === undefined ? {} : { revisionNo: { lt: before } },
         orderBy: { revisionNo: 'desc' }, take,
       } },
     }));
     if (!row) return undefined;
+    if (row._count.revisions === 0 || row.integrityCases.length) throw new CaptureDataUnavailableError();
     return row.revisions.map(r => projectRevision({ id: r.id, captureId: r.captureId,
       revisionNo: r.revisionNo, originalText: r.originalText, chineseIntent: r.chineseIntent,
       inputSource: r.inputSource as CaptureRevision['inputSource'],
