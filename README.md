@@ -62,7 +62,8 @@
 - [第 61 章　从头像记录与私有桶的差异追查缺件和多件](https://github.com/SamChowRock/epp-public/tree/part-07/chapter-61)
 - [第 63 章　为后台操作提供可靠的管理命令](https://github.com/SamChowRock/epp-public/tree/part-08/chapter-63)
 - [第 64 章　构建与持续集成](https://github.com/SamChowRock/epp-public/tree/part-08/chapter-64)
-- [第 65 章　调试性能与资源问题](https://github.com/SamChowRock/epp-public/tree/part-08/chapter-66)
+- [第 65 章　调试性能与资源问题](https://github.com/SamChowRock/epp-public/tree/part-08/chapter-65)
+- [第 66 章　一条历史坏记录应该让多少服务停下来](https://github.com/SamChowRock/epp-public/tree/part-08/chapter-66)
 - [第 69 章　把应用和数据交给目标环境](https://github.com/SamChowRock/epp-public/tree/part-09/chapter-70)
 
 第 34 章从 `part-04/chapter-33` 接续，完成代码在 `part-04/chapter-34`：保留旧素材全量列表，新增独立签名游标分页，附 105 条隔离合成素材 SQL、手动续页集合与浏览器迁移练习页。后续章节继续保留两种读取入口。
@@ -71,7 +72,7 @@
 
 ## 部署、观测与维护
 
-第 67 章完成维护与构建交接，第 68 章验收并晋级制品；第 69 章沿用这份已验产物，在目标平台接通程序与数据。第 70 章建立服务身份与原生托管，第 71 章完成 HTTPS 入口和客户端交付；第 72～73 章再把同一应用交给镜像与 Compose，第 74 章接续观测。原生服务与容器部署的维护、轮换均继续保留。
+第 67 章沿用第 66 章的隔离与修复状态完成维护与构建交接，第 68 章验收并晋级制品；第 69 章沿用这份已验产物，在目标平台接通程序与数据。第 70 章建立服务身份与原生托管，第 71 章完成 HTTPS 入口和客户端交付；第 72～73 章再把同一应用交给镜像与 Compose，第 74 章接续观测。原生服务与容器部署的维护、轮换均继续保留。
 
 | 章 | 本章交付什么 | 配套入口 |
 | --- | --- | --- |
