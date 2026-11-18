@@ -17,8 +17,9 @@ sudo install -m 0644 "$EPP_SOURCE/examples/container-deployment/compose.md" "$EP
 sudo install -d -m 0700 "$EPP_DEPLOY/secrets"
 sudo install -d -m 0755 "$EPP_DEPLOY/trust"
 # 仅首次创建；已有 compose.env 要先阅读，不能覆盖现场镜像与库名。
-test ! -e "$EPP_DEPLOY/compose.env"
-sudo install -m 0600 "$EPP_DEPLOY/compose.env.example" "$EPP_DEPLOY/compose.env"
+if sudo test ! -e "$EPP_DEPLOY/compose.env"; then
+  sudo install -m 0600 "$EPP_DEPLOY/compose.env.example" "$EPP_DEPLOY/compose.env"
+fi
 sudoedit "$EPP_DEPLOY/compose.env"
 ```
 
@@ -98,8 +99,8 @@ ss -lnt 'sport = :9443'
 sudo install -o root -g 10001 -m 0640 /etc/epp72/api.env "$EPP_DEPLOY/secrets/api.env"
 sudo install -o root -g 10001 -m 0640 /etc/epp72/mail.env "$EPP_DEPLOY/secrets/mail.env"
 sudo install -o root -g 10001 -m 0640 /etc/epp72/notify.env "$EPP_DEPLOY/secrets/notify.env"
-# 复制公开根证书，路径换成第 72 章的真实公开根；绝不复制 CA 私钥。
-sudo install -o root -g root -m 0644 /absolute/path/to/public-root.crt "$EPP_DEPLOY/trust/root.crt"
+# 复制公开根证书，使用第 71 章已核对指纹的公开根；绝不复制 CA 私钥。
+sudo install -o root -g root -m 0644 /etc/epp72/practice-root.crt "$EPP_DEPLOY/trust/root.crt"
 sudoedit "$EPP_DEPLOY/secrets/api.env" "$EPP_DEPLOY/secrets/mail.env" "$EPP_DEPLOY/secrets/notify.env"
 ```
 
@@ -143,8 +144,7 @@ await access("/run/epp/notify.env"); console.log("notify config readable");'
 epp_compose run --rm --no-deps api --env-file=/run/epp/api.env --input-type=module -e '
 import { createRequire } from "node:module";
 const { Client } = createRequire("/opt/epp/package.json")("pg");
-const u=new URL(process.env.DATABASE_URL); u.search="";
-const c=new Client({connectionString:u.toString(),connectionTimeoutMillis:3000});
+const c=new Client({connectionString:process.env.DATABASE_URL,connectionTimeoutMillis:3000});
 try { await c.connect(); console.log((await c.query("SELECT current_database(), session_user, inet_client_addr(), inet_server_addr()")).rows[0]); }
 finally { await c.end(); }'
 ```
@@ -207,13 +207,22 @@ epp_compose logs --tail 30 mail
 
 Compose 只对三个应用进程设置初始练习预算：API 1 GiB、1 CPU、128 PID；两个 Worker 各 256 MiB、0.5 CPU、64 PID。它们不是经过容量测试的上线承诺；保留宿主数据库、存储和 nginx 的余量，结合本章实际负载调整。16 MiB `/work` tmpfs 是私有头像暂存，不能放持久数据。stdout/stderr 用 json-file 每文件 10 MiB、三份轮转；旧容器删除后日志也可能丢失，重要验收记录须另存。
 
-外层停止预算 40 秒，大于 API 最大 30 秒和 Worker 内部 10 秒。先用原上传实验保持在途请求再执行 `epp_compose stop api`，核对排空、退出码和原数据。然后重建 API：
+外层停止预算 40 秒，大于 API 最大 30 秒和 Worker 内部 10 秒。用原上传实验保持在途请求，在另一终端记下正在服务的容器，停止后先从该实例读取排空日志和退出结果。正常排空应为 `exited 0 false`。核对通过后再重建 API。
 
 ```sh
-epp_compose up -d --force-recreate api
+old_api=$(epp_compose ps -q api)
+epp_compose stop api
+sudo docker logs --tail 30 "$old_api"
+sudo docker inspect --format '{{.State.Status}} {{.State.ExitCode}} {{.State.OOMKilled}}' "$old_api"
+```
+
+保留以上结果，再执行：
+
+```sh
+epp_compose up -d --no-deps --force-recreate api
 epp_compose ps --all
 epp_compose logs --tail 30 api
-docker inspect --format '{{.State.ExitCode}} {{.State.OOMKilled}}' "$(epp_compose ps -a -q api)"
+printf 'before=%s\nafter=%s\n' "$old_api" "$(epp_compose ps -q api)"
 ```
 
 再次读取同一素材、头像和收据。容器可重建而数据保持，是因为数据仍由原宿主服务持有；不能据此宣称已验证数据库容器卷或备份恢复。`down` 只移除本项目应用容器，external 网络和原生数据仍在；先停止并记录角色结果再清理。停止/重建容器不会撤销已经到达 Mailpit 的邮件。
