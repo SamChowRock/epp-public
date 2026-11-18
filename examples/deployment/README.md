@@ -1,12 +1,12 @@
 # 目标环境与可选 Mac 托管
 
-第 69 章从第 68 章验收晋级的 release 和第 67 章交接的运行配置起步，将程序交给目标平台，必要时安装该平台的生产依赖。SSH、数据接手与前台运行按正文完成；第 70 章一次建立最终的服务身份和 systemd 托管。这里的 runtime-grants.sql 供临时运行角色授权，也供 Mac 路线使用。
+第 69 章从第 67 章验收晋级的 release 和第 68 章交接的运行配置起步，将程序交给目标平台，必要时安装该平台的生产依赖。SSH、数据接手与前台运行按正文完成；第 70 章一次建立最终的服务身份和 systemd 托管。这里的 runtime-grants.sql 供临时运行角色授权，也供 Mac 路线使用。
 
-以下本机目录与 launchd 操作供选择 Mac 托管的支线 70B。配置中的库、桶和账号来自第 67 章的独立交接环境。
+以下本机目录与 launchd 操作供选择 Mac 托管的支线 69B。配置中的库、桶和账号来自第 68 章的独立交接环境。
 
 1. 取交接记录里的实际库名、旧账号 ID、原收据 ID，以及与练习库配对的头像桶。用实例管理员创建普通登录角色 epp57_run 并在 psql 用 `\password epp57_run` 设置口令。以业务表所有者连接目标库，从配套仓库根在 psql 执行 `\set expected_db epp_ch56_handoff`（替换为实际库名）和 `\i examples/deployment/runtime-grants.sql`。以运行角色核对收据表可读取和追加，改写旧收据应遭拒绝。[授权脚本](runtime-grants.sql)
 2. 在 Mac 的 Bash 设定 `release` 为已验程序的绝对路径，`deploy` 为这次运行目录的绝对路径，`db` 为实际库名。按正文在 release 以外准备模式 0700 的 config 和 work。将 api.env 放在 config，模式 0600。填写 NODE_ENV=production、epp57_run 的 DATABASE_URL、DB_POOL_MAX、回环端口 PORT、实际 APP_ORIGIN、稳定的 CURSOR_HMAC_KEY 和原桶的四项 AVATAR_S3 配置。
-3. 在已选择项目 Node 版本的 Bash 中运行下面的命令，两个 ID 从第 67 章交接记录取得。同一份配置先供管理命令读原收据，再供前台 API 读取。
+3. 在已选择项目 Node 版本的 Bash 中运行下面的命令，两个 ID 从第 68 章交接记录取得。同一份配置先供管理命令读原收据，再供前台 API 读取。
 
 ```bash
 node_bin=$(command -v node)
