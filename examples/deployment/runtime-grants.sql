@@ -15,6 +15,7 @@ GRANT SELECT, INSERT ON public.command_receipts, public.capture_write_receipts, 
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO epp57_run;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.auth_rate_buckets TO epp57_run;
 GRANT SELECT, INSERT ON public.wechat_identities TO epp57_run;
+GRANT SELECT (id,capture_id,state) ON public.capture_integrity_cases TO epp57_run;
 COMMIT;
 \else
 DO $$ BEGIN RAISE EXCEPTION 'Wrong deployment database'; END $$;
