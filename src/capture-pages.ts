@@ -1,3 +1,4 @@
+import { captureListComplete } from './capture-integrity.js';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { z } from 'zod';
 import { Prisma } from './generated/prisma/client.js';
@@ -13,7 +14,7 @@ export const CapturePageQuerySchema = z.object({
 }).strict();
 export type CapturePageQuery = z.infer<typeof CapturePageQuerySchema>;
 export const CapturePageSchema = z.object({
-  items: z.array(CaptureResponseSchema).max(100), limit: z.number().int().min(1).max(100),
+  complete: z.boolean(), items: z.array(CaptureResponseSchema).max(100), limit: z.number().int().min(1).max(100),
   hasMore: z.boolean(), nextCursor: z.string().nullable(),
 });
 const CursorSchema = z.object({
@@ -48,14 +49,16 @@ export class CapturePages {
         expires = boundary.expires;
       } catch { throw new HttpError(400, 'Invalid or expired cursor; restart from the first page', 'INVALID_CURSOR'); }
     }
-    return this.state.track(() => this.database.run('listCapturePage', async () => {
+    return this.state.track(() => this.database.run('listCapturePage', () => this.database.client.$transaction(async tx => {
+      const complete = await captureListComplete(tx, this.userId);
       // Read the latest snapshot before filtering; the immutable parent supplies the boundary.
-      const rows = await this.database.client.$queryRaw<Row[]>(Prisma.sql`
+      const rows = await tx.$queryRaw<Row[]>(Prisma.sql`
         SELECT c.id, r.original_text AS "originalText", r.chinese_intent AS "chineseIntent", c.created_at AS "createdAt"
         FROM public.captures c
         JOIN LATERAL (SELECT original_text, chinese_intent FROM public.capture_revisions
           WHERE capture_id = c.id ORDER BY revision_no DESC LIMIT 1) r ON true
         WHERE c.user_id = ${this.userId}::uuid
+          AND NOT EXISTS (SELECT FROM public.capture_integrity_cases q WHERE q.capture_id = c.id AND q.state = 'quarantined')
           ${query.q === undefined ? Prisma.empty : Prisma.sql`AND strpos(r.original_text COLLATE "C", ${query.q}) > 0`}
           ${boundary === undefined ? Prisma.empty : Prisma.sql`AND (c.created_at, c.id) > (${new Date(boundary.at)}::timestamptz, ${boundary.id}::uuid)`}
         ORDER BY c.created_at ASC, c.id ASC LIMIT ${limit + 1}
@@ -67,7 +70,7 @@ export class CapturePages {
         const body = Buffer.from(JSON.stringify({ v: 1, scope, expires, at: last.createdAt.toISOString(), id: last.id })).toString('base64url');
         nextCursor = body + '.' + signature(body, this.cursorKey).toString('base64url');
       }
-      return { items: rows.slice(0, limit).map(row => ({ ...row, createdAt: row.createdAt.toISOString() })), limit, hasMore, nextCursor };
-    }));
+      return { complete, items: rows.slice(0, limit).map(row => ({ ...row, createdAt: row.createdAt.toISOString() })), limit, hasMore, nextCursor };
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead, timeout: 5000 })));
   }
 }

@@ -1,0 +1,314 @@
+{
+  "info": {
+    "name": "EPP 第66章：坏记录隔离与修复",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000"
+    },
+    {
+      "key": "userId",
+      "value": "10000000-0000-4000-8000-000000000001"
+    },
+    {
+      "key": "password",
+      "value": ""
+    },
+    {
+      "key": "secondUserId",
+      "value": "20000000-0000-4000-8000-000000000002"
+    },
+    {
+      "key": "secondPassword",
+      "value": ""
+    },
+    {
+      "key": "captureId",
+      "value": ""
+    },
+    {
+      "key": "badCaptureId",
+      "value": ""
+    },
+    {
+      "key": "healthyCaptureId",
+      "value": ""
+    },
+    {
+      "key": "operationId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 登录原账号A",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1",
+            "type": "text"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{{authBody}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(\"authBody\", JSON.stringify({",
+              "  userId: pm.variables.get(\"userId\"),",
+              "  password: pm.variables.get(\"password\"),",
+              "  label: \"Postman VERIFY\",",
+              "}).replaceAll('{{', '\\\\u007b\\\\u007b'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "if (pm.response.code === 200) pm.collectionVariables.set('sessionId', pm.response.json().sessionId);",
+              "pm.variables.unset(\"authBody\");"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "取得当前会话的 CSRF Token",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/auth/csrf",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Token取得成功', () => pm.response.to.have.status(200));",
+              "if (pm.response.code === 200) pm.environment.set('csrfToken', pm.response.json().csrfToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 旧列表：不得悄悄漏行",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/captures",
+        "header": []
+      }
+    },
+    {
+      "name": "04 分页列表：检查 complete",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/captures/page?limit=20",
+        "header": []
+      }
+    },
+    {
+      "name": "05 正常素材",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/captures/{{healthyCaptureId}}",
+        "header": []
+      }
+    },
+    {
+      "name": "06 坏素材详情",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/captures/{{badCaptureId}}",
+        "header": []
+      }
+    },
+    {
+      "name": "07 坏素材修订列表",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/captures/{{badCaptureId}}/revisions",
+        "header": []
+      }
+    },
+    {
+      "name": "08 当前身份",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/auth/me",
+        "header": []
+      }
+    },
+    {
+      "name": "09 尝试直接追加：应拒绝",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/captures/{{badCaptureId}}/revisions",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"originalText\": \"Cannot reconstruct history from a new write\",\n  \"chineseIntent\": null\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "10 带键追加：同样拒绝",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/captures/{{badCaptureId}}/revisions",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "{{operationId}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"originalText\": \"Cannot reconstruct history from a new write\",\n  \"chineseIntent\": null\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "11 修改意图：不能制造首版",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/captures/{{badCaptureId}}",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"chineseIntent\": \"Repair needs evidence\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "12 登录账号B后重发03～07：坏ID为404",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-EPP-Request",
+            "value": "1",
+            "type": "text"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{{authBody}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.variables.set(\"authBody\", JSON.stringify({",
+              "  userId: pm.variables.get(\"secondUserId\"),",
+              "  password: pm.variables.get(\"secondPassword\"),",
+              "  label: \"Postman VERIFY\",",
+              "}).replaceAll('{{', '\\\\u007b\\\\u007b'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "if (pm.response.code === 200) pm.collectionVariables.set('sessionId', pm.response.json().sessionId);",
+              "pm.variables.unset(\"authBody\");"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
