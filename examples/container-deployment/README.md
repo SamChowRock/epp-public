@@ -2,7 +2,11 @@
 
 从第 71 章已交付的原生 API、邮件、通知、非空 PostgreSQL 库、对象桶和 HTTPS 入口继续。容器解决的是运行时与依赖的交付：原生服务仍可使用，数据库身份、业务记录和客户端地址不会因为构建镜像而自动迁移。本章先得到可检查的镜像；第 73 章再接 Compose、网络、配置与持久数据。
 
-本目录增加部署材料，不改应用或迁移。构建与检查命令在已安装 Docker Engine 和 Compose 插件的 Linux 部署主机执行；Mac 操作端通过 SSH 登录该主机。先执行 `hostname`、`uname -s`、`docker context show`、`docker info` 和 `docker compose version`，确认操作的是预期 Linux 引擎。Mac 的项目目录不会自动成为远端构建上下文，须先把本分支源码交付到部署主机。Docker 管理权限可以控制宿主，不能把它当成普通应用账户权限。
+本目录增加部署材料，不改应用或迁移。第 1、2 节的镜像构建与独立检查可以在 Mac 的 Docker Desktop 或 Debian 的 Docker Engine 上完成，整轮保持同一引擎。先执行 `hostname`、`uname -s`、`docker context show`、`docker info` 和 `docker compose version`，确认客户端所在机器、实际 Linux 引擎与平台。Mac 使用本机源码；通过 SSH 到 Debian 时，须先将源码交付到部署主机，Mac 目录不会自动成为远端构建上下文。下面以 `docker` 表示调用，Mac 不加 sudo；Debian 沿用正文的管理员调用方式。Docker 管理权限可以控制宿主，不能把它当成普通应用账户权限。
+
+图形操作见[第 72 章正文](https://github.com/SamChowRock/EPP-Book/blob/main/part-09-deployment/chapter-72-container-image/chapter.md)：在 Desktop 的 Containers 中读 Logs、查看 Inspect、Start 和 Stop，在 Builds 中查看构建步骤。正文另外安排可写层寿命、只读根与 tmpfs 属主的对照；本节使用 `--rm` 的临时检查退出后不留容器，要观察保留的日志和状态时按正文的命名容器步骤执行。
+
+第 3、4 节接入真实业务，沿用第 73 章的 Debian 部署端网络、文件权限与数据通路。若镜像先在 Mac 构建，应先按正文 72.6 交付适合目标架构的已验镜像，并在目标端重新检查，再接入原有服务。
 
 ## 1. 源码、平台与构建输入
 
