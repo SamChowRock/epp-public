@@ -31,6 +31,6 @@ env -u DATABASE_URL node --env-file=.env.perf examples/performance/service.mjs e
 
 [plan.sql](plan.sql) 在一个 SQL 编辑器内顺序执行，用临时表生成 4 万条记录，保存建索引前后实际计划，末尾回滚。若中途报错，在同一连接先 ROLLBACK。该实验不更改业务索引。[mail.sql](mail.sql) 只读当前库的邮件领取时刻与通道，不需要邮箱或令牌。要制造一笔到期任务，在同一专用库单开正常 API 和本机 Mailpit，暂不启动邮件 Worker；用集合 01 向新的虚构邮箱申请注册，在数据库按该收件人找本轮消息 ID，检查队列后用第 53 章的单笔命令发往本机 SMTP，再查一次。试完关闭本轮 API、Mailpit 和 SQL 连接，原始 profile、日志及快照留在本机临时目录。
 
-## 66A：迟到的回填
+## 65A：迟到的回填
 
 运行 `node examples/performance/cache-race.mjs`，两次都让读请求先取得旧页，等写请求提交并删除缓存后，再恢复读请求的回填。比较普通键与版本键的下一次读取；无需数据库。

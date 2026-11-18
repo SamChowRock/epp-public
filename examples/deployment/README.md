@@ -28,3 +28,5 @@ run_with_api_config "$release/dist/src/account-admin.js" "$db" receipt "$user_id
 若 Mac 本身需要在关闭终端后继续服务，按支线准备同级的 release、config、work、logs，并给邮件和通知分别准备 0600 的 mail.env 和 notifications.env。通知仅需生产模式、数据库连接和池上限。邮件还需确认 Mailpit 的 SMTP 端口和通道可投递。
 
 在配套根目录使用选定的 Node 执行 `node examples/deployment/launch-agents.mjs "$deploy" "$db"`。生成器在新建的 agents 目录写入三份 plist，路径与参数可用 plutil 检查，密码仍在各自的配置文件中。用 `launchctl bootstrap "gui/$(id -u)" "$deploy/agents/local.epp.ch57.api.plist"` 加载 API，另两份替换文件名；在先前登记的任务上直接检查状态。API 和通知异常退出可重新启动；邮件需明确启动，投递结果未知时保留停发。结束练习时按实际标签逐一 bootout。三个任务在同一 Mac 账号下运行，第 70 章再拆分系统身份。[任务生成器](launch-agents.mjs)
+
+第66章的完整性迁移随原数据副本升级；运行身份仅新增案件 id/capture_id/state 三列的 SELECT。先迁移，再用更新后的 runtime-grants.sql 授权；不要授予扫描、修复依据读取或案件写权限。
