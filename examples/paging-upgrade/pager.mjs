@@ -7,20 +7,20 @@ export function validItem(item) {
 }
 export class Pager {
  constructor({limit=20}={}) { if(!Number.isInteger(limit)||limit<1||limit>100) throw Error('Invalid limit'); this.limit=limit; this.epoch=0; this.reset(null,''); }
- reset(owner,q) { this.epoch++; this.owner=owner; this.q=q; this.items=[]; this.pages=[]; this.cursor=null; this.done=false; this.requiresRestart=false; this.active=null; this.error=null; this.seenCursors=new Set(); }
+ reset(owner,q) { this.epoch++; this.owner=owner; this.q=q; this.items=[]; this.pages=[]; this.complete=true; this.cursor=null; this.done=false; this.requiresRestart=false; this.active=null; this.error=null; this.seenCursors=new Set(); }
  begin() { if(!this.owner||this.active||this.done||this.requiresRestart) return null; const ticket=Object.freeze({epoch:this.epoch,cursor:this.cursor}); this.active=ticket; this.error=null; return ticket; }
  current(ticket) { return this.active===ticket && ticket.epoch===this.epoch; }
  fail(ticket) { if(!this.current(ticket)) return false; this.active=null; this.error='failed'; return true; }
  invalidate(ticket) { if(!this.current(ticket))return false; this.reset(this.owner,this.q); this.requiresRestart=true; this.error='invalid-cursor'; return true; }
  accept(ticket,result) {
   if(!this.current(ticket)) return false;
-  if(!result||!Array.isArray(result.items)||result.limit!==this.limit||typeof result.hasMore!=='boolean'
+  if(!result||(result.complete!==undefined&&typeof result.complete!=='boolean')||!Array.isArray(result.items)||result.limit!==this.limit||typeof result.hasMore!=='boolean'
    ||result.items.length>this.limit||!result.items.every(validItem)
    ||(result.hasMore ? typeof result.nextCursor!=='string'||!result.nextCursor||result.nextCursor.length>2048||this.seenCursors.has(result.nextCursor)||result.items.length!==this.limit : result.nextCursor!==null)) throw Error('Invalid page');
   const ids=new Set(this.items.map(item=>item.id));
   for(const item of result.items) { if(ids.has(item.id)) throw Error('Duplicate ID'); ids.add(item.id); }
   // Mutate only after every field and every ID has passed validation.
-  this.items=[...this.items,...result.items]; this.pages=[...this.pages,{count:result.items.length,ids:result.items.map(i=>i.id)}];
+  this.complete=this.complete&&result.complete!==false; this.items=[...this.items,...result.items]; this.pages=[...this.pages,{count:result.items.length,ids:result.items.map(i=>i.id)}];
   if(result.nextCursor!==null)this.seenCursors.add(result.nextCursor);
   this.cursor=result.nextCursor; this.done=!result.hasMore; this.active=null; this.error=null; return true;
  }

@@ -163,7 +163,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -260,7 +260,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -373,7 +373,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -482,7 +482,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -640,7 +640,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -778,7 +778,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -968,7 +968,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1288,7 +1288,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1898,7 +1898,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2029,7 +2029,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2358,7 +2358,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2521,7 +2521,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2702,7 +2702,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2859,7 +2859,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3009,7 +3009,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3181,7 +3181,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3338,7 +3338,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3616,7 +3616,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3849,7 +3849,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -4109,7 +4109,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -4342,7 +4342,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -4639,7 +4639,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -5237,7 +5237,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -5268,7 +5268,7 @@
       "get": {
         "operationId": "listCapturePage",
         "summary": "Read one page of matching captures",
-        "description": "Latest revision originalText, case-sensitive literal q with whitespace preserved. Filter before limit; immutable capture createdAt then UUID ascending. Default limit 20, maximum 100. Unknown and repeated query keys rejected. nextCursor always appears and is null at the end. Signed capture-list/v1 cursors bind user, sort, q and effective limit, expire 30 minutes after the first page, and cannot cross resources. Invalid or expired cursors return 400 INVALID_CURSOR; restart explicitly. Reads live data, not a snapshot. Ownership is checked on every page. Legacy GET /captures retains its unbounded default.",
+        "description": "Latest revision originalText, case-sensitive literal q with whitespace preserved. Filter before limit; immutable capture createdAt then UUID ascending. Default limit 20, maximum 100. Unknown and repeated query keys rejected. nextCursor always appears and is null at the end. Signed capture-list/v1 cursors bind user, sort, q and effective limit, expire 30 minutes after the first page, and cannot cross resources. Invalid or expired cursors return 400 INVALID_CURSOR; restart explicitly. Reads live data, not a snapshot. Ownership is checked on every page. complete=false means this owner has missing or quarantined capture data, including records whose missing content cannot be evaluated against q. Items contain only readable captures; hasMore and nextCursor describe those items. Each page uses one database snapshot for completeness and items, but the traversal remains live. Legacy GET /captures retains its unbounded default and returns 503 CAPTURE_DATA_UNAVAILABLE instead of a partial list.",
         "parameters": [
           {
             "name": "If-None-Match",
@@ -5466,7 +5466,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -5686,7 +5686,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -6004,7 +6004,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -6255,7 +6255,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -6572,7 +6572,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -6875,7 +6875,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -7106,7 +7106,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -7307,7 +7307,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -7521,7 +7521,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -7710,7 +7710,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -7899,7 +7899,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -8088,7 +8088,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -8270,7 +8270,7 @@
             }
           },
           "503": {
-            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
+            "description": "Draining, temporary storage or platform failure; code SERVICE_DRAINING, STORAGE_UNAVAILABLE, MINI_NOT_CONFIGURED or PLATFORM_UNAVAILABLE. Capture reads and writes additionally return CAPTURE_DATA_UNAVAILABLE when owned capture history is missing or quarantined; no private maintenance reason is returned. Legacy capture lists reject partial data with that code; the paginated route reports complete=false with readable items. Idempotent capture replays also recheck current data availability. Password entry, mini link and recovery routes additionally return AUTH_RATE_UNAVAILABLE when shared quota storage fails; no password work starts, but an unknown commit may have consumed a slot. Failed writes may have an unknown outcome; do not blindly retry writes, including revision POST and PATCH; retries can append duplicate snapshots. With Idempotency-Key, keep the original key and input after bounded backoff.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -10182,6 +10182,9 @@
       "CapturePage": {
         "type": "object",
         "properties": {
+          "complete": {
+            "type": "boolean"
+          },
           "items": {
             "maxItems": 100,
             "type": "array",
@@ -10233,6 +10236,7 @@
           }
         },
         "required": [
+          "complete",
           "items",
           "limit",
           "hasMore",
