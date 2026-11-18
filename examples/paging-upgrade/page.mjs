@@ -18,8 +18,8 @@ function render(){
  $('next').textContent=model.requiresRestart?'请从第一页重新开始':model.error?'重试同一页':model.done?'已到末页':model.pages.length?'读取下一页':'读取第一页';
  $('legacy-count').textContent=legacy===null?'尚未读取':`旧列表返回 ${legacy.length} 条${config.legacyCap?'（隔离截断模拟）':''}`;
  $('legacy-ids').textContent=legacy?.map(i=>i.id).join('\n')??'';
- $('progress').textContent=`已接受 ${model.pages.length} 页，累计 ${model.items.length} 条`;
- $('cursor-state').textContent=model.done?'nextCursor = null；已完成。':model.cursor?'下一次请求保留已接受响应给出的游标。':'下一次请求不带游标。';
+ $('progress').textContent=`已接受 ${model.pages.length} 页，累计 ${model.items.length} 条${model.complete?'':'；存在不可用素材，当前清单不完整'}`;
+ $('cursor-state').textContent=model.done?'nextCursor = null；可读取条目已到末页。':model.cursor?'下一次请求保留已接受响应给出的游标。':'下一次请求不带游标。';
  $('pages').replaceChildren(...model.pages.map((page,i)=>{const d=document.createElement('details');const s=document.createElement('summary');s.textContent=`第 ${i+1} 页：接受 ${page.count} 条`;const p=document.createElement('pre');p.textContent=page.ids.join('\n');d.append(s,p);return d;}));
  $('accepted-ids').textContent=model.items.map(i=>i.id).join('\n');
  $('comparison').textContent=legacy===null||!model.done?'两套读取都完成后比较。':sameIds(legacy,model.items)?`有序 ID 逐项相同，共 ${legacy.length} 条。`:`有序 ID 不相同：旧 ${legacy.length} 条，新 ${model.items.length} 条。请核对模拟开关和读取期间的数据变化。`;
@@ -61,7 +61,7 @@ $('next').onclick=async()=>{
  if(model.active||!await checkedRead())return;
  const ticket=model.begin();if(!ticket)return;render();
  const params=new URLSearchParams({limit:String(model.limit)});if(model.q!=='')params.set('q',model.q);if(ticket.cursor!==null)params.set('cursor',ticket.cursor);
- try{await readForOwner({owner,sessionId:config.sessionMode?identity?.sessionId:null,path:'/captures/page?'+params,request,identify:async()=>await verify()?owner:null,isCurrent:()=>model.current(ticket),clearIdentity:forget,accept:result=>{if(model.accept(ticket,result))$('status').textContent='本页完整通过校验，现已推进游标。';}});}
+ try{await readForOwner({owner,sessionId:config.sessionMode?identity?.sessionId:null,path:'/captures/page?'+params,request,identify:async()=>await verify()?owner:null,isCurrent:()=>model.current(ticket),clearIdentity:forget,accept:result=>{if(model.accept(ticket,result))$('status').textContent=!model.complete?'当前账号有不可用素材；这里只展示可读取的部分，不能当作完整清单。':'本页通过校验，现已推进游标。';}});}
  catch(e){if(model.current(ticket)){if(e.status===400){model.invalidate(ticket);legacy=null;legacyTicket=null;$('status').textContent='请求或游标失效（400），两套结果已清空。请点击“从第一页重新开始”。';}else if(e.status===401||e.status===403){forget();$('status').textContent='会话或权限校验失败，旧结果已清空，请重新确认身份。';}else{model.fail(ticket);$('status').textContent=`本页未接受：${e.message}。累计结果与请求游标保留，可重试同一页。`;}}}
  render();
 };

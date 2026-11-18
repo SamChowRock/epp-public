@@ -54,7 +54,7 @@ test('capture pages preserve old all-results semantics, latest matching, ties an
       expires ??= payload.expires; assert.equal(payload.expires, expires); }
   } while (cursor);
   assert.deepEqual(seen, expected); assert.equal(seen.length, 101);
-  assert.deepEqual((await req('/captures/page?q=absent-' + marker)).body, { items: [], limit: 20, hasMore: false, nextCursor: null });
+  assert.deepEqual((await req('/captures/page?q=absent-' + marker)).body, { complete: true, items: [], limit: 20, hasMore: false, nextCursor: null });
   assert.equal((await req('/captures/page?' + new URLSearchParams({ q: marker + ' 100', limit: '1' }))).body.nextCursor, null);
   for (const suffix of ['limit=0', 'limit=01', 'limit=101', 'unknown=x', 'q=a&q=b', 'limit=1&limit=1', 'cursor=', 'cursor=' + 'x'.repeat(2049)])
     assert.equal((await req('/captures/page?' + suffix)).status, 400, suffix);

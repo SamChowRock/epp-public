@@ -3,7 +3,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from './generated/prisma/client.js';
 import type { DatabaseConfig } from './database-config.js';
 import { AppLogger } from './app-logger.js';
-import { databaseFailure, StorageFailureError, StorageUnavailableError } from './database-errors.js';
+import { CaptureDataUnavailableError, databaseFailure, StorageFailureError, StorageUnavailableError } from './database-errors.js';
 
 export class DatabaseService {
   readonly pool: pg.Pool;
@@ -107,8 +107,17 @@ export class DatabaseService {
           code: 'EXPRESSION_CONSTRAINT_MISSING',
         });
       await this.client.$queryRaw`SELECT public.epp_identity_v1('ready', 'ready')`;
-      const missing = await this.client.capture.findFirst({ where: { revisions: { none: {} } }, select: { id: true } });
-      if (missing) throw new StorageFailureError();
+      // Probe the API's isolation metadata access; individual bad rows are handled by reads.
+      await this.client.$queryRaw`SELECT id, capture_id, state FROM public.capture_integrity_cases LIMIT 0`;
+      const ownership = await this.client.$queryRaw<{ convalidated: boolean }[]>`
+        SELECT convalidated FROM pg_constraint
+        WHERE conrelid = 'public.captures'::regclass AND conname = 'captures_user_id_fkey'
+          AND contype = 'f' AND confrelid = 'public.users'::regclass
+          AND conkey = ARRAY[(SELECT attnum FROM pg_attribute
+            WHERE attrelid='public.captures'::regclass AND attname='user_id' AND NOT attisdropped)]::smallint[]
+          AND confkey = ARRAY[(SELECT attnum FROM pg_attribute
+            WHERE attrelid='public.users'::regclass AND attname='id' AND NOT attisdropped)]::smallint[]`;
+      if (ownership.length !== 1 || !ownership[0]?.convalidated) throw new StorageFailureError();
       this.logger.write('info', 'database.ready');
     } catch (error) {
       this.logger.write('error', 'database.start_failed', { code: databaseFailure(error).code });
@@ -120,6 +129,7 @@ export class DatabaseService {
   async run<T>(operation: string, work: () => Promise<T>): Promise<T> {
     try { return await work(); }
     catch (error) {
+      if (error instanceof CaptureDataUnavailableError) throw error;
       const failure = databaseFailure(error);
       this.logger.write('error', 'database.failed', { operation, code: failure.code,
         total: this.pool.totalCount, idle: this.pool.idleCount, waiting: this.pool.waitingCount });
