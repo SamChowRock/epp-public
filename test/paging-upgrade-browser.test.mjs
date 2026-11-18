@@ -119,3 +119,11 @@ test('actual page starts a fresh identity check after blur/focus and ignores old
   for(const [key,value] of Object.entries(saved)) {if(value===undefined)delete globalThis[key];else globalThis[key]=value;}
  }
 });
+test('incomplete traversal remains marked after later complete pages until restart',()=>{
+ const p=new Pager({limit:2});p.reset('owner','');
+ p.accept(p.begin(),{...page([item(1),item(2)],'next'),complete:false});
+ p.accept(p.begin(),{...page([item(3)]),complete:true});
+ assert.equal(p.complete,false);assert.equal(p.done,true);
+ p.reset('owner','');assert.equal(p.complete,true);
+ assert.throws(()=>p.accept(p.begin(),{...page([]),complete:'false'}));assert.deepEqual(p.items,[]);
+});

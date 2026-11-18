@@ -14,6 +14,10 @@
 
 按[目标环境与 Mac 托管说明](examples/deployment/README.md)取得授权和可选宿主脚本。第 69 章直接接手第 68 章验过的产物；第 70 章在 Debian 建立最终服务身份与托管。
 
+## 第六十六章　一条历史坏记录应该让多少服务停下来
+
+按[本章说明](database/chapter-66/README.md)分批巡检缺修订记录、逐项隔离，并按可信备份恢复原历史；分页显式返回完整性，健康业务继续服务。
+
 ## 第六十五章　调试性能与资源问题
 
 按[本章实验](examples/performance/README.md)对照两次慢登录，采集 CPU 与堆快照，在请求结束前区分连接池排队和数据库等锁，再用受限并发验证判断。
@@ -806,4 +810,3 @@ PORT=3008 LOG_LEVEL=debug npm run dev
 目录已存在时保留原进度，另选新目录；先停另一份dev，Inspector仍为9229。请求使用本章 `requests/review.postman_collection.json`（在 `part-02/chapter-15`），baseUrl设为3008。1200单元通过、1201拒绝；失败前后核对数量，重启清空内存。review-contract验证两种存储的1500单元旧记录读取、副本隔离、Service直接拒绝及先筛选后limit。独立示例不与HTTP共享数据。
 
 按正文继续故障与生产产物核查；生产目标3009，npm start不加载开发.env。完成后停止参考进程，回到个人原目录。第三篇仍沿正式 `part-02/chapter-15` 接续，不把数组与1200输入练习传播到后续。
-

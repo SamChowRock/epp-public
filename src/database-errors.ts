@@ -1,3 +1,6 @@
+export class CaptureDataUnavailableError extends Error {
+  constructor() { super('Capture data is incomplete or under maintenance'); }
+}
 export class StorageUnavailableError extends Error {
   constructor() { super('Storage is temporarily unavailable; write outcome may be unknown'); }
 }
