@@ -82,7 +82,8 @@
 | 72 | 可验证的 Linux 应用镜像 | `git switch part-09/chapter-73` |
 | 73、74 | Compose 应用编排、既有数据通路与运行观测 | `git switch part-09/chapter-74` |
 | 75 | 原生与容器定时维护 | `git switch part-10/chapter-76` |
-| 76 | 原生与容器凭据轮换 | `git switch part-10/chapter-77` |
+| 76、77 | 凭据轮换与备份恢复 | `git switch part-10/chapter-77` |
+| 78 | 独立发布副本、新旧客户端与两次回退 | `git switch part-09/chapter-78` |
 
 
 ## 独立练习源码参考
