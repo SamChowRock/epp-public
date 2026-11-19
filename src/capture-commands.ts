@@ -1,3 +1,4 @@
+import { missingRequiredIntent } from './capture-intent-policy.js';
 import { createHash, randomUUID } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
 import { Prisma } from './generated/prisma/client.js';
@@ -78,6 +79,7 @@ export class CaptureCommands {
               if ((target === null ? response.id : (response as CaptureRevision).captureId) !== captureId) throw new StorageFailureError();
               return response;
             }
+            if (missingRequiredIntent(content.chineseIntent)) return 'intent-required' as const;
             let response: Capture | CaptureRevision;
             if (target === null) {
               const now = new Date();
@@ -119,6 +121,7 @@ export class CaptureCommands {
         }
       }
     }));
+    if (result === 'intent-required') throw new InvalidCaptureError('A new revision requires chineseIntent');
     if (result === 'missing') throw new CaptureNotFoundError('Capture not found');
     if (result === 'operation-conflict') throw new OperationConflictError('Operation identity was already used for another request');
     if (result === 'revision-conflict') throw new RevisionConflictError();

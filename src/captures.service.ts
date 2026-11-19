@@ -1,3 +1,4 @@
+import { missingRequiredIntent } from './capture-intent-policy.js';
 import { AppendRevisionSchema } from './capture-contract.js';
 import type { CaptureRevision, RevisionPage } from './capture-revision.js';
 import { isPostgresText } from './postgres-text.js';
@@ -12,6 +13,7 @@ export class CapturesService {
   constructor(private readonly store: CaptureStore) {}
 
   private validateIntent(value: unknown): asserts value is string | null {
+    if (missingRequiredIntent(value)) throw new InvalidCaptureError('A new revision requires chineseIntent');
     if (value === null) return;
     if (typeof value !== 'string' || !value.trim() ||
         value.length > 2000 || !isPostgresText(value)) {
@@ -62,6 +64,7 @@ export class CapturesService {
   async appendRevision(id: string, input: unknown): Promise<CaptureRevision> {
     const parsed = AppendRevisionSchema.safeParse(input);
     if (!parsed.success) throw new InvalidCaptureError('Invalid revision content');
+    this.validateIntent(parsed.data.chineseIntent);
     const content = { ...parsed.data, inputSource: 'manual' as const, chunks: parsed.data.chunks ?? null };
     const revision = await this.store.appendRevision(id, content);
     if (!revision) throw new CaptureNotFoundError('Capture not found');

@@ -1,5 +1,7 @@
 # EPP 配套实践代码
 
+第 78 章的独立发布副本从 `part-10/chapter-77`（A）接续到 `part-09/chapter-78`（B）。按[发布、迁移与两轮回退](examples/compatible-release/README.md)准备真实客户请求、恢复材料和迁移身份，保持日常库的可空契约。
+
 已继承[第61章的只读头像核对](database/chapter-61-reconcile/README.md)：独立分页取得数据库与桶清单，保留完整性、时间与当前引用证据；观察工具不修改或删除业务数据。
 
 已继承[第50章统一登录与邮件队列](database/chapter-50-login-outbox/README.md)：Web Cookie与小程序Bearer按渠道独立验证，保留原注册、恢复和邮件队列入口。

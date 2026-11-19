@@ -32,6 +32,7 @@ function reset() {
   el('avatar').removeAttribute('src');
   el('avatar').hidden = true;
   el('capture').value = '';
+  el('intent').value = '';
   el('file').value = '';
   el('items').replaceChildren();
   for (const id of ['session', 'material', 'photo', 'stream', 'inbox']) el(id).textContent = '';
@@ -92,7 +93,9 @@ el('login').onsubmit = async event => {
 
 action('create', 'material', async active => {
   const marker = 'handoff-' + crypto.randomUUID();
-  const item = await api('/captures', 'POST', { originalText: marker });
+  const chineseIntent = el('intent').value;
+  if (!chineseIntent.trim()) throw new Error('请填写本次素材的中文意图。');
+  const item = await api('/captures', 'POST', { originalText: marker, chineseIntent });
   if (active !== generation) return;
   el('capture').value = item.id;
   el('material').textContent = '已创建 ' + item.id + ' · ' + marker;
@@ -102,7 +105,7 @@ action('read', 'material', async active => {
   const id = el('capture').value.trim();
   if (!id) throw new Error('请先填写素材 ID。');
   const item = await api('/captures/' + encodeURIComponent(id));
-  if (active === generation) el('material').textContent = '已读回 ' + item.id + ' · ' + item.originalText;
+  if (active === generation) el('material').textContent = '已读回 ' + item.id + ' · ' + item.originalText + ' · 中文意图：' + (item.chineseIntent ?? '尚未填写');
 });
 
 async function openAvatar(active, expected) {

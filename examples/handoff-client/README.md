@@ -14,3 +14,5 @@ scp examples/handoff-client/index.html examples/handoff-client/client.js epp-lab
 部署者可在使用端浏览器的 Network 中检查 /handoff/ 返回 200、Content-Type 为 text/html；同目录 client.js 返回 200 并使用 JavaScript 类型。HTML 的 CSP 允许同源脚本、同源连接和 https://api.epp.test:9443 的图片。若页面按钮一直不可用，先看脚本的状态、类型，以及 Console 中的 CSP 错误，再核对 71.3 的两条精确路径和代理默认路径。
 
 使用端浏览器打开 **https://api.epp.test:8443/handoff/**。以已有 Web 资格的练习账号登录，创建并按 ID 读回本轮素材，打开当前头像。另选一张不超过 2 MiB 的 PNG 或 JPEG，发布后核对新头像 ID 与解码宽高。订阅通知后，页面收到 inbox 事件会重新查最近 20 条；“刷新收件箱”也会显示 ID、类型及时间。展开“重置练习账号密码”，填写本账号邮箱并点“申请重置邮件”。在私有收件箱找到对应的新信，把令牌和新密码填回页面，点“确认重置密码”。在旧会话点“刷新收件箱”应见 401 AUTH_REQUIRED。使用同一用户 ID 和新密码重新登录并重新订阅，核对提示后查询和手动刷新显示同一个 password-reset 通知 ID。点“登出”结束当前会话。
+
+第 78 章发布副本使用本版网页创建素材时，先填中文意图。读回旧素材时，历史空值显示为“尚未填写”。
