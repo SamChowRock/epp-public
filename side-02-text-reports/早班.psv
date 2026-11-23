@@ -1,0 +1,4 @@
+R101|1|east|200|/ping
+R102|1|west|404|/clip.v1
+R103|2|east|200|/clipXv1
+R104|1|east|404|/clip.v1
