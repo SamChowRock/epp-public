@@ -9,3 +9,5 @@
 5. `npm run check` 后，用指向独立 VERIFY 的 `.env.test` 运行 `npm test`。开发 API 的 DATABASE_URL 也应单独核对。用正文 35.4 的命令从 .env.test 显式取出连接串，覆盖本次开发进程的 DATABASE_URL 并开启查询事件，Postman 新开两个 GET，路径分别为 `/learning-records?limit=1` 与 `/learning-records?limit=3`，按响应 X-Request-Id 数查询事件。沿用[上一章集合](../../requests/chapter-29.postman_collection.json)中的首页、续页和详情时，保留操作身份，只选择需要的读取请求。
 6. VS Code 附加开发进程，在 database.service.ts 的 query 回调观察只包含表名、排序、LIMIT 的表达式，取消断点后重新计时。另运行 `node --env-file=.env.test database/chapter-30/04-pool.mjs` 观察[单连接池](04-pool.mjs)由等待 1 回到 0。
 7. 交付目录复制 dist、package.json、package-lock.json、.npmrc，执行 `npm ci --omit=dev`，由进程环境提供 DATABASE_URL 与持久 CURSOR_HMAC_KEY，运行 `NODE_ENV=production PORT=3001 node dist/src/server.js`。检查旧详情、星图、分页以及正常停止后用同一密钥续页。迁移在独立步骤完成；已有 API 回退后仍可使用增加索引的库。
+
+支线 35B 在 VERIFY 的一个空闲连接按段执行 [06-correlated-filters.sql](06-correlated-filters.sql)。先算四个实际计数，再对照三次扫描的估计与实际行数，最后 ROLLBACK 撤销本次临时表与统计对象。
