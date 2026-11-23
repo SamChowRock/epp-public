@@ -2,6 +2,8 @@
 
 从 `part-03/chapter-18` 继续，当前分支为 `part-03/chapter-19`。使用上一章已经存在的 public.users／public.captures、固定用户与两条记录，不重建、不重复 seed。本章不改表结构、Nest 主服务、依赖或生产入口；新增文件均为独立实验，database 目录不进入应用构建。
 
+10-window-ranking.sql 供支线 19B 使用。三条独立的只读查询分别比较名次、保留空用户的组内取前两项和累计窗口。
+
 ## DBeaver 操作入口
 
 连接第十七章的 `127.0.0.1:55432/epp_dev`，角色 epp_owner。先运行 `database/chapter-16/03-inspect-model.sql` 核对环境与原始数据。保持 Auto-commit、关闭 Smart commit，SQL Script 设置 No commit、Stop + rollback，启用查询结果抓取。脚本自己控制事务，不在事务中自动重连。
