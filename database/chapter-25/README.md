@@ -53,3 +53,5 @@ VS Code连接npm run dev，在PrismaCandidateStore.accept的catch入口、错误
 先迁移再启动。构建dist后将其与package.json、package-lock.json、.npmrc复制到独立目录，npm ci --omit=dev；运行环境提供DATABASE_URL，再npm start。不开Inspector和源码监听，不加载开发.env，docs默认404。按保存的revisionId核对已有accepted，重启后继续读取。
 
 503、连接断开或未收到响应时先读取候选和关联事实，不自动另建候选重发。pending快照也不证明原请求已经结束。第29章再建立命令身份与结果重放。锁不能代替权限条件；行锁、建议锁都不负责语义去重或跨服务原子性。
+
+支线 28B 使用独立的 [07-roster-snapshots.sql](07-roster-snapshots.sql)。在 VERIFY 的两个不同连接按标记交替运行，对照固定快照下两人都离岗与可串行化下有一方中止；结束两边事务后再清理本次的值班表。
