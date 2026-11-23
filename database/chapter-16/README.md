@@ -4,6 +4,8 @@
 
 新增 public.users 与 public.captures。用户 ID、记录 ID 使用 uuid；记录明确写入 user_id；原文使用 text，保留空格；创建时间使用 timestamptz(3)。数据库保证主键、非空、非空串与引用完整性，完整的 2000 个 UTF-16 单元及非全空白输入规则仍在业务边界；表结构本身不是完整的 API 输入校验，也不构成用户访问控制。
 
+07-revision-owner.sql 用两张素材的修订检验复合外键。仅在新编辑器中按支线 18B 分段操作，预期失败的 UPDATE 单独运行，然后在原会话恢复保存点并回滚。
+
 ## 首次建立，按步骤核对
 
 日常数据库操作默认使用 DBeaver Community。先按第十七章启动实例，在 DBeaver 连接 `EPP · DEV · 55432 · epp_dev`，选中数据源，通过 SQL Editor 新建编辑器。打开 `database/chapter-15/03-inspect.sql`，运行只读诊断；展开 Schemas → public → Tables 核对现状。
