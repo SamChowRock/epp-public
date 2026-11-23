@@ -2,6 +2,7 @@
 
 从下表选取正在跟做的章节。检出分支后，按该版本的 README 安装、启动和验证。迁移目录、集合与实验文件的名称沿用项目内的实际路径。
 
+- [第 1 章　第一次读懂 Unix Shell](https://github.com/SamChowRock/epp-public/tree/part-01/chapter-01)
 - [第 2 章　完成第一次 HTTP 往返](https://github.com/SamChowRock/epp-public/tree/part-01/chapter-02)
 - [第 3 章　可靠接收请求正文并保存原文](https://github.com/SamChowRock/epp-public/tree/part-01/chapter-03)
 - [第 4 章　Node.js 程序究竟运行在哪里](https://github.com/SamChowRock/epp-public/tree/part-01/chapter-04)
